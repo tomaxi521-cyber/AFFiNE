@@ -18,7 +18,7 @@ function BoardRow({id,root,depth,hasChildren,expanded,active,onToggle}: {id:stri
   return <li data-board-id={id}>
     <div className={styles.row} data-active={active} style={{paddingLeft:Math.min(depth,8)*14}}>
       {hasChildren?<button type="button" className={styles.toggle} aria-label={(expanded?'收起':'展开')+name} aria-expanded={expanded} onClick={onToggle}>{expanded?'▾':'▸'}</button>:<span style={{width:26,flexShrink:0}}/>}
-      <WorkbenchLink draggable={false} to={root?'/board':{pathname:'/'+id,search:'?mode=edgeless'}} className={styles.link} aria-current={active?'page':undefined} title={name} data-testid={root?'dikw-main-board':undefined}><EdgelessIcon width={18} height={18} style={{flexShrink:0}}/><span className={styles.label}>{name}</span></WorkbenchLink>
+      <WorkbenchLink draggable={false} to={root?'/board':'/'+id+'?mode=edgeless'} className={styles.link} aria-current={active?'page':undefined} title={name} data-testid={root?'dikw-main-board':undefined}><EdgelessIcon width={18} height={18} style={{flexShrink:0}}/><span className={styles.label}>{name}</span></WorkbenchLink>
     </div>
   </li>;
 }
