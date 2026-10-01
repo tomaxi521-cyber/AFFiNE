@@ -46,6 +46,7 @@ function snapshot(id: string, child?: string): DocSnapshot {
   };
 }
 class FakeStore {
+  history = { undoManager: { clear: vi.fn() } };
   readonly = false;
   spaceDoc = new Y.Doc();
   snapshot?: DocSnapshot;
@@ -133,6 +134,8 @@ describe('owned board tree copy orchestration', () => {
     expect(descendants).toHaveLength(1);
     expect(f.stores.get(root)!.snapshot!.blocks.children[0].children[0].props.pageId).toBe(descendants[0].docId);
     expect(hooks.portals).toEqual([root]);
+    expect(f.stores.get(root)!.history.undoManager.clear).toHaveBeenCalledOnce();
+    expect(f.stores.get('source')!.history.undoManager.clear).not.toHaveBeenCalled();
     expect(calls).toContain(root);
     expect(JSON.stringify([...f.stores].filter(([id]) => ['parent', 'source', 'child', 'external'].includes(id)).map(([id, s]) => [id, s.snapshot]))).toBe(before);
     expect(f.release).toHaveBeenCalledTimes(f.docs.open.mock.calls.length);
@@ -146,6 +149,7 @@ describe('owned board tree copy orchestration', () => {
       copyBoardTree(f.deps, 'source', 'parent', 'same'),
     ]);
     expect(result[0]).toBe(result[1]);
+    expect(f.stores.get(result[0])!.history.undoManager.clear).toHaveBeenCalledOnce();
     expect(f.docs.createDoc).toHaveBeenCalledTimes(2);
     expect(hooks.importCount).toBe(2);
     expect(hooks.portals).toHaveLength(1);

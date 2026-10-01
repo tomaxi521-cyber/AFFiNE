@@ -318,6 +318,9 @@ export async function copyBoardTree(
               // Transformer may swallow/filter failures and still return a model.
               assertCopySnapshotEqual(node.snapshot, exportExact(transformer, store));
               deps.docs.list.doc$(node.docId).value!.setMeta({ title: node.snapshot.meta.title });
+              // Native initialization is a baseline, never a user undo step.
+              // Do not clear history on recovery or previously saved copies.
+              store.history.undoManager.clear();
             } else {
               // A crash after insertion but before checkpoint is safe ONLY on exact match.
               assertCopySnapshotEqual(node.snapshot, exportExact(transformer, store));

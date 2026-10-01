@@ -7,16 +7,18 @@ import { DocsService } from '../doc';
 import { GuardService } from '../permissions';
 import { WorkspaceService } from '../workspace';
 import { WorkspaceServerService } from '../cloud';
+import { ViewService } from '../workbench';
 import { useLiveData, useService } from '@toeverything/infra';
 import { nanoid } from 'nanoid';
 import { useEffect, useRef, useState } from 'react';
-import { DikwWorkbenchService, type BoardPlacement } from './service';
+import { DikwWorkbenchService, DikwChildCreationError, type BoardPlacement } from './service';
 import { copyBoardTree, DikwBoardCopyError } from './board-copy';
 import { useReadableDocIds } from './connected-navigation';
 import * as styles from './canvas-tool-panel.css';
 
-type Attempt = { id: string; source?: string; placement: BoardPlacement };
+type Attempt = { id: string; source?: string; docId?: string; placement: BoardPlacement };
 export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEditorContainer | null; docId:string; readonly:boolean}) {
+ const view=useService(ViewService).view;
  const service=useService(DikwWorkbenchService); const docs=useService(DocsService);
  const workspace=useService(WorkspaceService).workspace; const guard=useService(GuardService);
  const serverId=useService(WorkspaceServerService).server?.id;
@@ -42,6 +44,11 @@ export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEdit
      if(mounted.current){setPending(null);setNotice(a.source?'独立副本已放到画布，双击进入。':'白板已放到画布，双击进入并修改名称。');setOpen(true);}
      return id;
    }catch(e){
+     if(e instanceof DikwChildCreationError || e instanceof DikwBoardCopyError){
+       const recovery={...a,docId:e.docId};pendingRef.current=recovery;
+       try{localStorage.setItem(journalKey,JSON.stringify(recovery));}catch{/* original operation ID is already durable */}
+       if(mounted.current)setPending(recovery);
+     }
      // Copy preflight errors occur before any native create; allow another source.
      if(a.source && !retrying && !(e instanceof DikwBoardCopyError)){localStorage.removeItem(journalKey);pendingRef.current=null;if(mounted.current)setPending(null);}
      if(mounted.current){setError(e instanceof Error?e.message:'放置失败，请重试原操作。');setOpen(true);}}
@@ -78,7 +85,9 @@ export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEdit
   {!writable&&<p className={styles.hint}>当前没有创建和编辑白板的权限。</p>}
   {busy&&<p role="status">正在创建并保存，请稍候…</p>}
   {error&&<p role="alert">{error}</p>}
-  {pending&&!busy&&<><p className={styles.hint}>操作编号：{pending.id}</p><button className={styles.button} disabled={!writable} onClick={()=>void run(pending)}>重试原放置操作</button></>}
+  {pending&&!busy&&<><p className={styles.hint}>操作编号：{pending.id}</p><button className={styles.button} disabled={!writable} onClick={()=>void run(pending)}>重试原放置操作</button>
+  {pending.docId&&readable.has(pending.docId)&&<button className={styles.button} onClick={()=>void (async()=>{const id=pending.docId!;if(await guard.can('Doc_Read',id)===true&&docs.list.doc$(id).value?.trash$.value===false&&mounted.current)view.history.push({pathname:'/'+id,search:'?mode=edgeless'});})()}>查看已创建白板</button>}
+  <p className={styles.hint}>若提示部分内容待恢复，请保留操作编号；不会重新初始化或删除已有内容。</p></>}
   {notice&&<p role="status">{notice}</p>}
  </section>;
 }
