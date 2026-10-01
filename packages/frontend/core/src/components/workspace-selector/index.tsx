@@ -167,14 +167,14 @@ export const WorkspaceNavigator = ({
       if (document.startViewTransition) {
         document.startViewTransition(() => {
           closeInactiveViews();
-          jumpToPage(workspaceMetadata.id, 'all');
+          jumpToPage(workspaceMetadata.id, 'board');
           return new Promise(resolve =>
             setTimeout(resolve, 150)
           ); /* start transition after 150ms */
         });
       } else {
         closeInactiveViews();
-        jumpToPage(workspaceMetadata.id, 'all');
+        jumpToPage(workspaceMetadata.id, 'board');
       }
     },
     [jumpToPage, onSelectWorkspace, workbench]
@@ -184,21 +184,13 @@ export const WorkspaceNavigator = ({
       onCreatedWorkspace?.(payload);
       if (document.startViewTransition) {
         document.startViewTransition(() => {
-          if (payload.defaultDocId) {
-            jumpToPage(payload.metadata.id, payload.defaultDocId);
-          } else {
-            jumpToPage(payload.metadata.id, 'all');
-          }
+          jumpToPage(payload.metadata.id, 'board');
           return new Promise(resolve =>
             setTimeout(resolve, 150)
           ); /* start transition after 150ms */
         });
       } else {
-        if (payload.defaultDocId) {
-          jumpToPage(payload.metadata.id, payload.defaultDocId);
-        } else {
-          jumpToPage(payload.metadata.id, 'all');
-        }
+        jumpToPage(payload.metadata.id, 'board');
       }
     },
     [jumpToPage, onCreatedWorkspace]

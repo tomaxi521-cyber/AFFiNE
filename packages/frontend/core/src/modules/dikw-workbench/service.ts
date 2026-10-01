@@ -217,7 +217,9 @@ export class DikwWorkbenchService extends Service {
         }
       }
       try {
-        this.workspace.docCollection.getDoc(docId)?.load();
+        const nativeDoc = this.workspace.docCollection.getDoc(docId);
+        if (!nativeDoc) throw new Error('子白板记录尚未恢复，请稍后重试原操作');
+        nativeDoc.load();
         await this.workspace.engine.doc.waitForDocLoaded(docId);
         await this.workspace.engine.doc.waitForUpdated(docId);
         saveOperation('created');

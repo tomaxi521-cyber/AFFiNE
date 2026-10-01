@@ -6,6 +6,7 @@ import { GuardService } from '@affine/core/modules/permissions';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { useLiveData, useService } from '@toeverything/infra';
+import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -58,8 +59,9 @@ function ContentRow({ record, destination, repository }: {
             throw new Error('文档已删除、不可读取或无更改权限');
           }
           repository.assign(record.id, destination);
+          await workspace.engine.doc.waitForUpdated(workspace.id);
         } catch {
-          if (mounted.current) setError('未更改归属：文档已删除、权限不足或元数据需恢复。');
+          if (mounted.current) setError('归属更改未确认：请检查权限、元数据及保存状态。');
         } finally {
           locked.current = false;
           if (mounted.current) setBusy(false);
@@ -120,14 +122,20 @@ function LibraryContent({ kind }: { kind: ContentKind }) {
         if (workspace.openOptions.isSharedMode || await guard.can('Workspace_CreateDoc') !== true || workspace.openOptions.isSharedMode || !mounted.current) {
           throw new Error('Permission denied');
         }
-        const record = docs.createDoc({ title: name, primaryMode: 'page' });
-        createdId = record.id;
-        repository.assign(record.id, kind);
-        if (mounted.current) { setTitle(''); setPartialId(null); workbench.openDoc(record.id); }
+        // Native createDoc mutates before it returns and may throw afterwards.
+        // Keep the random identity even for an ambiguous partial failure.
+        createdId = nanoid();
+        const record = docs.createDoc({ id: createdId, title: name, primaryMode: 'page' });
+        if (record.id !== createdId) throw new Error('创建中间件改变了文档标识');
+        await workspace.engine.doc.waitForDocLoaded(createdId);
+        await workspace.engine.doc.waitForUpdated(createdId);
+        repository.assign(createdId, kind);
+        await workspace.engine.doc.waitForUpdated(workspace.id);
+        if (mounted.current) { setTitle(''); setPartialId(null); workbench.openDoc(createdId); }
       } catch {
         if (mounted.current) {
           if (createdId) setPartialId(createdId);
-          setError(createdId ? '文档已创建，但后续步骤未完成。请查看已有文档或在下方显式归档，不要重复创建。' : '创建未完成，请检查权限与同步状态。原输入已保留。');
+          setError(createdId ? '文档创建或保存状态待确认。请查看已有文档或在下方显式归档，不要重复创建。' : '创建未完成，请检查权限与同步状态。原输入已保留。');
         }
       } finally { submitting.current = false; if (mounted.current) setBusy(false); }
     }} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

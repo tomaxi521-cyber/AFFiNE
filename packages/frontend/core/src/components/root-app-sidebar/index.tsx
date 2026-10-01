@@ -227,17 +227,6 @@ export const RootAppSidebar = memo((): ReactElement => {
           <AddPageButton />
         </div>
         <BoardLibraryEntries />
-        {sessionStatus === 'authenticated' && <NotificationButton />}
-        <AIChatButton />
-        <MenuItem
-          data-testid="slider-bar-workspace-setting-button"
-          icon={<SettingsIcon />}
-          onClick={onOpenSettingModal}
-        >
-          <span data-testid="settings-modal-trigger">
-            {t['com.affine.settingSidebar.title']()}
-          </span>
-        </MenuItem>
       </SidebarContainer>
       <SidebarScrollableContainer>
         <NavigationPanelFavorites />
@@ -253,6 +242,18 @@ export const RootAppSidebar = memo((): ReactElement => {
           <NavigationPanelOrganize />
           <NavigationPanelCollections />
           <TrashButton />
+          {sessionStatus === 'authenticated' && <NotificationButton />}
+          <AIChatButton />
+          <MenuItem
+            data-testid="slider-bar-workspace-setting-button"
+            icon={<SettingsIcon />}
+            onClick={onOpenSettingModal}
+          >
+            <span data-testid="settings-modal-trigger">
+              {t['com.affine.settingSidebar.title']()}
+            </span>
+          </MenuItem>
+
           <MenuItem
             data-testid="slider-bar-import-button"
             icon={<ImportIcon />}

@@ -169,6 +169,15 @@ describe('workbench orchestration', () => {
     finish();
     expect(await task).toBe('child');
   });
+  test('created retry with missing native document fails recoverably without waiting or recreating', async () => {
+    const f = fixture();
+    await f.service.createChild('main', 'Child', 'op');
+    f.workspace.docCollection.getDoc.mockReturnValue(null as never);
+    f.engine.doc.waitForDocLoaded.mockClear();
+    await expect(f.service.createChild('main', 'Child', 'op')).rejects.toBeInstanceOf(DikwChildCreationError);
+    expect(f.docs.createDoc).toHaveBeenCalledTimes(1);
+    expect(f.engine.doc.waitForDocLoaded).not.toHaveBeenCalledWith('child');
+  });
   test('same operation cannot change title after completion', async () => {
     const f = fixture();
     await f.service.createChild('main', 'Child', 'op');
