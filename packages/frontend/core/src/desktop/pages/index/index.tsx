@@ -36,7 +36,7 @@ import { AppContainer } from '../../components/app-container';
  * - initCloud: boolean, if true, when user is logged in, create a cloud workspace
  */
 export const Component = ({
-  defaultIndexRoute = 'all',
+  defaultIndexRoute = 'board',
   children,
   fallback,
   createErrorFallback,
@@ -70,7 +70,7 @@ export const Component = ({
   const list = useLiveData(workspacesService.list.workspaces$);
   const listIsLoading = useLiveData(workspacesService.list.isRevalidating$);
 
-  const { openPage, jumpToPage, jumpToSignIn } = useNavigateHelper();
+  const { openPage, jumpToSignIn } = useNavigateHelper();
   const [searchParams] = useSearchParams();
 
   const createOnceRef = useRef(false);
@@ -80,15 +80,11 @@ export const Component = ({
     createOnceRef.current = true;
     // TODO: support selfhosted
     buildShowcaseWorkspace(workspacesService, 'affine-cloud', 'AFFiNE Cloud')
-      .then(({ meta, defaultDocId }) => {
-        if (defaultDocId) {
-          jumpToPage(meta.id, defaultDocId);
-        } else {
-          openPage(meta.id, defaultIndexRoute);
-        }
+      .then(({ meta }) => {
+        openPage(meta.id, defaultIndexRoute);
       })
       .catch(err => console.error('Failed to create cloud workspace', err));
-  }, [defaultIndexRoute, jumpToPage, openPage, workspacesService]);
+  }, [defaultIndexRoute, openPage, workspacesService]);
 
   useLayoutEffect(() => {
     if (!navigating) {
@@ -166,14 +162,8 @@ export const Component = ({
     creation
       .then(createdWorkspace => {
         if (createdWorkspace) {
-          if (createdWorkspace.defaultPageId) {
-            jumpToPage(
-              createdWorkspace.meta.id,
-              createdWorkspace.defaultPageId
-            );
-          } else {
-            openPage(createdWorkspace.meta.id, 'all');
-          }
+          // Keep onboarding documents, but the workspace opens at its main board.
+          openPage(createdWorkspace.meta.id, defaultIndexRoute);
         }
       })
       .catch(err => {
@@ -184,7 +174,7 @@ export const Component = ({
         setCreating(false);
       });
   }, [
-    jumpToPage,
+    defaultIndexRoute,
     openPage,
     workspacesService,
     listIsLoading,

@@ -18,6 +18,7 @@ import { TrashPageFooter } from '@affine/core/components/pure/trash-page-footer'
 import { TopTip } from '@affine/core/components/top-tip';
 import { ServerService } from '@affine/core/modules/cloud';
 import { DocService } from '@affine/core/modules/doc';
+import { ConnectedBoardNavigation } from '@affine/core/modules/dikw-workbench/connected-navigation';
 import { EditorService } from '@affine/core/modules/editor';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { GlobalContextService } from '@affine/core/modules/global-context';
@@ -337,6 +338,9 @@ const DetailPageImpl = memo(function DetailPageImpl() {
           {/* Add a key to force rerender when page changed, to avoid error boundary persisting. */}
           <AffineErrorBoundary key={doc.id}>
             <TopTip pageId={doc.id} workspace={workspace} />
+            <div style={{ maxHeight: 180, overflow: 'auto', flexShrink: 0 }}>
+              <ConnectedBoardNavigation key={doc.id} docId={doc.id} readonly={readonly} />
+            </div>
             <Scrollable.Root>
               <Scrollable.Viewport
                 onScroll={handleScroll}

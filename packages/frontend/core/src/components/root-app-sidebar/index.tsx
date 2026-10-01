@@ -13,6 +13,7 @@ import { ExternalMenuLinkItem } from '@affine/core/modules/app-sidebar/views/men
 import { AuthService, ServerService } from '@affine/core/modules/cloud';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
+import { DikwWorkbenchService } from '@affine/core/modules/dikw-workbench';
 import { CMDKQuickSearchService } from '@affine/core/modules/quicksearch/services/cmdk';
 import type { Workspace } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
@@ -21,6 +22,8 @@ import type { Store } from '@blocksuite/affine/store';
 import {
   AiOutlineIcon,
   AllDocsIcon,
+  EdgelessIcon,
+  PageIcon,
   ImportIcon,
   JournalIcon,
   SettingsIcon,
@@ -67,6 +70,18 @@ export type RootAppSidebarProps = {
     trash: (workspaceId: string) => string;
     shared: (workspaceId: string) => string;
   };
+};
+
+const BoardLibraryEntries = () => {
+  const workbench = useService(WorkbenchService).workbench;
+  const pathname = useLiveData(workbench.location$).pathname;
+  const relations = useLiveData(useService(DikwWorkbenchService).relations$);
+  const boardActive = pathname === '/board' || relations.has(pathname.slice(1));
+  return <>
+    <MenuLinkItem icon={<EdgelessIcon />} active={boardActive} to="/board"><span data-testid="dikw-main-board">白板</span></MenuLinkItem>
+    <MenuLinkItem icon={<AllDocsIcon />} active={pathname === '/knowledge'} to="/knowledge">知识库</MenuLinkItem>
+    <MenuLinkItem icon={<PageIcon />} active={pathname === '/artifacts'} to="/artifacts">产物库</MenuLinkItem>
+  </>;
 };
 
 const AllDocsButton = () => {
@@ -211,8 +226,7 @@ export const RootAppSidebar = memo((): ReactElement => {
           />
           <AddPageButton />
         </div>
-        <AllDocsButton />
-        <AppSidebarJournalButton />
+        <BoardLibraryEntries />
         {sessionStatus === 'authenticated' && <NotificationButton />}
         <AIChatButton />
         <MenuItem
@@ -227,15 +241,17 @@ export const RootAppSidebar = memo((): ReactElement => {
       </SidebarContainer>
       <SidebarScrollableContainer>
         <NavigationPanelFavorites />
-        <NavigationPanelOrganize />
-        <NavigationPanelMigrationFavorites />
         <NavigationPanelTags />
-        <NavigationPanelCollections />
+        <NavigationPanelMigrationFavorites />
         <CollapsibleSection
           path={['others']}
           title={t['com.affine.rootAppSidebar.others']()}
           contentStyle={{ padding: '6px 8px 0 8px' }}
         >
+          <AllDocsButton />
+          <AppSidebarJournalButton />
+          <NavigationPanelOrganize />
+          <NavigationPanelCollections />
           <TrashButton />
           <MenuItem
             data-testid="slider-bar-import-button"

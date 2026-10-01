@@ -54,13 +54,13 @@ export class View extends Entity<{
   constructor() {
     super();
     this.history = createNavigableHistory({
-      initialEntries: [this.props.defaultLocation ?? { pathname: '/all' }],
+      initialEntries: [this.props.defaultLocation ?? { pathname: '/board' }],
       initialIndex: 0,
     });
   }
 
   history = createNavigableHistory({
-    initialEntries: ['/all'],
+    initialEntries: ['/board'],
     initialIndex: 0,
   });
 

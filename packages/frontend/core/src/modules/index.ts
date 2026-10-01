@@ -21,6 +21,7 @@ import { configureWorkspaceDBModule } from './db';
 import { configureDialogModule } from './dialogs';
 import { configureDndModule } from './dnd';
 import { configureDocModule } from './doc';
+import { configureDikwWorkbenchModule } from './dikw-workbench';
 import { configureDocDisplayMetaModule } from './doc-display-meta';
 import { configureDocInfoModule } from './doc-info';
 import { configureDocLinksModule } from './doc-link';
@@ -86,6 +87,7 @@ export function configureCommonModules(framework: Framework) {
   configureCloudModule(framework);
   configureQuotaModule(framework);
   configurePermissionsModule(framework);
+  configureDikwWorkbenchModule(framework);
   configureShareDocsModule(framework);
   configureShareSettingModule(framework);
   configureTelemetryModule(framework);
