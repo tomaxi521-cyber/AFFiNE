@@ -12,9 +12,9 @@ export const container = style({
 export const strip = style({
   display: 'flex',
   alignItems: 'stretch',
-  gap: 4,
-  padding: '6px 12px 0',
-  minHeight: 40,
+  gap: 2,
+  padding: '3px 8px',
+  minHeight: 34,
   minWidth: 0,
   maxWidth: '100%',
   boxSizing: 'border-box',
@@ -26,16 +26,12 @@ export const tab = style({
   alignItems: 'center',
   flexShrink: 0,
   maxWidth: 260,
-  borderRadius: '7px 7px 0 0',
-  border: '1px solid transparent',
-  borderBottom: 0,
+  borderRadius: 5,
   color: 'var(--affine-text-secondary-color)',
   selectors: {
     '&[data-active="true"]': {
-      background: 'var(--affine-background-primary-color)',
+      background: 'var(--affine-hover-color)',
       color: 'var(--affine-text-primary-color)',
-      borderColor: 'var(--affine-border-color)',
-      boxShadow: 'inset 0 2px 0 var(--affine-primary-color)',
     },
   },
 });
@@ -44,18 +40,21 @@ export const select = style({
   alignItems: 'center',
   minWidth: 70,
   maxWidth: 220,
-  minHeight: 34,
-  padding: '5px 8px 5px 12px',
+  minHeight: 28,
+  '@media': { '(any-pointer: coarse)': { minHeight: 44 } },
+  padding: '3px 8px',
+  boxSizing: 'border-box',
   border: 0,
   background: 'transparent',
   color: 'inherit',
   font: 'inherit',
   fontSize: 13,
+  lineHeight: '20px',
   cursor: 'pointer',
   borderRadius: 5,
   ':hover': { background: 'var(--affine-hover-color)' },
   ':focus-visible': {
-    outline: '2px solid var(--affine-primary-color)',
+    outline: '2px solid var(--affine-text-secondary-color)',
     outlineOffset: -2,
   },
 });
@@ -66,9 +65,12 @@ export const label = style({
 });
 export const close = style({
   flexShrink: 0,
-  width: 28,
-  height: 28,
-  marginRight: 3,
+  width: 24,
+  height: 24,
+  marginRight: 2,
+  // Reserve the hit area so revealing close never shifts the title.
+  opacity: 0,
+  pointerEvents: 'none',
   border: 0,
   borderRadius: 4,
   background: 'transparent',
@@ -77,10 +79,24 @@ export const close = style({
   cursor: 'pointer',
   ':hover': { background: 'var(--affine-hover-color)' },
   ':focus-visible': {
-    outline: '2px solid var(--affine-primary-color)',
+    outline: '2px solid var(--affine-text-secondary-color)',
     outlineOffset: -2,
   },
-  ':disabled': { opacity: 0.5, cursor: 'wait' },
+  ':disabled': { cursor: 'wait' },
+  selectors: {
+    [`${tab}:hover &, ${tab}:focus-within &`]: {
+      opacity: 1,
+      pointerEvents: 'auto',
+    },
+  },
+  '@media': {
+    '(any-pointer: coarse), (hover: none)': {
+      opacity: 1,
+      pointerEvents: 'auto',
+      minWidth: 44,
+      minHeight: 44,
+    },
+  },
 });
 export const error = style({
   padding: '5px 12px',

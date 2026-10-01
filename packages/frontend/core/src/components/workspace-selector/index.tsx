@@ -34,6 +34,8 @@ interface WorkspaceSelectorProps {
   className?: string;
   /** if true, will hide cloud/local, and scale the avatar */
   dense?: boolean;
+  /** Optional shell trigger; the native account/workspace menu is unchanged. */
+  trigger?: React.ReactElement;
 }
 
 export const WorkspaceSelector = ({
@@ -49,6 +51,7 @@ export const WorkspaceSelector = ({
   className,
   menuContentOptions,
   dense,
+  trigger,
 }: WorkspaceSelectorProps) => {
   const { workspacesService, globalContextService } = useServices({
     GlobalContextService,
@@ -125,22 +128,23 @@ export const WorkspaceSelector = ({
         },
       }}
     >
-      {workspaceMetadata ? (
-        <WorkspaceCard
-          workspaceMetadata={workspaceMetadata}
-          onClick={openUserWorkspaceList}
-          showSyncStatus={showSyncStatus}
-          className={className}
-          showArrowDownIcon={showArrowDownIcon}
-          disable={disable}
-          hideCollaborationIcon={true}
-          hideTeamWorkspaceIcon={true}
-          data-testid="current-workspace-card"
-          dense={dense}
-        />
-      ) : (
-        <span></span>
-      )}
+      {trigger ??
+        (workspaceMetadata ? (
+          <WorkspaceCard
+            workspaceMetadata={workspaceMetadata}
+            onClick={openUserWorkspaceList}
+            showSyncStatus={showSyncStatus}
+            className={className}
+            showArrowDownIcon={showArrowDownIcon}
+            disable={disable}
+            hideCollaborationIcon={true}
+            hideTeamWorkspaceIcon={true}
+            data-testid="current-workspace-card"
+            dense={dense}
+          />
+        ) : (
+          <span></span>
+        ))}
     </Menu>
   );
 };

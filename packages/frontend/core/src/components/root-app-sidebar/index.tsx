@@ -2,7 +2,6 @@ import { Tooltip } from '@affine/component';
 import * as footerStyles from './footer-tools.css';
 import { ProjectWorkspaces } from './project-workspaces';
 import {
-  AppDownloadButton,
   AppSidebar,
   QuickSearchInput,
   SidebarContainer,
@@ -27,6 +26,8 @@ import {
   quickSearchRow,
   workspaceAndUserWrapper,
   workspaceWrapper,
+  brandButton,
+  brandMark,
 } from './index.css';
 import { SidebarAudioPlayer } from './sidebar-audio-player';
 import { TemplateDocEntrance } from './template-doc-entrance';
@@ -124,8 +125,8 @@ export const RootAppSidebar = memo((): ReactElement => {
   }, [workspaceDialogService, handleOpenDocs]);
 
   return (
-    <AppSidebar>
-      <SidebarContainer>
+    <AppSidebar
+      headerContent={
         <div className={workspaceAndUserWrapper}>
           <div className={workspaceWrapper}>
             <WorkspaceNavigator
@@ -134,10 +135,26 @@ export const RootAppSidebar = memo((): ReactElement => {
               open={workspaceSelectorOpen}
               onOpenChange={onWorkspaceSelectorOpenChange}
               dense
+              trigger={
+                <button
+                  type="button"
+                  className={brandButton}
+                  data-testid="current-workspace-card"
+                  aria-label="DIKW Board · 账号与工作区"
+                >
+                  <span className={brandMark} aria-hidden="true">
+                    D
+                  </span>
+                  <span>DIKW Board</span>
+                </button>
+              }
             />
           </div>
           <UserInfo />
         </div>
+      }
+    >
+      <SidebarContainer>
         <div className={quickSearchRow}>
           <QuickSearchInput
             className={quickSearch}
@@ -152,7 +169,7 @@ export const RootAppSidebar = memo((): ReactElement => {
       </SidebarScrollableContainer>
       <SidebarContainer className={bottomContainer}>
         <SidebarAudioPlayer />
-        {BUILD_CONFIG.isElectron ? <UpdaterButton /> : <AppDownloadButton />}
+        {BUILD_CONFIG.isElectron ? <UpdaterButton /> : null}
         <nav
           aria-label="工作区工具"
           className={footerStyles.tools}

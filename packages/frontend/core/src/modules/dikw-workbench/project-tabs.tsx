@@ -365,10 +365,10 @@ export function ProjectTabs() {
             );
           const label = verified
             ? docs.list.doc$(tab.rootId).value?.title$.value || '未命名工程'
-            : '工程 ' + (index + 1) + '（待验证）';
+            : '工程 ' + (index + 1);
           const workspaceLabel = verified
             ? workspaceName || '未命名工作区'
-            : '工作区待验证';
+            : '切换时验证工作区与工程读取权限';
           const selected = activeKey === key;
           return (
             <div

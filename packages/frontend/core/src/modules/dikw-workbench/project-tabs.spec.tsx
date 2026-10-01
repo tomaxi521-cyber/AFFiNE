@@ -185,10 +185,28 @@ describe('route driven project tabs', () => {
       })
     );
     render(<ProjectTabs />);
-    expect(screen.getByRole('tab', { name: '工程 1（待验证）' })).toBeTruthy();
-    expect(screen.getByRole('tab', { name: '工程 2（待验证）' })).toBeTruthy();
+    for (const label of ['工程 1', '工程 2']) {
+      const tab = screen.getByRole('tab', { name: label });
+      expect(tab.textContent).toBe(label);
+      expect(tab.getAttribute('title')).toContain(
+        '切换时验证工作区与工程读取权限'
+      );
+      expect(
+        screen.getByRole('button', { name: '关闭工程标签：' + label })
+      ).toBeTruthy();
+    }
     expect(screen.queryByText(/secret/)).toBeNull();
+    expect(screen.getByTestId('project-tabs').innerHTML).not.toMatch(
+      /secret|two-root|two-second|two workspace|待验证/
+    );
+    const active = screen.getByRole('tab', { name: 'one-root' });
+    expect(active.getAttribute('aria-selected')).toBe('true');
+    expect(active.getAttribute('title')).toContain('one workspace');
+    expect(active.getAttribute('title')).not.toContain('切换时验证');
     expect(workspaces.open).not.toHaveBeenCalled();
+    expect(remote.workspace.engine.doc.waitForDocReady).not.toHaveBeenCalled();
+    expect(remote.guard.can).not.toHaveBeenCalled();
+    expect(remote.guard.can$).not.toHaveBeenCalled();
   });
   test('missing ancestry masks same-workspace labels and prevents navigation', async () => {
     workbench.location$.next({ pathname: '/all', key: 'all' });
@@ -199,7 +217,7 @@ describe('route driven project tabs', () => {
     recordProjectTab(saved({ currentDocId: 'child' }));
     render(<ProjectTabs />);
     expect(screen.queryByRole('tab', { name: 'one-root' })).toBeNull();
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await screen.findByRole('alert');
     expect(current.guard.can).toHaveBeenCalledWith('Doc_Read', 'missing');
     expect(workbench.open).not.toHaveBeenCalled();
@@ -215,7 +233,7 @@ describe('route driven project tabs', () => {
     await screen.findByRole('tab', { name: 'one-root' });
     await act(async () => current.permissions.get('second')!.next(false));
     expect(screen.queryByRole('tab', { name: 'one-root' })).toBeNull();
-    expect(screen.getByRole('tab', { name: '工程 1（待验证）' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: '工程 1' })).toBeTruthy();
   });
   test('missing ancestor cannot pass merely because cached read permission is true', async () => {
     remote.boards.getPath = id => ({
@@ -227,7 +245,7 @@ describe('route driven project tabs', () => {
       saved({ workspaceId: 'two', flavour: 'server', currentDocId: 'child' })
     );
     render(<ProjectTabs />);
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await screen.findByRole('alert');
     expect(state.jump).not.toHaveBeenCalled();
   });
@@ -241,7 +259,7 @@ describe('route driven project tabs', () => {
       saved({ workspaceId: 'two', flavour: 'server', currentDocId: 'child' })
     );
     render(<ProjectTabs />);
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await screen.findByRole('alert');
     expect(remote.guard.can).toHaveBeenCalledWith('Doc_Read', 'second');
     expect(state.jump).not.toHaveBeenCalled();
@@ -260,7 +278,7 @@ describe('route driven project tabs', () => {
     );
     expect(originalPath('child').ids).toEqual(['root', 'child']);
     render(<ProjectTabs />);
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await screen.findByRole('alert');
     expect(state.jump).not.toHaveBeenCalled();
   });
@@ -274,7 +292,7 @@ describe('route driven project tabs', () => {
         saved({ workspaceId: 'two', flavour: 'server', currentDocId: 'child' })
       );
       render(<ProjectTabs />);
-      fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+      fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
       await waitFor(() =>
         expect(state.jump).toHaveBeenCalledWith('two', 'root', 'edgeless')
       );
@@ -292,7 +310,7 @@ describe('route driven project tabs', () => {
       saved({ workspaceId: 'two', flavour: 'server', currentDocId: 'child' })
     );
     render(<ProjectTabs />);
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await screen.findByRole('alert');
     expect(state.jump).not.toHaveBeenCalled();
   });
@@ -326,7 +344,7 @@ describe('route driven project tabs', () => {
     render(<ProjectTabs />);
     expect(screen.queryByText('cached secret')).toBeNull();
     expect(workspaces.open).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await waitFor(() =>
       expect(state.jump).toHaveBeenCalledWith('two', 'child', 'edgeless')
     );
@@ -341,7 +359,7 @@ describe('route driven project tabs', () => {
     remote.permissions.get('root')!.next(false);
     recordProjectTab(saved({ workspaceId: 'two', flavour: 'server' }));
     render(<ProjectTabs />);
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await screen.findByRole('alert');
     expect(state.jump).not.toHaveBeenCalled();
     expect(screen.queryByText('cached secret')).toBeNull();
@@ -354,7 +372,7 @@ describe('route driven project tabs', () => {
     await screen.findByRole('tab', { name: 'one-root' });
     await act(async () => current.permissions.get('root')!.next(false));
     expect(screen.queryByRole('tab', { name: 'one-root' })).toBeNull();
-    expect(screen.getByRole('tab', { name: '工程 1（待验证）' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: '工程 1' })).toBeTruthy();
     await act(async () => {
       current.permissions.get('root')!.next(true);
       workspaces.list.workspaces$.next([]);
@@ -397,6 +415,40 @@ describe('route driven project tabs', () => {
     expect(workbench.open).toHaveBeenCalledWith('/all');
     expect(projectTabsStore.tabs$.value).toEqual([]);
   });
+  test('keyboard navigation wraps and scrolls focused tabs without opening workspaces', () => {
+    recordProjectTab(saved({ workspaceId: 'two', flavour: 'server' }));
+    recordProjectTab(saved({ rootId: 'second', currentDocId: 'second' }));
+    render(<ProjectTabs />);
+    const tabs = screen.getAllByRole('tab');
+    const scroll = tabs.map(tab => {
+      const spy = vi.fn();
+      tab.scrollIntoView = spy;
+      return spy;
+    });
+    const last = tabs.length - 1;
+    tabs[last].focus();
+    for (const [key, index] of [
+      ['ArrowRight', 0],
+      ['ArrowLeft', last],
+      ['Home', 0],
+      ['End', last],
+    ] as const) {
+      fireEvent.keyDown(document.activeElement!, { key });
+      expect(document.activeElement).toBe(tabs[index]);
+      expect(scroll[index]).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    }
+    expect(workspaces.open).not.toHaveBeenCalled();
+    expect(workbench.open).not.toHaveBeenCalled();
+    expect(state.jump).not.toHaveBeenCalled();
+    const close = screen.getByRole('button', {
+      name: '关闭工程标签：工程 1',
+    });
+    close.focus();
+    expect(document.activeElement).toBe(close);
+  });
   test('shared mode neither exposes nor records local project history', () => {
     current.workspace.openOptions.isSharedMode = true;
     recordProjectTab(saved({ workspaceId: 'two', flavour: 'server' }));
@@ -413,7 +465,7 @@ describe('route driven project tabs', () => {
     ]);
     recordProjectTab(saved({ workspaceId: 'two', flavour: 'server' }));
     render(<ProjectTabs />);
-    fireEvent.click(screen.getByRole('tab', { name: '工程 1（待验证）' }));
+    fireEvent.click(screen.getByRole('tab', { name: '工程 1' }));
     await screen.findByRole('alert');
     expect(workspaces.open).not.toHaveBeenCalled();
     expect(state.jump).not.toHaveBeenCalled();

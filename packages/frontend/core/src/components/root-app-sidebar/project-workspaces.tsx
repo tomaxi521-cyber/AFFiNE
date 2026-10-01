@@ -20,7 +20,13 @@ import {
   useLiveData,
   useService,
 } from '@toeverything/infra';
-import { FolderIcon, EdgelessIcon, PlusIcon } from '@blocksuite/icons/rc';
+import {
+  FolderIcon,
+  EdgelessIcon,
+  PageIcon,
+  PlusIcon,
+} from '@blocksuite/icons/rc';
+import { createPortal } from 'react-dom';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as styles from './project-workspaces.css';
@@ -84,12 +90,17 @@ export function ProjectWorkspaces() {
   ]);
   return (
     <ActiveProjectContext.Provider value={activeRoute}>
-      <nav aria-label="工作区与工程" data-testid="dikw-project-navigation">
+      <nav
+        className={styles.navigation}
+        aria-label="工作区与工程"
+        data-testid="dikw-project-navigation"
+      >
         <div className={styles.header}>
           <span style={{ flex: 1 }}>工作区</span>
           <button
-            className={styles.button}
+            className={styles.button + ' ' + styles.iconButton}
             aria-label="新建工作区"
+            title="新建工作区"
             onClick={() => {
               const enableLocal =
                 BUILD_CONFIG.isNative ||
@@ -105,7 +116,7 @@ export function ProjectWorkspaces() {
               });
             }}
           >
-            <PlusIcon width={18} />
+            <PlusIcon width={16} height={16} aria-hidden="true" />
           </button>
         </div>
         {items.map(meta => (
@@ -137,11 +148,14 @@ function WorkspaceFolder({
 }) {
   const profile = useWorkspaceInfo(meta),
     name = profile?.name || '工作区';
+  const navigate = useNavigateHelper();
+  // Portal only the scoped create control: collapsed folders still open no engine.
+  const [actionsHost, setActionsHost] = useState<HTMLSpanElement | null>(null);
   return (
-    <section data-workspace-id={meta.id}>
+    <section className={styles.folder} data-workspace-id={meta.id}>
       <div className={styles.row} data-active={identity(meta) === activeId}>
         <button
-          className={styles.button}
+          className={styles.button + ' ' + styles.iconButton}
           aria-label={(expanded ? '收起' : '展开') + name}
           aria-expanded={expanded}
           onClick={toggle}
@@ -153,23 +167,41 @@ function WorkspaceFolder({
           onClick={toggle}
           title={name}
         >
-          <FolderIcon width={20} />
-          <span>{name}</span>
+          <FolderIcon
+            className={styles.icon}
+            width={16}
+            height={16}
+            aria-hidden="true"
+          />
+          <span className={styles.title}>{name}</span>
         </button>
-        <span className={styles.small}>
-          {meta.flavour === 'local' ? '本地' : ''}
+        <span className={styles.actions}>
+          <button
+            className={styles.button + ' ' + styles.iconButton}
+            aria-label="已有内容与文档"
+            title="已有内容与文档：原知识库、产物库和未归属文档均保留在这里"
+            disabled={ambiguous}
+            onClick={() => navigate.jumpToPage(meta.id, 'all')}
+          >
+            <PageIcon width={16} height={16} aria-hidden="true" />
+          </button>
+          <span className={styles.actionSlot} ref={setActionsHost} />
         </span>
       </div>
       {expanded &&
         (ambiguous ? (
           <p role="alert">工作区标识冲突，已禁止打开以保护内容。</p>
         ) : (
-          <WorkspaceContents meta={meta} />
+          <WorkspaceContents meta={meta} actionsHost={actionsHost} />
         ))}
     </section>
   );
 }
-function WorkspaceContents({ meta }: { meta: WorkspaceMetadata }) {
+type WorkspaceContentsProps = {
+  meta: WorkspaceMetadata;
+  actionsHost: HTMLSpanElement | null;
+};
+function WorkspaceContents({ meta, actionsHost }: WorkspaceContentsProps) {
   const workspace = useWorkspace(meta);
   if (!workspace)
     return (
@@ -181,11 +213,11 @@ function WorkspaceContents({ meta }: { meta: WorkspaceMetadata }) {
     return <p role="alert">工作区身份不匹配</p>;
   return (
     <FrameworkScope scope={workspace.scope}>
-      <ProjectTree meta={meta} />
+      <ProjectTree meta={meta} actionsHost={actionsHost} />
     </FrameworkScope>
   );
 }
-function ProjectTree({ meta }: { meta: WorkspaceMetadata }) {
+function ProjectTree({ meta, actionsHost }: WorkspaceContentsProps) {
   const service = useService(DikwWorkbenchService),
     docs = useService(DocsService),
     guard = useService(GuardService);
@@ -332,7 +364,21 @@ function ProjectTree({ meta }: { meta: WorkspaceMetadata }) {
       </p>
     );
   return (
-    <div style={{ paddingLeft: 14 }}>
+    <div className={styles.tree}>
+      {actionsHost &&
+        createPortal(
+          <button
+            className={styles.button + ' ' + styles.iconButton}
+            data-testid="dikw-create-project"
+            aria-label="新建工程"
+            title="新建工程"
+            disabled={canCreate !== true || workspace.openOptions.isSharedMode}
+            onClick={() => setCreating(true)}
+          >
+            <PlusIcon width={16} height={16} aria-hidden="true" />
+          </button>,
+          actionsHost
+        )}
       {rows.map(row => {
         const name = docs.list.doc$(row.id).value?.title$.value || '未命名工程';
         return (
@@ -347,7 +393,7 @@ function ProjectTree({ meta }: { meta: WorkspaceMetadata }) {
             >
               {row.hasChildren ? (
                 <button
-                  className={styles.button}
+                  className={styles.button + ' ' + styles.iconButton}
                   aria-label={(expanded.has(row.id) ? '收起' : '展开') + name}
                   aria-expanded={expanded.has(row.id)}
                   onClick={() => toggle(row.id)}
@@ -355,7 +401,7 @@ function ProjectTree({ meta }: { meta: WorkspaceMetadata }) {
                   {expanded.has(row.id) ? '▾' : '▸'}
                 </button>
               ) : (
-                <span style={{ width: 24 }} />
+                <span className={styles.indent} aria-hidden="true" />
               )}
               <button
                 className={styles.button + ' ' + styles.label}
@@ -363,11 +409,22 @@ function ProjectTree({ meta }: { meta: WorkspaceMetadata }) {
                 title={name}
                 onClick={() => open(row.id)}
               >
-                <EdgelessIcon width={17} />
-                <span>{name}</span>
+                <EdgelessIcon
+                  className={styles.icon}
+                  width={16}
+                  height={16}
+                  aria-hidden="true"
+                />
+                <span className={styles.title}>{name}</span>
               </button>
               <button
-                className={styles.button}
+                className={
+                  styles.button +
+                  ' ' +
+                  styles.iconButton +
+                  ' ' +
+                  styles.rowAction
+                }
                 aria-label={'重命名' + name}
                 title="重命名"
                 onClick={() => {
@@ -409,14 +466,6 @@ function ProjectTree({ meta }: { meta: WorkspaceMetadata }) {
         );
       })}
       {!rows.length && <p className={styles.small}>暂无可读取的工程</p>}
-      <button
-        className={styles.button}
-        data-testid="dikw-create-project"
-        disabled={canCreate !== true || workspace.openOptions.isSharedMode}
-        onClick={() => setCreating(true)}
-      >
-        ＋ 新建工程
-      </button>
       {creating && (
         <form
           className={styles.form}
@@ -468,13 +517,6 @@ function ProjectTree({ meta }: { meta: WorkspaceMetadata }) {
           {error}
         </p>
       )}
-      <button
-        className={styles.button + ' ' + styles.small}
-        onClick={() => navigate.jumpToPage(meta.id, 'all')}
-        title="原知识库、产物库和未归属文档均保留在这里"
-      >
-        已有内容与文档
-      </button>
     </div>
   );
 }

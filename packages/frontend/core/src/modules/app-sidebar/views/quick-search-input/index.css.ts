@@ -1,13 +1,13 @@
-import { cssVar } from '@toeverything/theme';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { style } from '@vanilla-extract/css';
 export const root = style({
   display: 'inline-flex',
   alignItems: 'center',
   borderRadius: '4px',
-  fontSize: cssVar('fontSm'),
+  fontSize: 13,
   width: '100%',
-  height: '30px',
+  height: '32px',
+  '@media': { '(any-pointer: coarse)': { height: 44 } },
   userSelect: 'none',
   cursor: 'pointer',
   padding: '0 12px 0 8px',
@@ -19,16 +19,16 @@ export const root = style({
   },
 });
 export const icon = style({
-  marginRight: '12px',
+  marginRight: '8px',
   color: cssVarV2('icon/primary'),
-  fontSize: '20px',
+  fontSize: '16px',
 });
 export const spacer = style({
   flex: 1,
 });
 export const shortcutHint = style({
   color: cssVarV2('text/tertiary'),
-  fontSize: cssVar('fontBase'),
+  fontSize: 11,
 });
 export const quickSearchBarEllipsisStyle = style({
   overflow: 'hidden',

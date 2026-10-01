@@ -14,14 +14,15 @@ export const root = style({
 
 export const header = style({
   display: 'flex',
-  height: '52px',
+  height: '44px',
   width: '100%',
   alignItems: 'center',
   flexShrink: 0,
   background: cssVar('backgroundPrimaryColor'),
-  padding: '0 16px',
+  padding: '0 12px',
   contain: 'strict',
   '@media': {
+    '(any-pointer: coarse)': { height: 52 },
     print: {
       display: 'none',
     },

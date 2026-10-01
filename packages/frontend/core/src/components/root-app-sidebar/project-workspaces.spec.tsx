@@ -53,10 +53,14 @@ vi.mock('@affine/core/modules/cloud', () => ({
 vi.mock('@affine/graphql', () => ({
   ServerFeature: { LocalWorkspace: 'local-workspace' },
 }));
-vi.mock('@affine/core/modules/dialogs', () => ({ GlobalDialogService: 'dialogs' }));
+vi.mock('@affine/core/modules/dialogs', () => ({
+  GlobalDialogService: 'dialogs',
+}));
 vi.mock('@affine/core/modules/doc', () => ({ DocsService: 'docs' }));
 vi.mock('@affine/core/modules/permissions', () => ({ GuardService: 'guard' }));
-vi.mock('@affine/core/modules/workbench', () => ({ WorkbenchService: 'workbench' }));
+vi.mock('@affine/core/modules/workbench', () => ({
+  WorkbenchService: 'workbench',
+}));
 vi.mock('@affine/core/modules/workspace', () => ({
   WorkspaceService: 'workspace',
   WorkspacesService: 'workspaces',
@@ -71,12 +75,22 @@ vi.mock('@affine/core/modules/dikw-workbench/connected-navigation', () => ({
 vi.mock('@blocksuite/icons/rc', () => ({
   FolderIcon: () => null,
   EdgelessIcon: () => null,
+  PageIcon: () => null,
   PlusIcon: () => null,
 }));
 vi.mock('nanoid', () => ({ nanoid: () => 'new-operation' }));
 vi.mock('./project-workspaces.css', () => ({
+  navigation: 'navigation',
   header: 'header',
   row: 'row',
+  iconButton: 'icon-button',
+  icon: 'icon',
+  title: 'title',
+  actions: 'actions',
+  actionSlot: 'action-slot',
+  rowAction: 'row-action',
+  indent: 'indent',
+  tree: 'tree',
   button: 'button',
   label: 'label',
   small: 'small',
@@ -84,8 +98,13 @@ vi.mock('./project-workspaces.css', () => ({
   input: 'input',
 }));
 vi.mock('@toeverything/infra', async () => {
-  const { createContext, createElement, useContext, useSyncExternalStore, useCallback } =
-    await import('react');
+  const {
+    createContext,
+    createElement,
+    useContext,
+    useSyncExternalStore,
+    useCallback,
+  } = await import('react');
   const { BehaviorSubject } = await import('rxjs');
   const Scope = createContext<Map<string, any> | null>(null);
   class LiveData<T> extends BehaviorSubject<T> {
@@ -105,7 +124,8 @@ vi.mock('@toeverything/infra', async () => {
     useService: (token: string) => {
       const scope = useContext(Scope);
       if (scope?.has(token)) return scope.get(token);
-      if (!state.services.has(token)) throw new Error('Unmocked service: ' + token);
+      if (!state.services.has(token))
+        throw new Error('Unmocked service: ' + token);
       return state.services.get(token);
     },
     useLiveData: (source: any) =>
@@ -133,7 +153,9 @@ const pendingKey = (meta: { id: string; flavour: string }) =>
   'dikw:project-create:v1:' + identity(meta);
 function deferred<T>() {
   let resolve!: (value: T) => void;
-  const promise = new Promise<T>(done => { resolve = done; });
+  const promise = new Promise<T>(done => {
+    resolve = done;
+  });
   return { promise, resolve };
 }
 function fixture(id: string, flavour = 'local') {
@@ -143,7 +165,10 @@ function fixture(id: string, flavour = 'local') {
   const records = new Map(
     ['root', 'root-long', 'second'].map(docId => [
       docId,
-      { title$: new BehaviorSubject(id + '-' + docId), trash$: { value: false } },
+      {
+        title$: new BehaviorSubject(id + '-' + docId),
+        trash$: { value: false },
+      },
     ])
   );
   const nativeDoc = {
@@ -166,11 +191,23 @@ function fixture(id: string, flavour = 'local') {
     revalidateCan: vi.fn(),
   };
   const boards = {
-    relations$: new BehaviorSubject(new Map([...records.keys()].map(docId => [
-      docId,
-      { version: 1, docId, parentId: null, operationId: docId, rootKind: 'project' },
-    ]))),
-    createProject: vi.fn(async (_title: string, _operationId: string) => 'created'),
+    relations$: new BehaviorSubject(
+      new Map(
+        [...records.keys()].map(docId => [
+          docId,
+          {
+            version: 1,
+            docId,
+            parentId: null,
+            operationId: docId,
+            rootKind: 'project',
+          },
+        ])
+      )
+    ),
+    createProject: vi.fn(
+      async (_title: string, _operationId: string) => 'created'
+    ),
   };
   const scope = new Map<string, any>();
   const workspace = {
@@ -189,10 +226,25 @@ function fixture(id: string, flavour = 'local') {
   // must not decide which workspace/document is active in the whole sidebar.
   const location = new BehaviorSubject({ pathname: '/second' });
   for (const [token, value] of Object.entries({
-    workspace: { workspace }, docs, guard, boards,
+    workspace: { workspace },
+    docs,
+    guard,
+    boards,
     workbench: { workbench: { location$: location } },
-  })) scope.set(token, value);
-  return { workspace, meta, ready, records, docs, guard, boards, nativeDoc, release };
+  }))
+    scope.set(token, value);
+  return {
+    workspace,
+    meta,
+    ready,
+    allowed,
+    records,
+    docs,
+    guard,
+    boards,
+    nativeDoc,
+    release,
+  };
 }
 type Fixture = ReturnType<typeof fixture>;
 let current: Fixture;
@@ -202,7 +254,10 @@ let manager: {
   list: { workspaces$: BehaviorSubject<Fixture['meta'][]> };
   open: ReturnType<typeof vi.fn>;
 };
-let references: { workspace: Fixture['workspace']; dispose: ReturnType<typeof vi.fn> }[];
+let references: {
+  workspace: Fixture['workspace'];
+  dispose: ReturnType<typeof vi.fn>;
+}[];
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -215,7 +270,9 @@ beforeEach(() => {
   manager = {
     list: { workspaces$: new BehaviorSubject([current.meta, target.meta]) },
     open: vi.fn(({ metadata }: { metadata: Fixture['meta'] }) => {
-      const item = [current, target].find(item => identity(item.meta) === identity(metadata));
+      const item = [current, target].find(
+        item => identity(item.meta) === identity(metadata)
+      );
       if (!item) throw new Error('Unmocked workspace');
       const ref = { workspace: item.workspace, dispose: vi.fn() };
       references.push(ref);
@@ -226,10 +283,13 @@ beforeEach(() => {
     workspace: { workspace: current.workspace },
     workspaces: manager,
     workbench: { workbench: { location$: location } },
-    auth: { session: { session$: new BehaviorSubject({ status: 'authenticated' }) } },
+    auth: {
+      session: { session$: new BehaviorSubject({ status: 'authenticated' }) },
+    },
     server: { server: { config$: { value: { features: [] } } } },
     dialogs: { open: vi.fn(), openCreateWorkspace: vi.fn() },
-  })) state.services.set(token, value);
+  }))
+    state.services.set(token, value);
 });
 afterEach(() => {
   cleanup();
@@ -254,15 +314,148 @@ function startRename() {
 }
 
 describe('ProjectWorkspaces lazy workspace tree', () => {
+  test('icon-only workspace actions stay in the header while the create form stays in expanded content', () => {
+    const { container } = render(<ProjectWorkspaces />);
+    const section = container.querySelector(
+      'section[data-workspace-id="one"]'
+    ) as HTMLElement;
+    const header = section.querySelector(
+      ':scope > [data-active=true]'
+    ) as HTMLElement;
+    const create = within(header).getByRole('button', { name: '新建工程' });
+    const allContent = within(header).getByRole('button', {
+      name: '已有内容与文档',
+    });
+    expect(create).toBe(screen.getByTestId('dikw-create-project'));
+    expect(create.textContent).toBe('');
+    expect(allContent.textContent).toBe('');
+    expect(
+      within(section).getAllByRole('button', { name: '新建工程' })
+    ).toHaveLength(1);
+    expect(
+      within(section).getAllByRole('button', { name: '已有内容与文档' })
+    ).toHaveLength(1);
+    fireEvent.click(create);
+    const input = within(section).getByRole('textbox', { name: '新工程名称' });
+    expect(header.contains(input)).toBe(false);
+    expect(
+      screen
+        .getByRole('button', { name: '收起local:one' })
+        .getAttribute('aria-expanded')
+    ).toBe('true');
+    collapseCurrent();
+    expect(screen.queryByTestId('dikw-create-project')).toBeNull();
+    expect(screen.queryByRole('textbox', { name: '新工程名称' })).toBeNull();
+    expect(
+      within(header).getByRole('button', { name: '已有内容与文档' })
+    ).toBeTruthy();
+  });
+
+  test('collapsed all-content icons navigate by workspace without mounting workspace engines', () => {
+    localStorage.setItem(expandedKey, '[]');
+    const { container } = render(<ProjectWorkspaces />);
+    const targetHeader = container.querySelector(
+      'section[data-workspace-id="two"] > [data-active]'
+    ) as HTMLElement;
+    fireEvent.click(
+      within(targetHeader).getByRole('button', { name: '已有内容与文档' })
+    );
+    expect(state.jumpToPage).toHaveBeenCalledWith('two', 'all');
+    expect(state.workspaceHook).not.toHaveBeenCalled();
+    expect(manager.open).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('dikw-create-project')).toBeNull();
+  });
+
+  test('header create control retains reactive permissions and shared-mode guard', async () => {
+    const view = render(<ProjectWorkspaces />);
+    const create = screen.getByTestId(
+      'dikw-create-project'
+    ) as HTMLButtonElement;
+    expect(create.disabled).toBe(false);
+    await act(async () => {
+      current.allowed.next(false);
+    });
+    expect(create.disabled).toBe(true);
+    fireEvent.click(create);
+    expect(screen.queryByRole('textbox', { name: '新工程名称' })).toBeNull();
+    await act(async () => {
+      current.allowed.next(true);
+    });
+    expect(create.disabled).toBe(false);
+    view.unmount();
+    current.workspace.openOptions.isSharedMode = true;
+    render(<ProjectWorkspaces />);
+    expect(
+      (screen.getByTestId('dikw-create-project') as HTMLButtonElement).disabled
+    ).toBe(true);
+    expect(current.boards.createProject).not.toHaveBeenCalled();
+  });
+
+  test('a non-active workspace header creates only within its own scoped services', async () => {
+    localStorage.setItem(
+      expandedKey,
+      JSON.stringify([identity(current.meta), identity(target.meta)])
+    );
+    const { container } = render(<ProjectWorkspaces />);
+    const section = container.querySelector(
+      'section[data-workspace-id="two"]'
+    ) as HTMLElement;
+    const header = section.querySelector(
+      ':scope > [data-active=false]'
+    ) as HTMLElement;
+    fireEvent.click(within(header).getByRole('button', { name: '新建工程' }));
+    fireEvent.change(
+      within(section).getByRole('textbox', { name: '新工程名称' }),
+      {
+        target: { value: 'Target project' },
+      }
+    );
+    fireEvent.click(within(section).getByRole('button', { name: '创建工程' }));
+    await waitFor(() =>
+      expect(target.boards.createProject).toHaveBeenCalledWith(
+        'Target project',
+        'new-operation'
+      )
+    );
+    expect(current.boards.createProject).not.toHaveBeenCalled();
+    expect(target.guard.can).toHaveBeenCalledWith('Workspace_CreateDoc');
+    await waitFor(() =>
+      expect(state.jump).toHaveBeenCalledWith('two', 'created', 'edgeless')
+    );
+  });
+
+  test('workspace and project titles use truncation spans without losing full accessible names', () => {
+    const longTitle = 'A very long project title '.repeat(12).trim();
+    current.records.get('root')!.title$.next(longTitle);
+    render(<ProjectWorkspaces />);
+    for (const name of ['local:one', longTitle]) {
+      const button = screen.getByRole('button', { name, exact: true });
+      expect(button.getAttribute('title')).toBe(name);
+      expect(button.querySelector('.title')?.textContent).toBe(name);
+    }
+  });
+
   test('duplicate IDs across flavours never mount the workspace-opening hook', () => {
     target = fixture('one', 'server');
     manager.list.workspaces$.next([current.meta, target.meta]);
-    localStorage.setItem(expandedKey, JSON.stringify([identity(current.meta), identity(target.meta)]));
+    localStorage.setItem(
+      expandedKey,
+      JSON.stringify([identity(current.meta), identity(target.meta)])
+    );
     render(<ProjectWorkspaces />);
     expect(screen.getAllByRole('alert')).toHaveLength(2);
-    expect(screen.getAllByText('工作区标识冲突，已禁止打开以保护内容。')).toHaveLength(2);
+    expect(
+      screen.getAllByText('工作区标识冲突，已禁止打开以保护内容。')
+    ).toHaveLength(2);
     expect(state.workspaceHook).not.toHaveBeenCalled();
     expect(manager.open).not.toHaveBeenCalled();
+    for (const button of screen.getAllByRole('button', {
+      name: '已有内容与文档',
+    })) {
+      expect((button as HTMLButtonElement).disabled).toBe(true);
+      fireEvent.click(button);
+    }
+    expect(state.jumpToPage).not.toHaveBeenCalled();
   });
 
   test('collapsed folders do not open engines; expanding only opens the requested workspace', () => {
@@ -289,34 +482,60 @@ describe('ProjectWorkspaces lazy workspace tree', () => {
     expect(screen.getByRole('status').textContent).toBe('正在同步工程列表…');
     expect(screen.queryByText('暂无可读取的工程')).toBeNull();
     expect(screen.queryByTestId('dikw-create-project')).toBeNull();
-    await act(async () => { current.ready.next({ ready: true }); });
+    await act(async () => {
+      current.ready.next({ ready: true });
+    });
     expect(screen.queryByRole('status')).toBeNull();
     expect(screen.getByText('暂无可读取的工程')).toBeTruthy();
   });
 
   test('outer Workbench selects exact IDs only in the active workspace, retaining the all-documents route', async () => {
-    localStorage.setItem(expandedKey, JSON.stringify([identity(current.meta), identity(target.meta)]));
-    const { container } = render(<ProjectWorkspaces />);
-    const row = (workspaceId: string, docId: string) => container.querySelector(
-      '[data-workspace-id="' + workspaceId + '"] [data-project-board-id="' + docId + '"] > [data-active]'
+    localStorage.setItem(
+      expandedKey,
+      JSON.stringify([identity(current.meta), identity(target.meta)])
     );
+    const { container } = render(<ProjectWorkspaces />);
+    const row = (workspaceId: string, docId: string) =>
+      container.querySelector(
+        '[data-workspace-id="' +
+          workspaceId +
+          '"] [data-project-board-id="' +
+          docId +
+          '"] > [data-active]'
+      );
     expect(row('one', 'root')?.getAttribute('data-active')).toBe('true');
     expect(row('one', 'root-long')?.getAttribute('data-active')).toBe('false');
     expect(row('one', 'second')?.getAttribute('data-active')).toBe('false');
     expect(row('two', 'root')?.getAttribute('data-active')).toBe('false');
     expect(row('two', 'second')?.getAttribute('data-active')).toBe('false');
-    await act(async () => { location.next({ pathname: '/root-long' }); });
+    await act(async () => {
+      location.next({ pathname: '/root-long' });
+    });
     expect(row('one', 'root')?.getAttribute('data-active')).toBe('false');
     expect(row('one', 'root-long')?.getAttribute('data-active')).toBe('true');
-    await act(async () => { location.next({ pathname: '/root-longer' }); });
-    expect(container.querySelectorAll('[data-project-board-id] > [data-active="true"]')).toHaveLength(0);
+    await act(async () => {
+      location.next({ pathname: '/root-longer' });
+    });
+    expect(
+      container.querySelectorAll(
+        '[data-project-board-id] > [data-active="true"]'
+      )
+    ).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: 'two-second' }));
     expect(state.jump).toHaveBeenCalledWith('two', 'second', 'edgeless');
-    const targetFolder = container.querySelector('[data-workspace-id="two"]') as HTMLElement;
-    fireEvent.click(within(targetFolder).getByRole('button', { name: '已有内容与文档' }));
+    const targetFolder = container.querySelector(
+      '[data-workspace-id="two"]'
+    ) as HTMLElement;
+    fireEvent.click(
+      within(targetFolder).getByRole('button', { name: '已有内容与文档' })
+    );
     expect(state.jumpToPage).toHaveBeenCalledWith('two', 'all');
-    expect(screen.queryByRole('button', { name: /^(知识库|产物库)$/ })).toBeNull();
-    expect(screen.queryByRole('link', { name: /^(知识库|产物库)$/ })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /^(知识库|产物库)$/ })
+    ).toBeNull();
+    expect(
+      screen.queryByRole('link', { name: /^(知识库|产物库)$/ })
+    ).toBeNull();
   });
 
   test('creation retains a second workspace reference across collapse and releases it in finally without navigating', async () => {
@@ -324,13 +543,21 @@ describe('ProjectWorkspaces lazy workspace tree', () => {
     current.boards.createProject.mockReturnValueOnce(creation.promise);
     render(<ProjectWorkspaces />);
     startCreate();
-    await waitFor(() => expect(current.boards.createProject).toHaveBeenCalledWith('New project', 'new-operation'));
+    await waitFor(() =>
+      expect(current.boards.createProject).toHaveBeenCalledWith(
+        'New project',
+        'new-operation'
+      )
+    );
     expect(references).toHaveLength(2);
     expect(references[1].dispose).not.toHaveBeenCalled();
     collapseCurrent();
     expect(references[0].dispose).toHaveBeenCalledTimes(1);
     expect(references[1].dispose).not.toHaveBeenCalled();
-    await act(async () => { creation.resolve('created'); await creation.promise; });
+    await act(async () => {
+      creation.resolve('created');
+      await creation.promise;
+    });
     await waitFor(() => expect(references[1].dispose).toHaveBeenCalledTimes(1));
     expect(state.jump).not.toHaveBeenCalled();
     expect(localStorage.getItem(pendingKey(current.meta))).toBeNull();
@@ -341,13 +568,18 @@ describe('ProjectWorkspaces lazy workspace tree', () => {
     current.nativeDoc.waitForSyncReady.mockReturnValueOnce(synced.promise);
     render(<ProjectWorkspaces />);
     startRename();
-    await waitFor(() => expect(current.nativeDoc.waitForSyncReady).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(current.nativeDoc.waitForSyncReady).toHaveBeenCalledTimes(1)
+    );
     expect(references).toHaveLength(2);
     collapseCurrent();
     expect(references[0].dispose).toHaveBeenCalledTimes(1);
     expect(references[1].dispose).not.toHaveBeenCalled();
     expect(current.release).not.toHaveBeenCalled();
-    await act(async () => { synced.resolve(); await synced.promise; });
+    await act(async () => {
+      synced.resolve();
+      await synced.promise;
+    });
     await waitFor(() => expect(current.release).toHaveBeenCalledTimes(1));
     expect(references[1].dispose).toHaveBeenCalledTimes(1);
     expect(current.nativeDoc.changeDocTitle).not.toHaveBeenCalled();
@@ -362,8 +594,13 @@ describe('ProjectWorkspaces lazy workspace tree', () => {
     expect(current.guard.can).toHaveBeenCalledWith('Workspace_CreateDoc');
     expect(current.boards.createProject).not.toHaveBeenCalled();
     expect(references[1].dispose).not.toHaveBeenCalled();
-    await act(async () => { permission.resolve(false); await permission.promise; });
-    expect((await screen.findByRole('alert')).textContent).toBe('没有创建工程权限');
+    await act(async () => {
+      permission.resolve(false);
+      await permission.promise;
+    });
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      '没有创建工程权限'
+    );
     expect(current.boards.createProject).not.toHaveBeenCalled();
     expect(localStorage.getItem(pendingKey(current.meta))).toBeNull();
     expect(references[1].dispose).toHaveBeenCalledTimes(1);
@@ -373,12 +610,20 @@ describe('ProjectWorkspaces lazy workspace tree', () => {
     current.nativeDoc.waitForSyncReady.mockReturnValueOnce(synced.promise);
     current.guard.can.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
     startRename();
-    await waitFor(() => expect(current.nativeDoc.waitForSyncReady).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(current.nativeDoc.waitForSyncReady).toHaveBeenCalledTimes(1)
+    );
     expect(current.nativeDoc.changeDocTitle).not.toHaveBeenCalled();
-    await act(async () => { synced.resolve(); await synced.promise; });
+    await act(async () => {
+      synced.resolve();
+      await synced.promise;
+    });
     expect((await screen.findByRole('alert')).textContent).toBe('权限已改变');
-    expect(current.guard.can.mock.calls.filter(([action]) => action === 'Doc_Update')).toEqual([
-      ['Doc_Update', 'root'], ['Doc_Update', 'root'],
+    expect(
+      current.guard.can.mock.calls.filter(([action]) => action === 'Doc_Update')
+    ).toEqual([
+      ['Doc_Update', 'root'],
+      ['Doc_Update', 'root'],
     ]);
     expect(current.nativeDoc.changeDocTitle).not.toHaveBeenCalled();
     expect(current.workspace.engine.doc.waitForUpdated).not.toHaveBeenCalled();
@@ -387,22 +632,46 @@ describe('ProjectWorkspaces lazy workspace tree', () => {
   });
 
   test('failed create recovery can keep its record and close without deleting or reinitializing content', async () => {
-    const operation = { id: 'unfinished-operation', title: 'Recovered project' };
+    const operation = {
+      id: 'unfinished-operation',
+      title: 'Recovered project',
+    };
     const key = pendingKey(current.meta);
     localStorage.setItem(key, JSON.stringify(operation));
-    current.boards.createProject.mockRejectedValueOnce(new Error('Save confirmation unavailable'));
+    current.boards.createProject.mockRejectedValueOnce(
+      new Error('Save confirmation unavailable')
+    );
     render(<ProjectWorkspaces />);
-    expect((screen.getByRole('textbox', { name: '新工程名称' }) as HTMLInputElement).value).toBe(operation.title);
+    const recoveryInput = screen.getByRole('textbox', {
+      name: '新工程名称',
+    }) as HTMLInputElement;
+    expect(recoveryInput.value).toBe(operation.title);
+    const recoverySection = recoveryInput.closest('section')!;
+    const recoveryHeader = recoverySection.querySelector(
+      ':scope > [data-active]'
+    )!;
+    expect(recoveryHeader.contains(recoveryInput)).toBe(false);
+    expect(recoveryHeader.contains(screen.getByRole('alert'))).toBe(false);
+    expect(recoverySection.contains(screen.getByRole('alert'))).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: '创建工程' }));
-    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('Save confirmation unavailable'));
-    expect(current.boards.createProject).toHaveBeenCalledWith(operation.title, operation.id);
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe(
+        'Save confirmation unavailable'
+      )
+    );
+    expect(current.boards.createProject).toHaveBeenCalledWith(
+      operation.title,
+      operation.id
+    );
     expect(references[1].dispose).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: '保留记录并关闭' }));
     expect(screen.queryByRole('textbox', { name: '新工程名称' })).toBeNull();
     expect(screen.queryByRole('alert')).toBeNull();
     expect(screen.getAllByTestId('dikw-main-board')).toHaveLength(3);
     expect(localStorage.getItem(key)).toBeNull();
-    expect(JSON.parse(localStorage.getItem(key + ':recovery:' + operation.id)!)).toEqual(operation);
+    expect(
+      JSON.parse(localStorage.getItem(key + ':recovery:' + operation.id)!)
+    ).toEqual(operation);
     // Strict service mocks expose no deletion/reset API; closing must not even
     // acquire a native document or call createProject a second time.
     expect(current.docs.open).not.toHaveBeenCalled();
@@ -412,6 +681,8 @@ describe('ProjectWorkspaces lazy workspace tree', () => {
     collapseCurrent();
     fireEvent.click(screen.getByRole('button', { name: '展开local:one' }));
     expect(screen.queryByRole('textbox', { name: '新工程名称' })).toBeNull();
-    expect(localStorage.getItem(key + ':recovery:' + operation.id)).not.toBeNull();
+    expect(
+      localStorage.getItem(key + ':recovery:' + operation.id)
+    ).not.toBeNull();
   });
 });

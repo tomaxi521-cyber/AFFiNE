@@ -39,7 +39,10 @@ const MAX_WIDTH = 480;
 const MIN_WIDTH = 248;
 const isMacosDesktop = BUILD_CONFIG.isElectron && environment.isMacOs;
 
-export function AppSidebar({ children }: PropsWithChildren) {
+export function AppSidebar({
+  children,
+  headerContent,
+}: PropsWithChildren<{ headerContent?: React.ReactNode }>) {
   const { appSettings } = useAppSettingHelper();
 
   const clientBorder = appSettings.clientBorder;
@@ -177,9 +180,11 @@ export function AppSidebar({ children }: PropsWithChildren) {
       >
         <nav className={navStyle} data-testid="app-sidebar">
           {!BUILD_CONFIG.isElectron && sidebarState !== 'floating' && (
-            <SidebarHeader />
+            <SidebarHeader>{headerContent}</SidebarHeader>
           )}
           <div className={navBodyStyle} data-testid="sliderBar-inner">
+            {(BUILD_CONFIG.isElectron || sidebarState === 'floating') &&
+              headerContent}
             {children}
           </div>
         </nav>

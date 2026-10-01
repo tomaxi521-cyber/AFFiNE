@@ -1,4 +1,4 @@
-import { BrowserWarning, LocalDemoTips } from '@affine/component/affine-banner';
+import { BrowserWarning } from '@affine/component/affine-banner';
 import { Trans, useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { useCallback, useState } from 'react';
@@ -7,6 +7,7 @@ import { useEnableCloud } from '../components/hooks/affine/use-enable-cloud';
 import { AuthService } from '../modules/cloud';
 import { GlobalDialogService } from '../modules/dialogs';
 import type { Workspace } from '../modules/workspace';
+import { LocalStorageNotice } from './local-storage-notice';
 
 const minimumChromeVersion = 106;
 
@@ -61,6 +62,7 @@ export const TopTip = ({
   pageId?: string;
   workspace: Workspace;
 }) => {
+  const t = useI18n();
   const loginStatus = useLiveData(useService(AuthService).session.status$);
   const isLoggedIn = loginStatus === 'authenticated';
 
@@ -79,8 +81,12 @@ export const TopTip = ({
     workspace.flavour === 'local'
   ) {
     return (
-      <LocalDemoTips
+      <LocalStorageNotice
         isLoggedIn={isLoggedIn}
+        warning={t['com.affine.banner.local-warning']()}
+        actionLabel={
+          isLoggedIn ? t['Enable AFFiNE Cloud']() : t['Sign in and Enable']()
+        }
         onLogin={onLogin}
         onEnableCloud={() =>
           confirmEnableCloud(workspace, { openPageId: pageId })

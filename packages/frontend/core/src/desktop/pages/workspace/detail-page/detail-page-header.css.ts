@@ -12,7 +12,7 @@ export const header = style({
   height: '100%',
   width: '100%',
   alignItems: 'center',
-  gap: 12,
+  gap: 8,
   containerName: 'detail-page-header',
   containerType: 'inline-size',
 });
@@ -31,7 +31,7 @@ export const journalWeekPicker = style({
 export const iconButtonContainer = style({
   display: 'flex',
   alignItems: 'center',
-  gap: 10,
+  gap: 4,
 });
 
 export const dragHandle = style({

@@ -66,8 +66,8 @@ export const navStyle = style({
 });
 export const navHeaderStyle = style({
   flex: '0 0 auto',
-  height: '52px',
-  padding: '0px 8px',
+  minHeight: '44px',
+  padding: '4px 10px',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -75,7 +75,8 @@ export const navHeaderStyle = style({
 
 export const navBodyStyle = style({
   flex: '1 1 auto',
-  height: 'calc(100% - 52px)',
+  minHeight: 0,
+  height: 0,
   display: 'flex',
   flexDirection: 'column',
   rowGap: '4px',
