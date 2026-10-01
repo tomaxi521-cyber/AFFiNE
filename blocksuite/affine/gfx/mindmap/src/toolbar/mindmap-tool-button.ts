@@ -144,32 +144,6 @@ export class EdgelessMindmapToolButton extends EdgelessToolbarToolMixin(
           rotate(var(--hover-r, 0)) scale(var(--hover-s, 1));
         z-index: var(--hover-z, 0);
       }
-      :host([compact]) {
-        position: relative;
-      }
-      .dikw-mindmap-options {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 16px;
-        height: 16px;
-        border: 0;
-        border-radius: 4px;
-        padding: 0;
-        cursor: pointer;
-        color: var(--affine-text-primary-color);
-        background: var(--affine-background-primary-color);
-      }
-      .dikw-mindmap-options:hover {
-        background: var(--affine-hover-color);
-      }
-      .dikw-mindmap-options:focus-visible {
-        outline: 2px solid var(--affine-primary-color);
-      }
-      .dikw-mindmap-options svg {
-        width: 12px;
-        height: 12px;
-      }
     `,
     dikwCompactToolStyles,
   ];
@@ -448,7 +422,7 @@ export class EdgelessMindmapToolButton extends EdgelessToolbarToolMixin(
 
   private _onCompactPlacementStart(event: MouseEvent) {
     // Only dragAndMoveTo's synchronous native target event starts placement.
-    // Real pointer dragging belongs to the parent pin grip, not this launcher.
+    // Physical pointerdown alone must not start a second placement gesture.
     if (!this._startingPlacement || this.edgeless.store.readonly) return;
     const tool = this.draggableTools.find((tool) => tool.name === 'mindmap');
     if (!tool) return;
@@ -497,27 +471,6 @@ export class EdgelessMindmapToolButton extends EdgelessToolbarToolMixin(
               : svg`<rect x="2" y="9" width="7" height="6" rx="1"/><path d="M9 12h4M13 5v14M13 5h3M13 12h3M13 19h3"/><rect x="16" y="3" width="6" height="4" rx="1"/><rect x="16" y="10" width="6" height="4" rx="1"/><rect x="16" y="17" width="6" height="4" rx="1"/>`}
           </svg>
         </button>
-        ${media
-          ? nothing
-          : html`<button
-              type="button"
-              class="dikw-mindmap-options"
-              title="思维导图样式与导入"
-              aria-label="思维导图样式与导入"
-              aria-expanded=${!!this.popper}
-              ?disabled=${this.edgeless.store.readonly}
-              @click=${this._toggleMenu}
-            >
-              <svg
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                aria-hidden="true"
-              >
-                <path d="m4 6 4 4 4-4" />
-              </svg>
-            </button>`}
       `;
     }
 
