@@ -6,7 +6,7 @@ import { sidebarBoardRows } from '@affine/core/modules/dikw-workbench/sidebar-tr
 import { WorkspaceServerService } from '@affine/core/modules/cloud';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { WorkbenchLink, WorkbenchService } from '@affine/core/modules/workbench';
-import { EdgelessIcon } from '@blocksuite/icons/rc';
+import { FolderIcon } from './folder-icon';
 import { useLiveData, useService } from '@toeverything/infra';
 import { useEffect, useMemo, useState } from 'react';
 import * as styles from './board-tree.css';
@@ -17,8 +17,8 @@ function BoardRow({id,root,depth,hasChildren,expanded,active,onToggle}: {id:stri
   const name=root?'主工作台':title||'未命名白板';
   return <li data-board-id={id}>
     <div className={styles.row} data-active={active} style={{paddingLeft:Math.min(depth,8)*14}}>
-      {hasChildren?<button type="button" className={styles.toggle} aria-label={(expanded?'收起':'展开')+name} aria-expanded={expanded} onClick={onToggle}>{expanded?'▾':'▸'}</button>:<span style={{width:26,flexShrink:0}}/>}
-      <WorkbenchLink draggable={false} to={root?'/board':'/'+id+'?mode=edgeless'} className={styles.link} aria-current={active?'page':undefined} title={name} data-testid={root?'dikw-main-board':undefined}><EdgelessIcon width={18} height={18} style={{flexShrink:0}}/><span className={styles.label}>{name}</span></WorkbenchLink>
+      {(root||hasChildren)?<button type="button" className={styles.toggle} aria-label={(expanded?'收起':'展开')+name} aria-expanded={expanded} onClick={onToggle}>{expanded?'▾':'▸'}</button>:<span style={{width:26,flexShrink:0}}/>}
+      <WorkbenchLink draggable={false} to={root?'/board':'/'+id+'?mode=edgeless'} className={styles.link} aria-current={active?'page':undefined} title={name} data-testid={root?'dikw-main-board':undefined}><FolderIcon open={expanded}/><span className={styles.label}>{name}</span></WorkbenchLink>
     </div>
   </li>;
 }
@@ -45,7 +45,7 @@ function TreeContent({storageKey}:{storageKey:string}) {
   // Native links preserve current-tab intent and the offline-safe /board root entry.
   // Visibility is permission-filtered above; destination access remains enforced by native routes.
   return <nav aria-label="工作台层级">
-    {!rows.length&&<div className={styles.row}><span style={{width:26}}/><button type="button" data-testid="dikw-main-board" className={styles.link} onClick={()=>workbench.open('/board')}><EdgelessIcon width={18} height={18}/>主工作台</button></div>}
+    {!rows.length&&<div className={styles.row}><span style={{width:26}}/><button type="button" data-testid="dikw-main-board" className={styles.link} onClick={()=>workbench.open('/board')}><FolderIcon/>主工作台</button></div>}
     <ul className={styles.list}>{rows.map(row=><BoardRow key={row.id} {...row} root={row.id===rootId} active={row.id===activeId||(row.id===rootId&&pathname==='/board')} expanded={expanded.has(row.id)} onToggle={()=>setExpanded(old=>{const next=new Set(old);next.has(row.id)?next.delete(row.id):next.add(row.id);return next;})}/>)}</ul>
   </nav>;
 }

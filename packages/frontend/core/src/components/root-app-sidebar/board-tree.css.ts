@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css';
 import { cssVarV2 } from '@toeverything/theme/v2';
+export const empty=style({padding:'6px 12px 8px 40px',fontSize:12,color:cssVarV2('text/secondary')});
 export const list=style({listStyle:'none',padding:0,margin:0});
 export const row=style({display:'flex',alignItems:'center',minHeight:34,borderRadius:6,selectors:{'&[data-active="true"]':{background:cssVarV2('button/secondary')},'&:hover':{background:cssVarV2('button/secondary')}}});
 export const toggle=style({border:0,background:'transparent',color:cssVarV2('text/secondary'),width:26,height:32,flexShrink:0,cursor:'pointer',padding:0,selectors:{'&:focus-visible':{outline:'2px solid '+cssVarV2('input/border/active'),borderRadius:4}}});

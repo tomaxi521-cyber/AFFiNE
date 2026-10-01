@@ -1,11 +1,11 @@
 import { Tooltip } from '@affine/component';
 import * as footerStyles from './footer-tools.css';
 import { BoardTree } from './board-tree';
+import { LibraryTree } from './library-tree';
 import {
   AddPageButton,
   AppDownloadButton,
   AppSidebar,
-  MenuLinkItem,
   QuickSearchInput,
   SidebarContainer,
   SidebarScrollableContainer,
@@ -17,8 +17,6 @@ import { useI18n } from '@affine/i18n';
 import { track } from '@affine/track';
 import type { Store } from '@blocksuite/affine/store';
 import {
-  AllDocsIcon,
-  PageIcon,
   ImportIcon,
   SettingsIcon,
 } from '@blocksuite/icons/rc';
@@ -56,12 +54,10 @@ export type RootAppSidebarProps = {
 };
 
 const BoardLibraryEntries = () => {
-  const workbench = useService(WorkbenchService).workbench;
-  const pathname = useLiveData(workbench.location$).pathname;
   return <>
     <BoardTree />
-    <MenuLinkItem icon={<AllDocsIcon />} active={pathname === '/knowledge'} to="/knowledge">知识库</MenuLinkItem>
-    <MenuLinkItem icon={<PageIcon />} active={pathname === '/artifacts'} to="/artifacts">产物库</MenuLinkItem>
+    <LibraryTree kind="knowledge" />
+    <LibraryTree kind="artifact" />
   </>;
 };
 
