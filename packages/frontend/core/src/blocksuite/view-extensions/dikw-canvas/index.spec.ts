@@ -1,3 +1,4 @@
+/** @vitest-environment happy-dom */
 import { describe, expect, test, vi } from 'vitest';
 vi.mock('@blocksuite/affine/blocks/surface',()=>({DefaultTool:class DefaultTool{}}));
 vi.mock('@blocksuite/affine/ext-loader',()=>({ViewExtensionProvider:class {setup(){}}}));

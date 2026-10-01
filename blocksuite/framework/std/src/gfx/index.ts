@@ -105,6 +105,7 @@ export {
 } from './surface-middleware.js';
 export {
   BaseTool,
+  ToolIdentifier,
   type ToolOptions,
   type ToolOptionWithType,
   type ToolType,

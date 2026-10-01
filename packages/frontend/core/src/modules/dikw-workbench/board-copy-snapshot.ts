@@ -3,7 +3,7 @@ import type { BlockSnapshot, DocSnapshot } from '@blocksuite/affine/store';
 /** Deliberately bounded first version: unsupported schemas fail BEFORE creation. */
 export const BOARD_COPY_LIMITS = { documents: 32, objects: 5000, bytes: 16 * 1024 * 1024, depth: 100 } as const;
 const BLOCKS = new Set([
-  'affine:page', 'affine:surface', 'affine:note', 'affine:paragraph',
+  'affine:page', 'affine:surface', 'affine:note', 'affine:paragraph', 'affine:edgeless-text',
   'affine:list', 'affine:code', 'affine:divider', 'affine:image',
   'affine:attachment', 'affine:bookmark', 'affine:frame', 'affine:surface-ref',
   'affine:embed-linked-doc', 'affine:embed-synced-doc',

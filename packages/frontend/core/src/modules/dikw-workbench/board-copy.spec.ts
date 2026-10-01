@@ -17,8 +17,10 @@ vi.mock('./service', () => ({
     if (!hooks.portals.includes(target)) hooks.portals.push(target);
   },
 }));
-vi.mock('@blocksuite/affine/store', () => ({
-  Transformer: class {
+vi.mock('@blocksuite/affine/store', () => {
+  // The test setup may install Symbol.dispose after mocked class creation.
+  if (!Symbol.dispose) Object.defineProperty(Symbol, 'dispose', { value: Symbol.for('Symbol.dispose') });
+  return { Transformer: class {
     docToSnapshot(store: FakeStore) { return store.snapshot ? structuredClone(store.snapshot) : undefined; }
     snapshotToModelData(block: BlockSnapshot) { return { id: block.id, flavour: block.flavour, props: block.props }; }
     async snapshotToBlock(root: BlockSnapshot, store: FakeStore) {
@@ -29,8 +31,8 @@ vi.mock('@blocksuite/affine/store', () => ({
       return { id: blocks.id };
     }
     [Symbol.dispose]() {}
-  },
-}));
+  }};
+});
 
 const block = (id: string, flavour: string, props: Record<string, unknown> = {}, children: BlockSnapshot[] = []): BlockSnapshot => ({ type: 'block', id, flavour, props, children });
 function snapshot(id: string, child?: string): DocSnapshot {

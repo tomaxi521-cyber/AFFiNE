@@ -20,7 +20,7 @@ export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEdit
  const service=useService(DikwWorkbenchService); const docs=useService(DocsService);
  const workspace=useService(WorkspaceService).workspace; const guard=useService(GuardService);
  const serverId=useService(WorkspaceServerService).server?.id;
- const relations=useLiveData(service.relations$); const ids=useLiveData(docs.list.nonTrashDocsIds$);
+ const relations=useLiveData(service.relations$); const isBoard=relations.has(docId); const ids=useLiveData(docs.list.nonTrashDocsIds$);
  const readable=useReadableDocIds(ids); const canCreate=useGuard('Workspace_CreateDoc');const canUpdate=useGuard('Doc_Update',docId);
  const writable=!readonly&&!workspace.openOptions.isSharedMode&&canCreate===true&&canUpdate===true;
  const [open,setOpen]=useState(false);const [source,setSource]=useState('');const [query,setQuery]=useState('');
@@ -49,7 +49,7 @@ export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEdit
  };
  runRef.current=async a=>{await run(a);};
  useEffect(()=>{
-   const host=editor?.origin;const std=editor?.std;if(!host||!std||!relations.has(docId))return;
+   const host=editor?.origin;const std=editor?.std;if(!host||!std||!isBoard)return;
    const gfx=std.get(GfxControllerIdentifier);
    const handler=(event:Event)=>{
      const e=event as CustomEvent<{action:string;placement?:BoardPlacement}>;
@@ -61,7 +61,7 @@ export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEdit
    };
    host.addEventListener('dikw:board-tool',handler);
    return()=>{host.removeEventListener('dikw:board-tool',handler);armed.current=false;if(gfx.tool.currentToolName$.peek()===BoardPlacementTool.toolName)gfx.tool.setTool(DefaultTool);};
- },[editor,docId,relations]);
+ },[editor,docId,isBoard]);
  const arm=(from?:string)=>{if(!writable||pendingRef.current||busy)return;const std=editor?.std;if(!std)return;sourceRef.current=from;armed.current=true;setOpen(false);setError('');setPlacing(true);std.get(GfxControllerIdentifier).tool.setTool(BoardPlacementTool);};
  const cancel=()=>{armed.current=false;setPlacing(false);editor?.std.get(GfxControllerIdentifier).tool.setTool(DefaultTool);setOpen(false);};
  if(!relations.has(docId))return null;
