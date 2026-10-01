@@ -174,6 +174,35 @@ describe('workbench orchestration', () => {
     expect(f.can).not.toHaveBeenCalled();
     expect(f.engine.doc.waitForDocReady).not.toHaveBeenCalled();
   });
+  test('legacy navigation retains the original seed ID while native list metadata is absent', async () => {
+    const f = fixture();
+    f.docs.list.doc$.mockReturnValue({ value: undefined } as never);
+    const before = Y.encodeStateAsUpdate(f.workspace.rootYDoc);
+    expect(await f.service.ensureMainBoard()).toBe('main');
+    expect(Y.encodeStateAsUpdate(f.workspace.rootYDoc)).toEqual(before);
+    expect(f.fetch).not.toHaveBeenCalled();
+    expect(f.can).not.toHaveBeenCalled();
+    expect(f.docs.createDoc).not.toHaveBeenCalled();
+    expect(f.engine.doc.storage.pushDocUpdate).not.toHaveBeenCalled();
+    expect(f.engine.doc.waitForDocReady).not.toHaveBeenCalled();
+  });
+  test('an explicitly trashed legacy seed is never selected or restored', async () => {
+    const f = fixture();
+    f.docs.list.doc$.mockReturnValue({ value: { trash$: { value: true } } });
+    const before = Y.encodeStateAsUpdate(f.workspace.rootYDoc);
+    await expect(f.service.ensureMainBoard()).rejects.toThrow('没有可打开');
+    expect(Y.encodeStateAsUpdate(f.workspace.rootYDoc)).toEqual(before);
+    expect(f.fetch).not.toHaveBeenCalled();
+    expect(f.docs.createDoc).not.toHaveBeenCalled();
+  });
+  test('project roots with missing native metadata still fail closed', async () => {
+    const f = fixture(false);
+    f.repository.registerProject('project', 'project-op');
+    f.docs.list.doc$.mockReturnValue({ value: undefined } as never);
+    await expect(f.service.ensureMainBoard()).rejects.toThrow('没有可打开');
+    expect(f.fetch).not.toHaveBeenCalled();
+    expect(f.docs.createDoc).not.toHaveBeenCalled();
+  });
   test('multiple project roots prefer the legacy seed without mutation or bootstrap', async () => {
     const f = fixture();
     f.repository.registerProject('aaa-project', 'project-op');
@@ -419,58 +448,98 @@ describe('workbench orchestration', () => {
     ).rejects.toThrow('其他白板');
     expect(f.docs.createDoc).not.toHaveBeenCalled();
   });
-  test('cloud applies the same complete seed without createDoc and saves content first', async () => {
-    const f = fixture(false);
-    const seedRoot = new Y.Doc();
-    new BoardRepository(seedRoot).registerMain('main', 'bootstrap');
-    const pages = new Y.Array();
-    seedRoot.getMap('meta').set('pages', pages);
-    pages.push([new Y.Map([['id', 'main']])]);
-    const content = new Y.Doc();
-    const children = new Y.Array();
-    children.push(['surface']);
-    content.getMap('blocks').set(
-      'page',
-      new Y.Map<unknown>([
-        ['sys:id', 'page'],
-        ['sys:flavour', 'affine:page'],
-        ['sys:children', children],
-      ])
-    );
-    content.getMap('blocks').set(
-      'surface',
-      new Y.Map([
-        ['sys:id', 'surface'],
-        ['sys:flavour', 'affine:surface'],
-      ])
-    );
-    const encode = (doc: Y.Doc) =>
-      btoa(String.fromCharCode(...Y.encodeStateAsUpdate(doc)));
-    f.fetch.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          version: 1,
-          docId: 'main',
-          rootUpdate: encode(seedRoot),
-          contentUpdate: encode(content),
-        })
-      )
-    );
-    f.engine.doc.storage.pushDocUpdate.mockImplementation(async () => {
-      expect(f.repository.snapshot().size).toBe(0);
-    });
-    const a = f.service.ensureMainBoard();
-    const b = f.service.ensureMainBoard();
-    expect(a).toBe(b);
-    expect(await a).toBe('main');
-    expect(f.fetch).toHaveBeenCalledTimes(1);
-    expect(f.docs.createDoc).not.toHaveBeenCalled();
-    expect(
-      f.workspace.docCollection.getDoc().spaceDoc.getMap('blocks').size
-    ).toBe(2);
-    expect(f.repository.snapshot().get('main')?.parentId).toBe(null);
-    expect(f.engine.doc.storage.pushDocUpdate).toHaveBeenCalledTimes(1);
-  });
+  test.each([false, true])(
+    'cloud applies the complete original seed and save barriers when graph arrives during POST: %s',
+    async concurrentGraph => {
+      const f = fixture(false);
+      const seedRoot = new Y.Doc();
+      new BoardRepository(seedRoot).registerMain('main', 'bootstrap');
+      const graphUpdate = Y.encodeStateAsUpdate(seedRoot);
+      const pages = new Y.Array();
+      seedRoot.getMap('meta').set('pages', pages);
+      pages.push([new Y.Map([['id', 'main']])]);
+      const content = new Y.Doc();
+      const children = new Y.Array();
+      children.push(['surface']);
+      content.getMap('blocks').set(
+        'page',
+        new Y.Map<unknown>([
+          ['sys:id', 'page'],
+          ['sys:flavour', 'affine:page'],
+          ['sys:children', children],
+        ])
+      );
+      content.getMap('blocks').set(
+        'surface',
+        new Y.Map([
+          ['sys:id', 'surface'],
+          ['sys:flavour', 'affine:surface'],
+        ])
+      );
+      const encode = (doc: Y.Doc) =>
+        btoa(String.fromCharCode(...Y.encodeStateAsUpdate(doc)));
+      f.fetch.mockImplementation(async () => {
+        if (concurrentGraph) {
+          // Reuse the server's exact structs, not independently authored metadata.
+          Y.applyUpdate(f.workspace.rootYDoc, graphUpdate);
+          f.docs.list.doc$.mockReturnValue({ value: undefined } as never);
+        }
+        return new Response(
+          JSON.stringify({
+            version: 1,
+            docId: 'main',
+            rootUpdate: encode(seedRoot),
+            contentUpdate: encode(content),
+          })
+        );
+      });
+      f.engine.doc.storage.pushDocUpdate.mockImplementation(async update => {
+        expect(f.repository.snapshot().size).toBe(concurrentGraph ? 1 : 0);
+        expect(update.bin).toEqual(Y.encodeStateAsUpdate(content));
+        expect(
+          f.workspace.rootYDoc.getMap('meta').get('pages')
+        ).toBeUndefined();
+      });
+      let finish!: () => void;
+      let reached!: () => void;
+      const atSave = new Promise<void>(resolve => {
+        reached = resolve;
+      });
+      const save = new Promise<void>(resolve => {
+        finish = resolve;
+      });
+      f.engine.doc.waitForUpdated.mockImplementation(async id => {
+        if (id === 'main') {
+          reached();
+          await save;
+        }
+      });
+      const a = f.service.ensureMainBoard();
+      const b = f.service.ensureMainBoard();
+      expect(a).toBe(b);
+      let settled = false;
+      void a.then(() => {
+        settled = true;
+      });
+      await atSave;
+      expect(settled).toBe(false);
+      expect(f.docs.open).not.toHaveBeenCalled();
+      finish();
+      expect(await a).toBe('main');
+      expect(f.engine.doc.waitForUpdated).toHaveBeenCalledWith('main');
+      expect(f.engine.doc.waitForUpdated).toHaveBeenCalledWith('ws');
+      expect(Y.encodeStateAsUpdate(f.workspace.rootYDoc)).toEqual(
+        Y.encodeStateAsUpdate(seedRoot)
+      );
+      expect(f.fetch).toHaveBeenCalledTimes(1);
+      expect(f.docs.createDoc).not.toHaveBeenCalled();
+      expect(
+        f.workspace.docCollection.getDoc().spaceDoc.getMap('blocks').size
+      ).toBe(2);
+      expect(f.repository.snapshot().get('main')?.parentId).toBe(null);
+      expect(f.engine.doc.storage.pushDocUpdate).toHaveBeenCalledTimes(1);
+    }
+  );
   test('local bootstrap with incomplete root fails without native create', async () => {
     const f = fixture(false);
     f.workspace.flavour = 'local';

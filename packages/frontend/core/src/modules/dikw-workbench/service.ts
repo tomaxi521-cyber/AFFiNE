@@ -189,12 +189,14 @@ export class DikwWorkbenchService extends Service {
     const roots = [...this.repository.snapshot().values()]
       .filter(r => r.parentId === null)
       .sort((a, b) => (a.docId < b.docId ? -1 : a.docId > b.docId ? 1 : 0));
-    // Preserve legacy offline startup: opening the original seed is not a write
-    // and native document loading remains its permission boundary.
+    // Preserve legacy offline startup: graph membership can arrive before the
+    // native list record. Selecting the seed ID is navigation, not a write or a
+    // permission grant; native loading remains the boundary. Never select an
+    // explicitly trashed seed. New projects below still require known metadata.
     const legacy = roots.find(
       r =>
         isLegacyBoardRoot(r) &&
-        this.docsService.list.doc$(r.docId).value?.trash$.value === false
+        this.docsService.list.doc$(r.docId).value?.trash$.value !== true
     );
     if (legacy) return legacy.docId;
     for (const root of roots) {
