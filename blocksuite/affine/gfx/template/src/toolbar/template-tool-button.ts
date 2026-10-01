@@ -169,6 +169,10 @@ export class EdgelessTemplateButton extends EdgelessToolbarToolMixin(
       this._cleanup = null;
       this.requestUpdate();
 
+      if (this.gfx.tool.currentToolName$.peek() !== 'template') {
+        this._prevTool = null;
+        return;
+      }
       if (
         this._prevTool &&
         this._prevTool.toolType &&

@@ -124,7 +124,11 @@ const DetailPageImpl = memo(function DetailPageImpl() {
     if(!host || mode!=='edgeless')return;
     host.toggleAttribute('data-dikw-ai-enabled',enableAI);
     const open=()=>{if(enableAI && isActiveView) AIAppEvents.requestOpenWithChat.next({host});};
-    const sync=()=>view.dikwAIEntry$.next(enableAI && !!host.querySelector('edgeless-toolbar-widget[data-dikw-board]'));
+    const sync=()=>{
+      const rootId=host.store.root?.id;
+      const toolbar=rootId?host.std.view.getWidget('edgeless-toolbar-widget',rootId):null;
+      view.dikwAIEntry$.next(enableAI && !!toolbar?.hasAttribute('data-dikw-board'));
+    };
     host.addEventListener('dikw:ai-open',open);
     host.addEventListener('dikw:toolbar-state',sync);
     host.dispatchEvent(new Event('dikw:ai-availability'));sync();
