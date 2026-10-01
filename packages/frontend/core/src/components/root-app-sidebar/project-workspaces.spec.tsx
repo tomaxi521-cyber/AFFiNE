@@ -80,6 +80,7 @@ vi.mock('@blocksuite/icons/rc', () => ({
 }));
 vi.mock('nanoid', () => ({ nanoid: () => 'new-operation' }));
 vi.mock('./project-workspaces.css', () => ({
+  folder: 'folder',
   navigation: 'navigation',
   header: 'header',
   row: 'row',

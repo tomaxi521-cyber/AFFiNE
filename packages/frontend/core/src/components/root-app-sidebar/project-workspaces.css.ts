@@ -24,8 +24,8 @@ export const row = style({
   minHeight: 32,
   borderRadius: 5,
   selectors: {
-    '&:hover': { background: cssVarV2('button/secondary') },
-    '&[data-active=true]': { background: cssVarV2('button/secondary') },
+    '&:hover': { background: cssVarV2('layer/background/hoverOverlay') },
+    '&[data-active=true]': { background: 'var(--affine-hover-color)' },
   },
   '@media': { [coarsePointer]: { minHeight: 44 } },
 });
