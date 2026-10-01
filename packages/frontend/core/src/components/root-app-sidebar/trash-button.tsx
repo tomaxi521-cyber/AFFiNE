@@ -1,5 +1,6 @@
 import {
   AnimatedDeleteIcon,
+  Tooltip,
   toast,
   useConfirmModal,
   useDropTarget,
@@ -13,7 +14,11 @@ import { UserFriendlyError } from '@affine/error';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 
-export const TrashButton = () => {
+import { WorkbenchService } from '@affine/core/modules/workbench';
+import { iconButton } from './footer-tools.css';
+
+export const TrashButton = ({ iconOnly = false }: { iconOnly?: boolean }) => {
+  const workbench = useService(WorkbenchService).workbench;
   const t = useI18n();
   const docsService = useService(DocsService);
   const { openConfirmModal } = useConfirmModal();
@@ -72,6 +77,16 @@ export const TrashButton = () => {
     }),
     [docsService.list, guardService, openConfirmModal, t]
   );
+
+  if (iconOnly) return <div ref={dropTargetRef}>
+    <Tooltip content={t['com.affine.workspaceSubPath.trash']()}>
+      <button type="button" className={iconButton} aria-label={t['com.affine.workspaceSubPath.trash']()}
+        data-testid="trash-page" data-active={trashActive || draggedOver}
+        onClick={() => workbench.open('/trash')}>
+        <AnimatedDeleteIcon closed={draggedOver} width={22} height={22} />
+      </button>
+    </Tooltip>
+  </div>;
 
   return (
     <MenuLinkItem

@@ -1,4 +1,5 @@
-// Import is already correct, no changes needed
+import { Tooltip } from '@affine/component';
+import * as footerStyles from './footer-tools.css';
 import {
   AddPageButton,
   AppDownloadButton,
@@ -216,28 +217,9 @@ export const RootAppSidebar = memo((): ReactElement => {
           contentStyle={{ padding: '6px 8px 0 8px' }}
         >
           <MenuLinkItem icon={<EdgelessIcon />} to="/space-demo" data-testid="dikw-space-demo">空间体验样板</MenuLinkItem>
-          <TrashButton />
           {sessionStatus === 'authenticated' && <NotificationButton />}
           <AIChatButton />
-          <MenuItem
-            data-testid="slider-bar-workspace-setting-button"
-            icon={<SettingsIcon />}
-            onClick={onOpenSettingModal}
-          >
-            <span data-testid="settings-modal-trigger">
-              {t['com.affine.settingSidebar.title']()}
-            </span>
-          </MenuItem>
-
-          <MenuItem
-            data-testid="slider-bar-import-button"
-            icon={<ImportIcon />}
-            onClick={onOpenImportModal}
-          >
-            <span data-testid="import-modal-trigger">{t['Import']()}</span>
-          </MenuItem>
           <InviteMembersButton />
-          <TemplateDocEntrance />
           <ExternalMenuLinkItem
             href="https://affine.pro/blog?tag=Release+Note"
             icon={<JournalIcon />}
@@ -248,6 +230,22 @@ export const RootAppSidebar = memo((): ReactElement => {
       <SidebarContainer className={bottomContainer}>
         <SidebarAudioPlayer />
         {BUILD_CONFIG.isElectron ? <UpdaterButton /> : <AppDownloadButton />}
+        <nav aria-label="工作区工具" className={footerStyles.tools} data-testid="sidebar-footer-tools">
+          <TrashButton iconOnly />
+          <Tooltip content={t['com.affine.settingSidebar.title']()}>
+            <button type="button" className={footerStyles.iconButton} aria-label={t['com.affine.settingSidebar.title']()}
+              data-testid="slider-bar-workspace-setting-button" onClick={onOpenSettingModal}>
+              <SettingsIcon width={22} height={22} />
+            </button>
+          </Tooltip>
+          <Tooltip content={t['Import']()}>
+            <button type="button" className={footerStyles.iconButton} aria-label={t['Import']()}
+              data-testid="slider-bar-import-button" onClick={onOpenImportModal}>
+              <ImportIcon width={22} height={22} />
+            </button>
+          </Tooltip>
+          <TemplateDocEntrance iconOnly />
+        </nav>
       </SidebarContainer>
     </AppSidebar>
   );
