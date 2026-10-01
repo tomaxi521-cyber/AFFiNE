@@ -13,6 +13,7 @@ import {
   type DocMode,
   type EmbedSyncedDocModel,
   NoteDisplayMode,
+  NoteBlockModel,
   type ReferenceInfo,
 } from '@blocksuite/affine-model';
 import { REFERENCE_NODE } from '@blocksuite/affine-shared/consts';
@@ -26,7 +27,7 @@ import {
   ThemeProvider,
 } from '@blocksuite/affine-shared/services';
 import { cloneReferenceInfo } from '@blocksuite/affine-shared/utils';
-import { Bound, getCommonBound } from '@blocksuite/global/gfx';
+import { getCommonBound } from '@blocksuite/global/gfx';
 import {
   BlockSelection,
   BlockStdScope,
@@ -54,7 +55,8 @@ export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSynce
   static override styles = blockStyles;
 
   private _hasRenderedSyncedView = false;
-  private _hasInitedFitEffect = false;
+  private _fitHost: EditorHost | null = null;
+  private _disposeFitEffect: (() => void) | undefined;
 
   private readonly _initEdgelessFitEffect = () => {
     let frame = 0;
@@ -69,9 +71,9 @@ export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSynce
       viewport.onResize(true);
       const bounds = getCommonBound([
         ...controller.layer.blocks
-          .filter(block => !(block.flavour === 'affine:note' && block.props.displayMode === NoteDisplayMode.DocOnly))
-          .map(block => Bound.deserialize(block.xywh)),
-        ...controller.layer.canvasElements,
+          .filter(block => !(block instanceof NoteBlockModel && block.props.displayMode === NoteDisplayMode.DocOnly))
+          .map(block => block.elementBound),
+        ...controller.layer.canvasElements.map(element => element.elementBound),
       ]);
       // Padding lives in the embed's local space so outer zoom does not shrink
       // its useful preview area. Recompute bounds after content edits/reloads.
@@ -86,11 +88,11 @@ export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSynce
     const subscription = parent?.viewport.viewportUpdated.subscribe(schedule);
     const child = this.syncedDoc?.spaceDoc;
     child?.on('update', schedule);
-    this._disposables.add(() => {
+    this._disposeFitEffect = () => {
       observer.disconnect(); subscription?.unsubscribe();
       child?.off('update', schedule);
       if (frame) cancelAnimationFrame(frame);
-    });
+    };
     this.syncedDocEditorHost?.updateComplete.then(schedule).catch(() => {});
   };
 
@@ -597,15 +599,23 @@ export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSynce
     return this._renderSyncedView();
   }
 
+  override disconnectedCallback() {
+    this._disposeFitEffect?.();
+    this._disposeFitEffect = undefined;
+    this._fitHost = null;
+    super.disconnectedCallback();
+  }
+
   override updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
     this.syncedDocCard?.requestUpdate();
 
-    if (!this._hasInitedFitEffect && this._hasRenderedSyncedView) {
-      /* Register the resizeObserver AFTER syncdView viewport's own resizeObserver
-       * so that viewport.onResize() use up-to-date boundingClientRect values */
-      this._hasInitedFitEffect = true;
-      this._initEdgelessFitEffect();
+    const host = this.syncedDocEditorHost;
+    if (host !== this._fitHost) {
+      this._disposeFitEffect?.();
+      this._disposeFitEffect = undefined;
+      this._fitHost = host;
+      if (host && this._hasRenderedSyncedView) this._initEdgelessFitEffect();
     }
   }
 

@@ -171,6 +171,27 @@ export const blockStyles = css`
     height: 100%;
   }
 
+  /* The canvas viewport must exclude the in-flow header. Giving both the
+   * editor and its preceding header 100%+header height clips a fitted board. */
+  affine-embed-edgeless-synced-doc-block
+    .affine-embed-synced-doc-container.edgeless.surface {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+  affine-embed-edgeless-synced-doc-block
+    .affine-embed-synced-doc-container.edgeless.surface
+    > .affine-embed-synced-doc-edgeless-header-wrapper {
+    flex: 0 0 auto;
+  }
+  affine-embed-edgeless-synced-doc-block
+    .affine-embed-synced-doc-container.edgeless.surface
+    > .affine-embed-synced-doc-editor {
+    flex: 1 1 0;
+    min-height: 0;
+    height: 0;
+  }
+
   .affine-embed-synced-doc-editor .affine-page-root-block-container {
     width: 100%;
     max-width: 100%;
