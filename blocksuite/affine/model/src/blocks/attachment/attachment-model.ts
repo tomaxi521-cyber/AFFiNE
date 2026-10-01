@@ -45,6 +45,8 @@ export type AttachmentBlockProps = {
    */
   type: string;
   caption?: string;
+  /** Offline HTML presentation scale; missing legacy values mean 1. */
+  offlineHtmlScale?: number;
   // `loadingKey` was used to indicate whether the attachment is loading,
   // which is currently unused but no breaking change is needed.
   // The `loadingKey` and `sourceId` should not be existed at the same time.
@@ -69,6 +71,7 @@ export const defaultAttachmentProps: AttachmentBlockProps = {
   type: 'application/octet-stream',
   sourceId: undefined,
   caption: undefined,
+  offlineHtmlScale: 1,
   embed: false,
   style: AttachmentBlockStyles[1],
   index: 'a0',

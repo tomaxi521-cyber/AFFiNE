@@ -13,6 +13,7 @@ import {
   type ToolbarAction,
   type ToolbarActionGroup,
   type ToolbarModuleConfig,
+  type ToolbarContext,
   ToolbarModuleExtension,
 } from '@blocksuite/affine-shared/services';
 import { getBlockProps } from '@blocksuite/affine-shared/utils';
@@ -26,6 +27,8 @@ import {
   EditIcon,
   ReplaceIcon,
   ResetIcon,
+  EdgelessIcon,
+  PlayIcon,
 } from '@blocksuite/icons/lit';
 import { BlockFlavourIdentifier } from '@blocksuite/std';
 import type { ExtensionType } from '@blocksuite/store';
@@ -37,6 +40,78 @@ import { keyed } from 'lit/directives/keyed.js';
 import { AttachmentBlockComponent } from '../attachment-block';
 import { RenameModal } from '../components/rename-model';
 import { AttachmentEmbedProvider } from '../embed';
+import { isOfflineHtml, offlineHtmlScale } from '../offline-html';
+
+const isHtml = (ctx: ToolbarContext) => {
+  const model = ctx.getCurrentModelByType(AttachmentBlockModel);
+  return !!model && isOfflineHtml(model.props);
+};
+const isHtmlEmbed = (ctx: ToolbarContext) =>
+  isHtml(ctx) && !!ctx.getCurrentModelByType(AttachmentBlockModel)?.props.embed;
+const htmlInteraction = {
+  id: 'a.html-interaction',
+  when: isHtmlEmbed,
+  content(ctx) {
+    const block = ctx.getCurrentBlockByType(AttachmentBlockComponent);
+    if (!block) return null;
+    const state = block.offlineHtmlState$.value;
+    const label = state.active
+      ? '退出操作'
+      : state.running
+        ? '进入操作'
+        : '运行 HTML';
+    return html`<editor-icon-button
+      data-testid="dikw-html-interaction"
+      aria-label=${label}
+      .tooltip=${label}
+      ?active=${state.active}
+      ?disabled=${ctx.store.readonly || state.loading}
+      @pointerdown=${(e: Event) => e.stopPropagation()}
+      @click=${block.toggleOfflineHtml}
+      >${state.active ? EdgelessIcon() : PlayIcon()}</editor-icon-button
+    >`;
+  },
+} satisfies ToolbarAction;
+const htmlScaleAction = {
+  id: 'g.html-scale',
+  when: isHtmlEmbed,
+  content(ctx) {
+    const model = ctx.getCurrentModelByType(AttachmentBlockModel);
+    if (!model) return null;
+    const scale$ = computed(() =>
+      Math.round(100 * offlineHtmlScale(model.props.offlineHtmlScale$.value))
+    );
+    const select = (event: CustomEvent<number>) => {
+      event.stopPropagation();
+      const scale = event.detail / 100;
+      if (
+        !Number.isFinite(scale) ||
+        scale < 0.1 ||
+        scale > 5 ||
+        ctx.store.readonly
+      )
+        return;
+      const ratio = scale / offlineHtmlScale(model.props.offlineHtmlScale);
+      const bound = Bound.deserialize(model.xywh);
+      bound.w *= ratio;
+      bound.h *= ratio;
+      ctx.store.updateBlock(model, {
+        offlineHtmlScale: scale,
+        xywh: bound.serialize(),
+      });
+    };
+    return html`${keyed(
+      model,
+      html`<affine-size-dropdown-menu
+        data-testid="dikw-html-scale"
+        .tooltip=${'Scale'}
+        @select=${select}
+        .format=${(n: number) => `${n}%`}
+        .sizeSignal=${scale$}
+      ></affine-size-dropdown-menu>`
+    )}`;
+  },
+} satisfies ToolbarAction;
 
 const trackBaseProps = {
   category: 'attachment',
@@ -200,8 +275,10 @@ const captionAction = {
 
 const builtinToolbarConfig = {
   actions: [
+    htmlInteraction,
     {
       id: 'a.rename',
+      when: ctx => !isHtmlEmbed(ctx),
       content(ctx) {
         const block = ctx.getCurrentBlockByType(AttachmentBlockComponent);
         if (!block) return null;
@@ -237,7 +314,14 @@ const builtinToolbarConfig = {
       },
     },
     attachmentViewDropdownMenu,
-    replaceAction,
+    { ...replaceAction, when: ctx => !isHtmlEmbed(ctx) },
+    {
+      ...replaceAction,
+      id: 'd.html-replace',
+      placement: ActionPlacement.More,
+      label: 'Replace attachment',
+      when: isHtmlEmbed,
+    },
     downloadAction,
     captionAction,
     {
@@ -311,9 +395,32 @@ const builtinToolbarConfig = {
 
 const builtinSurfaceToolbarConfig = {
   actions: [
+    htmlInteraction,
+    { ...downloadAction, id: 'a.html-download', when: isHtmlEmbed },
     attachmentViewDropdownMenu,
+    htmlScaleAction,
+    {
+      id: 'b.html-refresh',
+      placement: ActionPlacement.More,
+      label: 'Reload',
+      icon: ResetIcon(),
+      when: isHtmlEmbed,
+      run(ctx) {
+        ctx
+          .getCurrentBlockByType(AttachmentBlockComponent)
+          ?.offlineHtmlView?.reset();
+      },
+    },
+    {
+      ...replaceAction,
+      id: 'd.html-replace',
+      placement: ActionPlacement.More,
+      label: 'Replace attachment',
+      when: isHtmlEmbed,
+    },
     {
       id: 'c.style',
+      when: ctx => !isHtmlEmbed(ctx),
       actions: [
         {
           id: 'horizontalThin',
@@ -374,10 +481,12 @@ const builtinSurfaceToolbarConfig = {
     {
       ...replaceAction,
       id: 'd.replace',
+      when: ctx => !isHtmlEmbed(ctx),
     },
     {
       ...downloadAction,
       id: 'e.download',
+      when: ctx => !isHtmlEmbed(ctx) && downloadAction.when(ctx),
     },
     {
       ...captionAction,

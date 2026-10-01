@@ -3,10 +3,17 @@ import { describe, expect, test } from 'vitest';
 import {
   buildOfflineHtmlSrcdoc,
   isOfflineHtml,
+  offlineHtmlScale,
   OFFLINE_HTML_MAX_BYTES,
 } from '../../../../blocks/attachment/src/offline-html.js';
 
 describe('offline HTML attachment boundary', () => {
+  test('legacy and invalid presentation scales are safe while normal scales persist', () => {
+    for (const value of [undefined, NaN, Infinity, -1, 0, 6])
+      expect(offlineHtmlScale(value)).toBe(1);
+    for (const value of [0.1, 0.5, 1, 1.5, 2, 5])
+      expect(offlineHtmlScale(value)).toBe(value);
+  });
   test.each([
     ['demo.html', '', true],
     ['DEMO.HTM', 'application/octet-stream', true],

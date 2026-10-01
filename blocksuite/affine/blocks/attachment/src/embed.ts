@@ -169,7 +169,11 @@ const embedConfig: AttachmentEmbedConfig[] = [
       const bound = Bound.deserialize(model.props.xywh);
       bound.w = OFFLINE_HTML_WIDTH;
       bound.h = OFFLINE_HTML_HEIGHT;
-      model.store.updateBlock(model, { embed: true, xywh: bound.serialize() });
+      model.store.updateBlock(model, {
+        embed: true,
+        offlineHtmlScale: 1,
+        xywh: bound.serialize(),
+      });
     },
   },
   {

@@ -2,6 +2,9 @@
 export const OFFLINE_HTML_MAX_BYTES = 5 * 1024 * 1024;
 export const OFFLINE_HTML_WIDTH = 800;
 export const OFFLINE_HTML_HEIGHT = 560;
+export function offlineHtmlScale(value: number | undefined): number {
+  return Number.isFinite(value) && value! >= 0.1 && value! <= 5 ? value! : 1;
+}
 export function isOfflineHtml(file: { name: string; type: string }): boolean {
   const type = file.type.split(';')[0].trim().toLowerCase();
   if (type === 'application/xhtml+xml') return false;

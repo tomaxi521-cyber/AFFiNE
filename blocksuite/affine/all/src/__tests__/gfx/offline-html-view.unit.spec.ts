@@ -17,7 +17,7 @@ async function mount() {
   return el;
 }
 function run(el: OfflineHtmlView) {
-  el.shadowRoot!.querySelector<HTMLButtonElement>('[data-action=run]')!.click();
+  void el.run();
 }
 async function flush(el: OfflineHtmlView) {
   await Promise.resolve();
@@ -31,6 +31,7 @@ describe('HTML execution lifecycle (DOM simulation, not CSP browser proof)', () 
     el.loadBlob = load;
     await flush(el);
     expect(load).not.toHaveBeenCalled();
+    expect(el.shadowRoot!.querySelector('header,button,.hint')).toBeNull();
     el.canRun = false;
     el.readOnly = true;
     await flush(el);
@@ -55,10 +56,15 @@ describe('HTML execution lifecycle (DOM simulation, not CSP browser proof)', () 
     resolve(new Blob(['<button>Old</button>']));
     await flush(el);
     expect(el.shadowRoot!.querySelector('iframe')).toBeNull();
-    expect(
-      el.shadowRoot!.querySelector<HTMLButtonElement>('[data-action=run]')!
-        .disabled
-    ).toBe(false);
+    const state = vi.fn();
+    el.onState = state;
+    el.requestUpdate();
+    await flush(el);
+    expect(state).toHaveBeenLastCalledWith({
+      active: false,
+      running: false,
+      loading: false,
+    });
   });
   test('disconnect during loading can reconnect without stuck disabled state', async () => {
     const el = await mount();
@@ -75,10 +81,15 @@ describe('HTML execution lifecycle (DOM simulation, not CSP browser proof)', () 
     resolve(new Blob(['Old']));
     await flush(el);
     expect(el.shadowRoot!.querySelector('iframe')).toBeNull();
-    expect(
-      el.shadowRoot!.querySelector<HTMLButtonElement>('[data-action=run]')!
-        .disabled
-    ).toBe(false);
+    const state = vi.fn();
+    el.onState = state;
+    el.requestUpdate();
+    await flush(el);
+    expect(state).toHaveBeenLastCalledWith({
+      active: false,
+      running: false,
+      loading: false,
+    });
   });
   test('checks actual bytes independently of model size', async () => {
     const el = await mount();
@@ -99,9 +110,7 @@ describe('HTML execution lifecycle (DOM simulation, not CSP browser proof)', () 
     await flush(el);
     const iframe = el.shadowRoot!.querySelector('iframe');
     expect(iframe).not.toBeNull();
-    el.shadowRoot!.querySelector<HTMLButtonElement>(
-      '[data-action=exit]'
-    )!.click();
+    el.exit();
     await flush(el);
     expect(el.shadowRoot!.querySelector('iframe')).toBe(iframe);
     expect(el.shadowRoot!.querySelector('.frame')!.hasAttribute('inert')).toBe(
@@ -110,9 +119,7 @@ describe('HTML execution lifecycle (DOM simulation, not CSP browser proof)', () 
     run(el);
     await flush(el);
     expect(el.shadowRoot!.querySelector('iframe')).toBe(iframe);
-    el.shadowRoot!.querySelector<HTMLButtonElement>(
-      '[data-action=reset]'
-    )!.click();
+    el.reset();
     await flush(el);
     expect(el.shadowRoot!.querySelector('iframe')).toBeNull();
     run(el);

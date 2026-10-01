@@ -12,7 +12,7 @@ import { GfxViewInteractionExtension } from '@blocksuite/std/gfx';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { AttachmentBlockComponent } from './attachment-block.js';
-import { isOfflineHtml } from './offline-html';
+import { isOfflineHtml, offlineHtmlScale } from './offline-html';
 
 export class AttachmentEdgelessBlockComponent extends toGfxBlockComponent(
   AttachmentBlockComponent
@@ -30,12 +30,14 @@ export class AttachmentEdgelessBlockComponent extends toGfxBlockComponent(
   override renderGfxBlock() {
     if (this.model.props.embed$.value && isOfflineHtml(this.model.props)) {
       const bound = this.model.elementBound;
+      const scale = offlineHtmlScale(this.model.props.offlineHtmlScale$.value);
       this.containerStyleMap = styleMap({
         position: 'relative',
-        width: bound.w + 'px',
-        height: bound.h + 'px',
+        width: bound.w / scale + 'px',
+        height: bound.h / scale + 'px',
         overflow: 'hidden',
-        transform: 'none',
+        transform: `scale(${scale})`,
+        transformOrigin: '0 0',
         margin: '0',
       });
       return this.renderPageContent();

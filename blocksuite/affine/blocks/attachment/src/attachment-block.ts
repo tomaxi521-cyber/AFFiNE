@@ -47,6 +47,7 @@ import { filter } from 'rxjs/operators';
 
 import { AttachmentEmbedProvider } from './embed';
 import { isOfflineHtml } from './offline-html';
+import type { OfflineHtmlView } from './offline-html-view';
 import { styles } from './styles';
 import {
   downloadAttachmentBlob,
@@ -68,6 +69,34 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
   static override styles = styles;
 
   blockDraggable = true;
+
+  readonly offlineHtmlState$ = signal({
+    active: false,
+    running: false,
+    loading: false,
+  });
+  private readonly _onOfflineHtmlState = (next: {
+    active: boolean;
+    running: boolean;
+    loading: boolean;
+  }) => {
+    const old = this.offlineHtmlState$.peek();
+    if (
+      old.active !== next.active ||
+      old.running !== next.running ||
+      old.loading !== next.loading
+    )
+      this.offlineHtmlState$.value = next;
+  };
+  get offlineHtmlView(): OfflineHtmlView | null {
+    return this.querySelector('dikw-offline-html');
+  }
+  toggleOfflineHtml = () => {
+    const view = this.offlineHtmlView;
+    if (!view || this.store.readonly) return;
+    if (this.offlineHtmlState$.peek().active) view.exit();
+    else view.run().catch(console.error);
+  };
 
   resourceController = new ResourceController(
     computed(() => this.model.props.sourceId$.value)
@@ -137,7 +166,8 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
     // Never navigate executable attachment bytes into a host-origin blob tab.
     if (
       isOfflineHtml(this.model.props) ||
-      this.model.props.type === 'application/xhtml+xml'
+      this.model.props.type.split(';')[0].trim().toLowerCase() ===
+        'application/xhtml+xml'
     ) {
       this.download();
       return;
@@ -473,7 +503,7 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
     if (isOfflineHtml(model.props)) {
       return html`<div
         class="affine-attachment-embed-container"
-        style="min-height:300px"
+        style="height:100%;min-height:0"
       >
         ${keyed(
           model.props.sourceId$.value + ':' + this._refreshKey$.value,
@@ -484,7 +514,7 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
             .canRun=${this.selected$.value && !this.store.readonly}
             .readOnly=${this.store.readonly}
             .loadBlob=${() => getAttachmentBlob(model)}
-            .download=${this.download}
+            .onState=${this._onOfflineHtmlState}
           ></dikw-offline-html>`
         )}
       </div>`;

@@ -14,7 +14,6 @@ export class OfflineHtmlView extends LitElement {
       display: block;
       width: 100%;
       height: 100%;
-      min-height: 300px;
       color: var(--affine-text-primary-color, #182139);
       font: 14px/1.5 var(--affine-font-family, sans-serif);
       background: var(--affine-background-primary-color, #fff);
@@ -27,47 +26,14 @@ export class OfflineHtmlView extends LitElement {
       flex-direction: column;
       height: 100%;
       overflow: hidden;
-      border: 1px solid var(--affine-border-color, #ddd);
+      border: 0;
       border-radius: 8px;
-    }
-    header {
-      flex: none;
-      min-height: 40px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 10px;
-      background: var(--affine-background-secondary-color, #f6f7f8);
-    }
-    .name {
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    button {
-      flex: none;
-      font: inherit;
-      border: 1px solid var(--affine-border-color, #ddd);
-      border-radius: 6px;
-      padding: 4px 10px;
-      color: inherit;
-      background: var(--affine-background-primary-color, #fff);
-      cursor: pointer;
-    }
-    button:disabled {
-      opacity: 0.45;
-      cursor: default;
-    }
-    button:focus-visible {
-      outline: 2px solid #315bdc;
-      outline-offset: 2px;
     }
     .body {
       flex: 1;
       min-height: 0;
       position: relative;
+      overflow: auto;
     }
     .frame {
       position: absolute;
@@ -93,12 +59,6 @@ export class OfflineHtmlView extends LitElement {
       margin: 0 0 12px;
       font-size: 18px;
     }
-    .hint {
-      flex: none;
-      font-size: 11px;
-      padding: 4px 10px;
-      background: var(--affine-background-secondary-color, #f6f7f8);
-    }
     .error {
       color: #b42318;
     }
@@ -111,7 +71,9 @@ export class OfflineHtmlView extends LitElement {
   @property({ attribute: false }) accessor loadBlob:
     | (() => Promise<Blob | null>)
     | undefined;
-  @property({ attribute: false }) accessor download: (() => void) | undefined;
+  @property({ attribute: false }) accessor onState:
+    | ((state: { active: boolean; running: boolean; loading: boolean }) => void)
+    | undefined;
   @state() private accessor srcdoc = '';
   @state() private accessor active = false;
   @state() private accessor loading = false;
@@ -119,7 +81,15 @@ export class OfflineHtmlView extends LitElement {
   @state() private accessor generation = 0;
   private ticket = 0;
   private readonly outside = (event: Event) => {
-    if (!event.composedPath().includes(this)) this.active = false;
+    const path = event.composedPath();
+    // The host toolbar is outside the block, not inside untrusted content.
+    if (
+      path.some(
+        node => node instanceof HTMLElement && node.tagName === 'EDITOR-TOOLBAR'
+      )
+    )
+      return;
+    if (!path.includes(this)) this.active = false;
   };
   override connectedCallback() {
     super.connectedCallback();
@@ -131,6 +101,7 @@ export class OfflineHtmlView extends LitElement {
     this.loading = false;
     this.active = false;
     this.srcdoc = '';
+    this.onState?.({ active: false, running: false, loading: false });
     this.ownerDocument.removeEventListener('pointerdown', this.outside, true);
   }
   protected override willUpdate(changes: PropertyValues) {
@@ -148,25 +119,27 @@ export class OfflineHtmlView extends LitElement {
         this.loading = false;
       }
     }
-    if (this.readOnly) this.srcdoc = '';
+    if (this.readOnly) {
+      this.active = false;
+      this.srcdoc = '';
+      if (this.loading) {
+        this.ticket++;
+        this.loading = false;
+      }
+    }
   }
-  private stop(event: Event) {
-    event.stopPropagation();
+  protected override updated() {
+    this.onState?.({
+      active: this.active && this.canRun && !this.readOnly,
+      running: !!this.srcdoc,
+      loading: this.loading,
+    });
   }
-  private exit = (event: Event) => {
-    this.stop(event);
+  exit = () => {
     this.active = false;
-    this.updateComplete
-      .then(() =>
-        this.renderRoot
-          .querySelector<HTMLButtonElement>('[data-action=run]')
-          ?.focus()
-      )
-      .catch(console.error);
   };
-  private run = async (event: Event) => {
-    this.stop(event);
-    if (!this.canRun || this.loading) return;
+  run = async () => {
+    if (!this.canRun || this.readOnly || this.loading) return;
     if (this.srcdoc) {
       this.active = true;
       return;
@@ -189,7 +162,8 @@ export class OfflineHtmlView extends LitElement {
         !this.isConnected ||
         ticket !== this.ticket ||
         source !== this.sourceId ||
-        !this.canRun
+        !this.canRun ||
+        this.readOnly
       )
         return;
       this.srcdoc = buildOfflineHtmlSrcdoc(text);
@@ -202,8 +176,7 @@ export class OfflineHtmlView extends LitElement {
       if (ticket === this.ticket) this.loading = false;
     }
   };
-  private reset = (event: Event) => {
-    this.stop(event);
+  reset = () => {
     this.ticket++;
     this.generation++;
     this.srcdoc = '';
@@ -214,46 +187,6 @@ export class OfflineHtmlView extends LitElement {
   protected override render() {
     const active = this.active && this.canRun;
     return html`<section class="shell">
-      <header>
-        <span class="name" title=${this.name}>HTML · ${this.name}</span>
-        <button
-          @pointerdown=${this.stop}
-          @click=${() => this.download?.()}
-          title="下载未修改的 HTML 原文件"
-        >
-          下载
-        </button>
-        ${this.srcdoc
-          ? html`<button
-              data-action="reset"
-              @pointerdown=${this.stop}
-              @click=${this.reset}
-              title="清空临时状态，重新回到运行确认"
-            >
-              重置
-            </button>`
-          : nothing}
-        ${active
-          ? html`<button
-              data-action="exit"
-              @pointerdown=${this.stop}
-              @click=${this.exit}
-            >
-              退出操作
-            </button>`
-          : html`<button
-              data-action="run"
-              ?disabled=${!this.canRun || this.loading}
-              @pointerdown=${this.stop}
-              @click=${this.run}
-            >
-              ${this.loading
-                ? '读取中…'
-                : this.srcdoc
-                  ? '进入操作'
-                  : '运行 HTML'}
-            </button>`}
-      </header>
       <div class="body">
         ${this.srcdoc
           ? html`<div
@@ -276,7 +209,10 @@ export class OfflineHtmlView extends LitElement {
               ${!active ? html`<div class="mask"></div>` : nothing}`
           : html`<div class="intro">
               <h3>可交互的离线 HTML</h3>
-              <p>选中组件后点击「运行 HTML」，在白板内使用按钮、表单和图表。</p>
+              <p>
+                选中组件，在上方浮动工具栏点击「运行
+                HTML」。运行后可在内部点击、输入和滚动；从同一工具栏退出操作。
+              </p>
               <p>
                 仅支持 5 MiB
                 以内、内联脚本/样式/资源的自包含文件；外部网址、CDN、相邻资源目录及服务端功能不可用。
@@ -285,18 +221,14 @@ export class OfflineHtmlView extends LitElement {
                 文件会执行
                 JavaScript，请只运行信任的文件。隔离不保证资源限额或完全断网。
               </p>
+              <p>
+                原文件已保存；退出只交还焦点，脚本继续运行。刷新、关闭文档或重置会清空临时状态。受阻跳转可通过工具栏更多菜单的
+                Reload 恢复。
+              </p>
               ${this.error
                 ? html`<p role="alert" class="error">${this.error}</p>`
                 : nothing}
             </div>`}
-      </div>
-      <div class="hint">
-        ${!this.canRun
-          ? '请先选中可编辑的组件。'
-          : active
-            ? '正在操作内容 · 点击外部或「退出操作」返回白板。'
-            : '白板操作模式。'}
-        原文件已保留；退出仅交还焦点，脚本仍运行；刷新/关闭文档/切为卡片视图/重置会清空临时状态。跳转被阻止时可点「重置」。
       </div>
     </section>`;
   }
