@@ -49,20 +49,8 @@ export const dikwToolbarStyles = css`
   .dikw-advanced-grid { display: flex; flex-direction: column; gap: 4px; }
   .dikw-compact-row { display: flex; align-items: center; gap: 4px; min-height: var(--dikw-tool-size); border-radius: 8px; }
   .dikw-tool-label { flex: 1; font-size: 13px; }
-  .dikw-pin-grip, .dikw-pin-toggle { border: 0; background: transparent; color: var(--affine-text-secondary-color); border-radius: 5px; padding: 0; cursor: pointer; }
-  .dikw-pin-grip { width: 20px; height: 36px; cursor: grab; touch-action: none; }
-  .dikw-pin-toggle { width: 28px; height: 32px; font-size: 17px; }
-  .dikw-pin-grip:hover, .dikw-pin-toggle:hover { background: var(--affine-hover-color); }
-  .dikw-pin-grip:focus-visible, .dikw-pin-toggle:focus-visible { outline: 2px solid var(--affine-primary-color); }
-  .dikw-pin-help, .dikw-pin-notice { font-size: 11px; line-height: 1.5; color: var(--affine-text-secondary-color); margin: 4px 0 8px; }
-  .dikw-pin-notice:empty { display: none; }
-  .dikw-pinned { display: flex; flex-direction: row; gap: 2px; flex-shrink: 0; }
-  .dikw-pinned-item { position: relative; width: var(--dikw-tool-size); height: var(--dikw-tool-size); flex-shrink: 0; }
-  .dikw-pinned-item .dikw-pin-grip { position: absolute; left: 0; top: -5px; width: var(--dikw-tool-size); height: 8px; z-index: 2; opacity: .5; }
-  .dikw-pinned-item .dikw-pin-toggle { position: absolute; right: -3px; top: -4px; width: 16px; height: 16px; z-index: 2; opacity: 0; background: var(--affine-background-overlay-panel-color); }
-  .dikw-pinned-item:hover .dikw-pin-toggle, .dikw-pinned-item:focus-within .dikw-pin-toggle { opacity: 1; }
-  .dikw-toolbar[data-pin-drop] { outline: 2px solid var(--affine-primary-color); }
-  .dikw-pinned-item[data-insert-before]::before { content: ''; position: absolute; left: -3px; top: 0; bottom: 0; width: 2px; background: var(--affine-primary-color); }
+  .dikw-fixed-tools { display: flex; flex-direction: row; gap: 2px; flex-shrink: 0; }
+  .dikw-fixed-item { width: var(--dikw-tool-size); height: var(--dikw-tool-size); flex-shrink: 0; }
   .dikw-context-panel { width: min(680px, calc(100% - 24px)); }
   .dikw-context-panel > edgeless-shape-menu,
   .dikw-context-panel > edgeless-connector-menu,
@@ -177,8 +165,6 @@ export const dikwToolbarStyles = css`
       --dikw-tool-size: 44px;
       --dikw-dock-height: 56px;
     }
-    .dikw-compact-row > .dikw-pin-grip,
-    .dikw-compact-row > .dikw-pin-toggle,
     .dikw-panel-heading button {
       width: 44px;
       height: 44px;

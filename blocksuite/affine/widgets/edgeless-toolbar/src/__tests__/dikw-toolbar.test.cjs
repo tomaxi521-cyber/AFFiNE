@@ -100,4 +100,6 @@ test('DIKW render structurally excludes duplicate dock, keeps native advanced co
   assert.match(widget, /tool.content/);
   assert.ok(branch.includes('?inert='));
   assert.match(widget, /return this._renderDikwContent()/);
+  assert.ok(widget.includes("['mindmap', 'frame', 'template', 'media', 'link']"));
+  assert.doesNotMatch(widget, /readPins|movePin|_dragDikwPin|_saveDikwPins|dikw-pin-grip|dikw-pin-toggle/);
 });

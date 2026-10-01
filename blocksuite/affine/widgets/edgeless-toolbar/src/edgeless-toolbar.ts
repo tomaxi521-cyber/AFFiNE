@@ -33,7 +33,6 @@ import { css, html, nothing, unsafeCSS } from 'lit';
 import { query, state } from 'lit/decorators.js';
 import { cache } from 'lit/directives/cache.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { DIKW_PINS_KEY, readPins, movePin } from './dikw-pins.js';
 import type { CompactTool } from './extension/index.js';
 import { literal, unsafeStatic } from 'lit/static-html.js';
 import debounce from 'lodash-es/debounce';
@@ -57,6 +56,9 @@ import {
   QuickToolIdentifier,
   SeniorToolIdentifier,
 } from './extension/index.js';
+
+// Stable screenshot order; legacy pin preferences no longer control chrome.
+const DIKW_FIXED_TOOLS = ['mindmap', 'frame', 'template', 'media', 'link'] as const;
 
 const TOOLBAR_PADDING_X = 12;
 const TOOLBAR_HEIGHT = 64;
@@ -596,92 +598,21 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     );
   }
 
-  @state() private accessor _dikwPins: string[] = [];
-  @state() private accessor _dikwPinNotice = '';
-  @state() private accessor _dikwDragging = '';
-  private _dikwPinCleanup: (() => void) | null = null;
-
-  private _saveDikwPins(next: string[]) {
-    if (this.store.readonly || this.hasAttribute('disabled')) return;
-    this.activePopper?.dispose(); this.activePopper = null;
-    this._dismissCompactPanels();
-    this._dikwPins = next;
-    try { localStorage.setItem(DIKW_PINS_KEY, JSON.stringify({version: 1, tools: next})); this._dikwPinNotice = '工具栏已保存'; }
-    catch { this._dikwPinNotice = '已调整；浏览器未允许保存，刷新后可能恢复'; }
-  }
-
-  private _dragDikwPin(event: PointerEvent, id: string) {
-    if (event.button !== 0 || this.store.readonly || this.hasAttribute('disabled')) return;
-    event.preventDefault(); event.stopPropagation();
-    this._dikwPinCleanup?.();
-    const start = {x: event.clientX, y: event.clientY};
-    let moved = false;
-    let cancelled = false;
-    let scrollFrame = 0;
-    let lastPointer: PointerEvent | null = null;
-    const rail = this.renderRoot.querySelector<HTMLElement>('.dikw-toolbar');
-    const overRail = (e: PointerEvent) => { const r=rail?.getBoundingClientRect(); return !!r && e.clientX>=r.left-8 && e.clientX<=r.right+8 && e.clientY>=r.top-8 && e.clientY<=r.bottom+8; };
-    const before = (e: PointerEvent) => Array.from(this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')).find(el => e.clientX < el.getBoundingClientRect().left + el.offsetWidth/2)?.dataset.pinId;
-    const scrollEdge = () => {
-      if(!rail || !lastPointer || cancelled || !moved)return;
-      const r=rail.getBoundingClientRect();
-      const direction=lastPointer.clientX<r.left+36?-1:lastPointer.clientX>r.right-36?1:0;
-      if(overRail(lastPointer)&&direction){
-        rail.scrollLeft+=direction*8;
-        for (const el of this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')) el.toggleAttribute('data-insert-before',el.dataset.pinId===before(lastPointer));
-      }
-      scrollFrame=requestAnimationFrame(scrollEdge);
-    };
-    const move = (e: PointerEvent) => {
-      if (e.pointerId !== event.pointerId) return;
-      e.preventDefault();e.stopImmediatePropagation();
-      if(cancelled)return;
-      if (Math.hypot(e.clientX-start.x,e.clientY-start.y) > 5) moved = true;
-      if (!moved) return;
-      e.preventDefault(); this._dikwDragging = id;
-      lastPointer=e;if(!scrollFrame)scrollFrame=requestAnimationFrame(scrollEdge);
-      rail?.toggleAttribute('data-pin-drop', overRail(e));
-      for (const el of this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')) el.toggleAttribute('data-insert-before',overRail(e) && el.dataset.pinId===before(e));
-    };
-    const finish = (e?: PointerEvent) => {
-      if (e && e.pointerId !== event.pointerId) return;
-      if(e){e.preventDefault();e.stopImmediatePropagation();}
-      if (e && !cancelled && moved && overRail(e)) this._saveDikwPins(movePin(this._dikwPins,id,before(e)));
-      this._dikwPinCleanup?.();
-    };
-    const key = (e: KeyboardEvent) => { if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();cancelled=true;this._dikwDragging='';rail?.removeAttribute('data-pin-drop');} };
-    const cancel = () => finish();
-    window.addEventListener('pointermove',move,{capture:true,passive:false});
-    window.addEventListener('pointerup',finish,true);
-    window.addEventListener('pointercancel',cancel,true);
-    window.addEventListener('keydown',key,true);
-    window.addEventListener('blur',cancel);
-    this._dikwPinCleanup = () => {
-      cancelAnimationFrame(scrollFrame);
-      window.removeEventListener('pointermove',move,true);window.removeEventListener('pointerup',finish,true);
-      window.removeEventListener('pointercancel',cancel,true);window.removeEventListener('keydown',key,true);window.removeEventListener('blur',cancel);
-      rail?.removeAttribute('data-pin-drop');
-      for(const el of this.renderRoot.querySelectorAll('[data-insert-before]'))el.removeAttribute('data-insert-before');
-      this._dikwDragging='';this._dikwPinCleanup=null;
-    };
-  }
-
-  private _renderDikwCompact(tool: CompactTool, pinned: boolean) {
-    return html`<div class=${pinned ? 'dikw-pinned-item' : 'dikw-compact-row'} data-pin-id=${tool.id}>
-      <button class="dikw-pin-grip" aria-label=${'拖动'+tool.label+(pinned?'排序':'到工具栏')} title="拖动到底部工具栏固定或排序" @pointerdown=${(e:PointerEvent)=>this._dragDikwPin(e,tool.id)}>⠿</button>
+  private _renderDikwCompact(tool: CompactTool, fixed: boolean) {
+    return html`<div class=${fixed ? 'dikw-fixed-item' : 'dikw-compact-row'} data-compact-id=${tool.id}>
       ${tool.content}
-      ${pinned ? nothing : html`<span class="dikw-tool-label">${tool.label}</span>`}
-      <button class="dikw-pin-toggle" aria-label=${(pinned?'取消固定':'固定')+tool.label} title=${pinned?'移回更多工具':'固定到底部工具栏'} @click=${()=>this._saveDikwPins(pinned?this._dikwPins.filter(id=>id!==tool.id):movePin(this._dikwPins,tool.id))}>${pinned?'×':'＋'}</button>
+      ${fixed ? nothing : html`<span class="dikw-tool-label">${tool.label}</span>`}
     </div>`;
   }
 
   private _renderDikwContent() {
     const unavailable = this.store.readonly || this.hasAttribute('disabled');
     const compact = [...this._quickTools, ...this._seniorTools].flatMap(t => t.compact ?? []);
-    const pinned = this._dikwPins.map(id=>compact.find(t=>t.id===id)).filter((t): t is CompactTool=>!!t);
-    const pinnedContent = html`<div class="dikw-pinned" ?inert=${unavailable}>${repeat(pinned,t=>t.id,t=>this._renderDikwCompact(t,true))}</div>`;
+    const fixed = DIKW_FIXED_TOOLS.map(id=>compact.find(t=>t.id===id)).filter((t): t is CompactTool=>!!t);
+    const fixedIds = new Set<string>(DIKW_FIXED_TOOLS);
+    const fixedContent = html`<div class="dikw-fixed-tools" ?inert=${unavailable}>${repeat(fixed,t=>t.id,t=>this._renderDikwCompact(t,true))}</div>`;
     return html`
-      ${renderDikwToolbar(this, this._dikwMoreOpen, this._toggleDikwMore, this._showDikwOptions, pinnedContent)}
+      ${renderDikwToolbar(this, this._dikwMoreOpen, this._toggleDikwMore, this._showDikwOptions, fixedContent)}
       <section id="dikw-advanced-tools"
         class="dikw-advanced-panel edgeless-toolbar-container"
         data-open=${this._dikwMoreOpen && !unavailable}
@@ -696,9 +627,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
         <div class="dikw-panel-heading"><span>更多工具</span>
           <button type="button" aria-label="关闭更多工具" @click=${() => this._closeDikwPanels(true)}>×</button>
         </div>
-        <p class="dikw-pin-help">拖动 ⋮⋮ 到底栏常驻，也可点 ＋ 固定。</p>
-        <div class="dikw-advanced-grid">${repeat(compact.filter(t=>!this._dikwPins.includes(t.id)),t=>t.id,t=>this._renderDikwCompact(t,false))}</div>
-        <p class="dikw-pin-notice" role="status">${this._dikwDragging ? '拖到底栏松开固定；Esc 取消' : this._dikwPinNotice}</p>
+        <div class="dikw-advanced-grid">${repeat(compact.filter(t=>!fixedIds.has(t.id)),t=>t.id,t=>this._renderDikwCompact(t,false))}</div>
       </section>
       ${this._dikwContextTool && !unavailable ? html`
         <section class="dikw-context-panel" aria-label="当前工具选项"
@@ -868,7 +797,6 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
   }
 
   override disconnectedCallback() {
-    this._dikwPinCleanup?.();
     if (this._isDikwBoard) this._closeDikwPanels();
     super.disconnectedCallback();
     if (this._resizeObserver) {
@@ -882,10 +810,6 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     const { _disposables, block, gfx } = this;
     if (!block) return;
 
-    try { this._dikwPins = readPins(localStorage); } catch { this._dikwPins = []; }
-    const syncPins = (event: StorageEvent) => { if(event.key===DIKW_PINS_KEY){ try{this._dikwPins=readPins(localStorage);}catch{this._dikwPins=[];} } };
-    window.addEventListener('storage',syncPins);
-    this.disposables.add(()=>window.removeEventListener('storage',syncPins));
     this.host.dispatchEvent(new CustomEvent('dikw:toolbar-state'));
     // Native draggable builders need the container after its first render.
     if (this._isDikwBoard) this.requestUpdate();

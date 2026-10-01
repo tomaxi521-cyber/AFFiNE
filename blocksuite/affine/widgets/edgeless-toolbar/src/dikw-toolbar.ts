@@ -125,7 +125,7 @@ export function renderDikwToolbar(
   moreOpen: boolean,
   toggleMore: () => void,
   showOptions: (tool: string) => void,
-  pinnedContent?: TemplateResult
+  fixedContent?: TemplateResult
 ) {
   const locked = host.hasAttribute('disabled');
   const readonly = host.store.readonly;
@@ -189,7 +189,7 @@ export function renderDikwToolbar(
         <span aria-hidden="true">${EdgelessIcon()}</span>
         <affine-tooltip tip-position="top">白板 · 点击画布创建子白板</affine-tooltip>
       </button>
-      ${pinnedContent}
+      ${fixedContent}
       <button type="button" class="dikw-tool" data-tool="more" aria-label="更多工具"
         title="更多工具" aria-expanded=${moreOpen ? 'true' : 'false'}
         aria-controls="dikw-advanced-tools" ?disabled=${locked || readonly}
