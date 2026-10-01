@@ -157,9 +157,14 @@ async function withDoc<T>(deps: CopyBoardDependencies, id: string, task: (store:
   let releasePriority: (() => void) | undefined;
   try {
     releasePriority = opened.doc.addPriorityLoad(100);
-    await opened.doc.waitForSyncReady();
-    // A fresh skipInit shell has no update yet: ready would deadlock before import.
-    if (!emptyShell) await deps.workspace.engine.doc.waitForDocReady(id);
+    const deadline = AbortSignal.timeout(15000);
+    await deps.workspace.engine.doc.waitForDocLoaded(id, deadline);
+    // Ready means a nonempty update was READ, not that fresh local content was saved.
+    // Locally created source boards may never become ready until reopened.
+    // Loaded + native full snapshot validation is required here, not remote readiness.
+    if (!emptyShell && !opened.doc.blockSuiteDoc.root) {
+      await deps.workspace.engine.doc.waitForDocReady(id, deadline);
+    }
     return await task(opened.doc.blockSuiteDoc);
   } finally {
     releasePriority?.();

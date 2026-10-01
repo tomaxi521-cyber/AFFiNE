@@ -95,6 +95,7 @@ function fixture() {
     }, release })),
   };
   const engine = { doc: {
+    waitForDocLoaded: vi.fn(async (_id: string) => {}),
     waitForDocReady: vi.fn(async (_id: string) => {}),
     waitForUpdated: vi.fn(async (_id: string) => {}),
   } };
@@ -140,6 +141,16 @@ describe('owned board tree copy orchestration', () => {
     expect(JSON.stringify([...f.stores].filter(([id]) => ['parent', 'source', 'child', 'external'].includes(id)).map(([id, s]) => [id, s.snapshot]))).toBe(before);
     expect(f.release).toHaveBeenCalledTimes(f.docs.open.mock.calls.length);
     expect(f.priorityRelease).toHaveBeenCalledTimes(f.docs.open.mock.calls.length);
+  });
+
+  test('fresh locally initialized sources and empty targets do not require a nonempty read', async () => {
+    const f = fixture();
+    f.engine.doc.waitForDocReady.mockImplementation(async id => {
+      if (id !== f.workspace.id) throw new Error('local content is not a nonempty read');
+    });
+    await copyBoardTree(f.deps, 'source', 'parent', 'local-ready');
+    expect(f.docs.createDoc).toHaveBeenCalledTimes(2);
+    expect(f.engine.doc.waitForDocLoaded).toHaveBeenCalled();
   });
 
   test('same-operation concurrent calls reuse persisted identities and do not duplicate', async () => {
