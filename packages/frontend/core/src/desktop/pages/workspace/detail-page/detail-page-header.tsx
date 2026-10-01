@@ -165,7 +165,7 @@ export function NormalPageHeader({ page, workspace }: PageHeaderProps) {
       {isBoard ? <HeaderBreadcrumbs docId={page.id}><BlocksuiteHeaderTitle className={breadcrumbStyles.title} inputHandleRef={titleInputHandleRef} /></HeaderBreadcrumbs> : <BlocksuiteHeaderTitle inputHandleRef={titleInputHandleRef} />}
       <TemplateMark />
       <div className={styles.iconButtonContainer}>
-        {hideCollect ? null : (
+        {hideCollect || (isBoard && containerWidth < 720) ? null : (
           <>
             <FavoriteButton pageId={page?.id} />
             <InfoButton docId={page.id} />
