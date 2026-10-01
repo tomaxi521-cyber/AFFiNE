@@ -127,12 +127,13 @@ const DetailPageImpl = memo(function DetailPageImpl() {
     const sync=()=>{
       const rootId=host.store.root?.id;
       const toolbar=rootId?host.std.view.getWidget('edgeless-toolbar-widget',rootId):null;
-      view.dikwAIEntry$.next(enableAI && !!toolbar?.hasAttribute('data-dikw-board'));
+      view.dikwAIEntry$.next(enableAI && !!toolbar?.hasAttribute('data-dikw-ai-entry'));
     };
     host.addEventListener('dikw:ai-open',open);
     host.addEventListener('dikw:toolbar-state',sync);
+    const views=host.std.view.viewUpdated.subscribe(()=>queueMicrotask(sync));
     host.dispatchEvent(new Event('dikw:ai-availability'));sync();
-    return ()=>{host.removeEventListener('dikw:ai-open',open);host.removeEventListener('dikw:toolbar-state',sync);host.removeAttribute('data-dikw-ai-enabled');view.dikwAIEntry$.next(false);};
+    return ()=>{views.unsubscribe();host.removeEventListener('dikw:ai-open',open);host.removeEventListener('dikw:toolbar-state',sync);host.removeAttribute('data-dikw-ai-enabled');view.dikwAIEntry$.next(false);};
   },[editorContainer,enableAI,isActiveView,mode,view]);
 
   const featureFlagService = useService(FeatureFlagService);

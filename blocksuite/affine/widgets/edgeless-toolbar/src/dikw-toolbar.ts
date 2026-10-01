@@ -138,7 +138,7 @@ export function renderDikwToolbar(
       @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}>
       <button type="button" class="dikw-tool" data-tool="ai" aria-label="AI 助手" title="AI 助手"
         ?disabled=${locked || !host.host.hasAttribute('data-dikw-ai-enabled')}
-        @click=${()=>host.dispatchEvent(new CustomEvent('dikw:ai-open',{bubbles:true,composed:true}))}>
+        @click=${()=>host.host.dispatchEvent(new CustomEvent('dikw:ai-open'))}>
         <span aria-hidden="true">${AiIcon()}</span>
       </button>
       <span class="dikw-toolbar-divider" role="separator"></span>

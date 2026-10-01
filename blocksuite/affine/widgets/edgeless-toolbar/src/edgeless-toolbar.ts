@@ -256,6 +256,11 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       : '';
   };
 
+  private _syncDikwAIEntry() {
+    this.toggleAttribute('data-dikw-ai-entry',this._isDikwBoard && !this.isPresentMode && !this.hasAttribute('disabled'));
+    this.host.dispatchEvent(new CustomEvent('dikw:toolbar-state'));
+  }
+
   private _dismissCompactPanels() {
     for (const el of this.renderRoot.querySelectorAll('[compact]')) el.dispatchEvent(new Event('dikw-compact-dismiss'));
   }
@@ -607,11 +612,14 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     this._dikwPinCleanup?.();
     const start = {x: event.clientX, y: event.clientY};
     let moved = false;
+    let cancelled = false;
     const rail = this.renderRoot.querySelector<HTMLElement>('.dikw-toolbar');
     const overRail = (e: PointerEvent) => { const r=rail?.getBoundingClientRect(); return !!r && e.clientX>=r.left-8 && e.clientX<=r.right+8 && e.clientY>=r.top-8 && e.clientY<=r.bottom+8; };
     const before = (e: PointerEvent) => Array.from(this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')).find(el => e.clientY < el.getBoundingClientRect().top + el.offsetHeight/2)?.dataset.pinId;
     const move = (e: PointerEvent) => {
       if (e.pointerId !== event.pointerId) return;
+      e.preventDefault();e.stopImmediatePropagation();
+      if(cancelled)return;
       if (Math.hypot(e.clientX-start.x,e.clientY-start.y) > 5) moved = true;
       if (!moved) return;
       e.preventDefault(); this._dikwDragging = id;
@@ -620,10 +628,11 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     };
     const finish = (e?: PointerEvent) => {
       if (e && e.pointerId !== event.pointerId) return;
-      if (e && moved && overRail(e)) this._saveDikwPins(movePin(this._dikwPins,id,before(e)));
+      if(e){e.preventDefault();e.stopImmediatePropagation();}
+      if (e && !cancelled && moved && overRail(e)) this._saveDikwPins(movePin(this._dikwPins,id,before(e)));
       this._dikwPinCleanup?.();
     };
-    const key = (e: KeyboardEvent) => { if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish();} };
+    const key = (e: KeyboardEvent) => { if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();cancelled=true;this._dikwDragging='';rail?.removeAttribute('data-pin-drop');} };
     const cancel = () => finish();
     window.addEventListener('pointermove',move,{capture:true,passive:false});
     window.addEventListener('pointerup',finish,true);
@@ -769,7 +778,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
         this.store.id
       );
       this.toggleAttribute('data-dikw-board', this._isDikwBoard);
-      this.dispatchEvent(new CustomEvent('dikw:toolbar-state',{bubbles:true,composed:true}));
+      this._syncDikwAIEntry();
       // Outer widgets-container explicitly enables pointer events; override on host
       // so a fullscreen chrome box never intercepts canvas gestures.
       if (this._isDikwBoard) this.style.pointerEvents = 'none';
@@ -795,6 +804,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
           }
           if (tool === 'frameNavigator') this._closeDikwPanels();
         }
+        this._syncDikwAIEntry();
         this.requestUpdate();
       })
     );
@@ -854,7 +864,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     const syncPins = (event: StorageEvent) => { if(event.key===DIKW_PINS_KEY){ try{this._dikwPins=readPins(localStorage);}catch{this._dikwPins=[];} } };
     window.addEventListener('storage',syncPins);
     this.disposables.add(()=>window.removeEventListener('storage',syncPins));
-    this.dispatchEvent(new CustomEvent('dikw:toolbar-state',{bubbles:true,composed:true}));
+    this.host.dispatchEvent(new CustomEvent('dikw:toolbar-state'));
     // Native draggable builders need the container after its first render.
     if (this._isDikwBoard) this.requestUpdate();
     const slots = this.std.get(EdgelessLegacySlotIdentifier);
@@ -875,6 +885,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     _disposables.add(
       slots.toolbarLocked.subscribe(disabled => {
         this.toggleAttribute('disabled', disabled);
+        this._syncDikwAIEntry();
         if (this._isDikwBoard) {
           if (disabled) this._closeDikwPanels();
           this.requestUpdate();
