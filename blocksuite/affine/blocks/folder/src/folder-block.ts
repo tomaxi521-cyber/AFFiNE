@@ -136,6 +136,33 @@ export class FolderBlockComponent extends toGfxBlockComponent(
       overflow: auto;
       max-height: 150px;
     }
+    affine-folder input[type='file'][hidden] {
+      display: none !important;
+    }
+    affine-folder .folder-picker input[type='checkbox'] {
+      appearance: auto;
+      -webkit-appearance: checkbox;
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin: 0 6px 0 0;
+      vertical-align: middle;
+      position: static;
+      opacity: 1;
+    }
+    affine-folder .folder-controls,
+    affine-folder header,
+    affine-folder .folder-hint {
+      flex-shrink: 0;
+    }
+    affine-folder .folder-picker {
+      flex-shrink: 0;
+      max-height: 110px;
+    }
+    affine-folder .folder-results {
+      flex-shrink: 0;
+      max-height: 48px;
+    }
     affine-folder .folder-picker label {
       display: block;
       margin-bottom: 6px;
