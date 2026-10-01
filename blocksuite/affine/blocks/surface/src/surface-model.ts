@@ -26,6 +26,7 @@ export const SurfaceBlockSchema = defineBlockSchema({
       'affine:image',
       'affine:bookmark',
       'affine:attachment',
+      'affine:folder',
       'affine:embed-*',
       'affine:edgeless-text',
     ],

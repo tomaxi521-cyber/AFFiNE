@@ -8,6 +8,7 @@ import { DividerStoreExtension } from '@blocksuite/affine-block-divider/store';
 import { EdgelessTextStoreExtension } from '@blocksuite/affine-block-edgeless-text/store';
 import { EmbedStoreExtension } from '@blocksuite/affine-block-embed/store';
 import { EmbedDocStoreExtension } from '@blocksuite/affine-block-embed-doc/store';
+import { FolderStoreExtension } from '@blocksuite/affine-block-folder/store';
 import { FrameStoreExtension } from '@blocksuite/affine-block-frame/store';
 import { ImageStoreExtension } from '@blocksuite/affine-block-image/store';
 import { LatexStoreExtension } from '@blocksuite/affine-block-latex/store';
@@ -45,6 +46,7 @@ export function getInternalStoreExtensions() {
     EdgelessTextStoreExtension,
     EmbedStoreExtension,
     EmbedDocStoreExtension,
+    FolderStoreExtension,
     FrameStoreExtension,
     ImageStoreExtension,
     LatexStoreExtension,

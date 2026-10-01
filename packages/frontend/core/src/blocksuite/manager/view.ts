@@ -159,6 +159,7 @@ class ViewProvider {
   };
 
   private readonly _configureFoundation = (framework?: FrameworkProvider) => {
+    this._manager.configure(DikwCanvasViewExtension, { framework });
     const peekViewService = framework?.get(PeekViewService);
 
     this._manager.configure(FoundationViewExtension, {

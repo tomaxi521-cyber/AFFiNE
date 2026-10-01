@@ -5,6 +5,7 @@ import {
   AiIcon,
   ConnectorLIcon,
   EdgelessIcon,
+  FolderIcon,
   MoreHorizontalIcon,
   PageIcon,
   ShapeIcon,
@@ -44,18 +45,27 @@ function toolOptions(host: EdgelessToolbarWidget, name: string) {
     case 'pan':
       return { panning: false };
     case 'affine:note':
-      return { childFlavour: 'affine:paragraph', childType: 'text', tip: 'Text' };
+      return {
+        childFlavour: 'affine:paragraph',
+        childType: 'text',
+        tip: 'Text',
+      };
     case 'shape':
       return { shapeName: ShapeType.Rect };
     case 'connector':
-      return { mode: host.std.get(EditPropsStore).lastProps$.value.connector.mode };
+      return {
+        mode: host.std.get(EditPropsStore).lastProps$.value.connector.mode,
+      };
     default:
       return {};
   }
 }
 
 /** Reuse the native option menus instead of offering a second creation dock. */
-export function renderDikwToolOptions(host: EdgelessToolbarWidget, tool: string) {
+export function renderDikwToolOptions(
+  host: EdgelessToolbarWidget,
+  tool: string
+) {
   const setTool = (options: Record<string, unknown>) => {
     if (host.store.readonly || host.hasAttribute('disabled')) return;
     const controller = host.std.getOptional(ToolIdentifier(tool));
@@ -100,22 +110,27 @@ function navigateToolbar(event: KeyboardEvent) {
   if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
   const toolbar = event.currentTarget as HTMLElement;
   const buttons: HTMLButtonElement[] = [];
-  const collect=(root: Element | ShadowRoot)=>{for(const child of root.children){
-    if(child.hasAttribute('inert') || child.hasAttribute('hidden'))continue;
-    if(child instanceof HTMLButtonElement && !child.disabled)buttons.push(child);
-    if(child.shadowRoot)collect(child.shadowRoot);
-    collect(child);
-  }};
+  const collect = (root: Element | ShadowRoot) => {
+    for (const child of root.children) {
+      if (child.hasAttribute('inert') || child.hasAttribute('hidden')) continue;
+      if (child instanceof HTMLButtonElement && !child.disabled)
+        buttons.push(child);
+      if (child.shadowRoot) collect(child.shadowRoot);
+      collect(child);
+    }
+  };
   collect(toolbar);
   const index = buttons.indexOf(event.composedPath()[0] as HTMLButtonElement);
   if (index < 0 || !buttons.length) return;
   event.preventDefault();
   event.stopPropagation();
-  const next = event.key === 'Home'
-    ? 0
-    : event.key === 'End'
-      ? buttons.length - 1
-      : (index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
+  const next =
+    event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? buttons.length - 1
+        : (index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) %
+          buttons.length;
   buttons[next]?.focus();
 }
 
@@ -134,16 +149,32 @@ export function renderDikwToolbar(
     host.activePopper = null;
   };
   return html`
-    <div class="dikw-toolbar" role="toolbar" aria-label="白板工具" aria-orientation="horizontal"
+    <div
+      class="dikw-toolbar"
+      role="toolbar"
+      aria-label="白板工具"
+      aria-orientation="horizontal"
       @keydown=${navigateToolbar}
       @keyup=${(event: KeyboardEvent) => {
         if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
       }}
-      @pointerdown=${stopPropagation} @pointerup=${stopPropagation} @mousedown=${stopPropagation} @mouseup=${stopPropagation}
-      @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}>
-      <button type="button" class="dikw-tool" data-tool="ai" aria-label="AI 助手" title="AI 助手"
+      @pointerdown=${stopPropagation}
+      @pointerup=${stopPropagation}
+      @mousedown=${stopPropagation}
+      @mouseup=${stopPropagation}
+      @dblclick=${stopPropagation}
+      @click=${stopPropagation}
+      @wheel=${stopPropagation}
+    >
+      <button
+        type="button"
+        class="dikw-tool"
+        data-tool="ai"
+        aria-label="AI 助手"
+        title="AI 助手"
         ?disabled=${locked || !host.host.hasAttribute('data-dikw-ai-enabled')}
-        @click=${()=>host.host.dispatchEvent(new CustomEvent('dikw:ai-open'))}>
+        @click=${() => host.host.dispatchEvent(new CustomEvent('dikw:ai-open'))}
+      >
         <span aria-hidden="true">${AiIcon()}</span>
       </button>
       <span class="dikw-toolbar-divider" role="separator"></span>
@@ -152,12 +183,22 @@ export function renderDikwToolbar(
         const requiresEdit = true;
         const disabled = locked || !controller || (readonly && requiresEdit);
         return html`
-          <button type="button" class="dikw-tool" data-tool=${tool.name}
-            aria-label=${tool.label} aria-keyshortcuts=${tool.shortcut}
+          <button
+            type="button"
+            class="dikw-tool"
+            data-tool=${tool.name}
+            aria-label=${tool.label}
+            aria-keyshortcuts=${tool.shortcut}
             aria-pressed=${host.edgelessTool === tool.name ? 'true' : 'false'}
-            title=${tool.label + ' (' + tool.shortcut + ')'} ?disabled=${disabled}
+            title=${tool.label + ' (' + tool.shortcut + ')'}
+            ?disabled=${disabled}
             @click=${() => {
-              if (disabled || host.hasAttribute('disabled') || (host.store.readonly && requiresEdit)) return;
+              if (
+                disabled ||
+                host.hasAttribute('disabled') ||
+                (host.store.readonly && requiresEdit)
+              )
+                return;
               closePopper();
               // Gfx packages depend on this widget: resolve registered controllers
               // rather than importing their constructors and creating a cycle.
@@ -168,34 +209,86 @@ export function renderDikwToolbar(
                 );
                 showOptions(tool.name);
               }
-            }}>
+            }}
+          >
             <span aria-hidden="true">${tool.icon()}</span>
-            <affine-tooltip tip-position="top">${tool.label} (${tool.shortcut})</affine-tooltip>
+            <affine-tooltip tip-position="top"
+              >${tool.label} (${tool.shortcut})</affine-tooltip
+            >
           </button>
         `;
       })}
       <span class="dikw-toolbar-divider" role="separator"></span>
-      <button type="button" class="dikw-tool" data-tool="whiteboard" aria-label="白板" title="白板"
-        aria-pressed=${host.edgelessTool === 'dikw:board-placement' ? 'true' : 'false'}
+      <button
+        type="button"
+        class="dikw-tool"
+        data-tool="whiteboard"
+        aria-label="白板"
+        title="白板"
+        aria-pressed=${host.edgelessTool === 'dikw:board-placement'
+          ? 'true'
+          : 'false'}
         ?disabled=${locked || readonly}
         @click=${() => {
           if (host.store.readonly || host.hasAttribute('disabled')) return;
           closePopper();
           showOptions('dikw:board-placement');
-          host.dispatchEvent(new CustomEvent('dikw:board-tool', {
-            bubbles: true, composed: true, detail: { action: 'open' },
-          }));
-        }}>
+          host.dispatchEvent(
+            new CustomEvent('dikw:board-tool', {
+              bubbles: true,
+              composed: true,
+              detail: { action: 'open' },
+            })
+          );
+        }}
+      >
         <span aria-hidden="true">${EdgelessIcon()}</span>
-        <affine-tooltip tip-position="top">白板 · 点击画布创建子白板</affine-tooltip>
+        <affine-tooltip tip-position="top"
+          >白板 · 点击画布创建子白板</affine-tooltip
+        >
+      </button>
+      <button
+        type="button"
+        class="dikw-tool"
+        data-tool="folder"
+        aria-label="文件夹"
+        title="文件夹 · 收纳工程文件"
+        ?disabled=${locked || readonly}
+        @click=${() => {
+          if (host.store.readonly || host.hasAttribute('disabled')) return;
+          closePopper();
+          host.dispatchEvent(
+            new CustomEvent('dikw:folder-tool', {
+              bubbles: true,
+              composed: true,
+            })
+          );
+        }}
+      >
+        <span aria-hidden="true">${FolderIcon()}</span
+        ><affine-tooltip tip-position="top"
+          >文件夹 · 收纳工程文件</affine-tooltip
+        >
       </button>
       ${fixedContent}
-      <button type="button" class="dikw-tool" data-tool="more" aria-label="更多工具"
-        title="更多工具" aria-expanded=${moreOpen ? 'true' : 'false'}
-        aria-controls="dikw-advanced-tools" ?disabled=${locked || readonly}
-        @click=${() => { closePopper(); toggleMore(); }}>
+      <button
+        type="button"
+        class="dikw-tool"
+        data-tool="more"
+        aria-label="更多工具"
+        title="更多工具"
+        aria-expanded=${moreOpen ? 'true' : 'false'}
+        aria-controls="dikw-advanced-tools"
+        ?disabled=${locked || readonly}
+        @click=${() => {
+          closePopper();
+          toggleMore();
+        }}
+      >
         <span aria-hidden="true">${MoreHorizontalIcon()}</span>
-        <affine-tooltip tip-position="top">${moreOpen ? '收起更多工具' : '更多工具'}</affine-tooltip>
+        <affine-tooltip tip-position="top"
+          >${moreOpen ? '收起更多工具' : '更多工具'}</affine-tooltip
+        >
       </button>
       ${readonly ? html`<span class="dikw-readonly">只读</span>` : nothing}
     </div>

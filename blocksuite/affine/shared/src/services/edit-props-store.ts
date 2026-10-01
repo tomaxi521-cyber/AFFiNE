@@ -120,7 +120,12 @@ export class EditPropsStore extends LifeCycleWatcher {
     const id = this.std.store.id;
     switch (key) {
       case 'viewport':
-        return 'blocksuite:' + id + ':edgelessViewport';
+        // A document id may be reused by imported workspaces. Never restore another
+        // workspace's viewport from the old ambiguous doc-only key.
+        return (
+          'blocksuite:viewport:v2:' +
+          JSON.stringify([this.std.workspace.id, id])
+        );
       case 'presentBlackBackground':
         return 'blocksuite:presentation:blackBackground';
       case 'presentFillScreen':

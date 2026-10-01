@@ -4,6 +4,12 @@ export interface BoardRelation {
   docId: string;
   parentId: string | null;
   operationId: string;
+  /** Absent on historical bootstrap roots. Never inferred from the title. */
+  rootKind?: 'project';
+}
+
+export function isLegacyBoardRoot(relation: BoardRelation): boolean {
+  return relation.parentId === null && relation.rootKind !== 'project';
 }
 
 export type BoardPath = {
@@ -17,16 +23,25 @@ export function parseBoardRelation(value: unknown): BoardRelation | null {
   const record = value as Record<string, unknown>;
   if (
     record.version !== 1 ||
-    typeof record.docId !== 'string' || !record.docId ||
-    typeof record.operationId !== 'string' || !record.operationId ||
-    !(record.parentId === null || (typeof record.parentId === 'string' && record.parentId.length > 0)) ||
+    typeof record.docId !== 'string' ||
+    !record.docId ||
+    typeof record.operationId !== 'string' ||
+    !record.operationId ||
+    !(
+      record.parentId === null ||
+      (typeof record.parentId === 'string' && record.parentId.length > 0)
+    ) ||
+    (record.rootKind !== undefined &&
+      (record.rootKind !== 'project' || record.parentId !== null)) ||
     record.parentId === record.docId
-  ) return null;
+  )
+    return null;
   return {
     version: 1,
     docId: record.docId,
     parentId: record.parentId as string | null,
     operationId: record.operationId,
+    ...(record.rootKind === 'project' ? { rootKind: 'project' as const } : {}),
   };
 }
 
@@ -43,7 +58,8 @@ export function getBoardPath(
     if (visited.has(current)) return { ids: ids.reverse(), problem: 'cycle' };
     if (ids.length >= limit) return { ids: ids.reverse(), problem: 'limit' };
     const relation = relations.get(current);
-    if (!relation || relation.docId !== current) return { ids: ids.reverse(), problem: 'missing' };
+    if (!relation || relation.docId !== current)
+      return { ids: ids.reverse(), problem: 'missing' };
     visited.add(current);
     ids.push(current);
     current = relation.parentId;
@@ -57,8 +73,11 @@ export function validateNewChild(
   parentId: string,
   relations: ReadonlyMap<string, BoardRelation>
 ): void {
-  if (!childId || !parentId || childId === parentId) throw new Error('Invalid board relationship');
-  if (relations.has(childId)) throw new Error('Board already has an ownership relationship');
+  if (!childId || !parentId || childId === parentId)
+    throw new Error('Invalid board relationship');
+  if (relations.has(childId))
+    throw new Error('Board already has an ownership relationship');
   const parentPath = getBoardPath(parentId, relations);
-  if (parentPath.problem) throw new Error('Parent board hierarchy is unavailable');
+  if (parentPath.problem)
+    throw new Error('Parent board hierarchy is unavailable');
 }

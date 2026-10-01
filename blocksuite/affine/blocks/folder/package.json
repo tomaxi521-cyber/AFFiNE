@@ -1,0 +1,36 @@
+{
+  "name": "@blocksuite/affine-block-folder",
+  "description": "Native canvas file folder block for BlockSuite.",
+  "type": "module",
+  "version": "0.27.0",
+  "sideEffects": false,
+  "scripts": {
+    "build": "yarn run -T tsc"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@blocksuite/affine-block-surface": "workspace:*",
+    "@blocksuite/affine-ext-loader": "workspace:*",
+    "@blocksuite/affine-model": "workspace:*",
+    "@blocksuite/affine-shared": "workspace:*",
+    "@blocksuite/global": "workspace:*",
+    "@blocksuite/std": "workspace:*",
+    "@blocksuite/store": "workspace:*",
+    "lit": "^3.2.0",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.8"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./store": "./src/store.ts",
+    "./view": "./src/view.ts"
+  },
+  "files": [
+    "src",
+    "dist",
+    "!src/__tests__",
+    "!dist/__tests__"
+  ]
+}

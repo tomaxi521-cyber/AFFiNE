@@ -45,6 +45,19 @@ export class BlockModel<Props extends object = object> {
 
   deleted = new Subject<void>();
 
+  /**
+   * Synchronous local API deletion hook, inside the deletion transaction.
+   * Return false to cancel. Not called for remote changes, undo/redo, or
+   * descendants removed by an ancestor's cascade. Implementations may move
+   * children before CRUD enumerates them; never perform asynchronous work here.
+   */
+  beforeDelete(_options: {
+    bringChildrenTo?: BlockModel;
+    deleteChildren?: boolean;
+  }): boolean {
+    return true;
+  }
+
   id!: string;
 
   schema!: BlockSchemaType;

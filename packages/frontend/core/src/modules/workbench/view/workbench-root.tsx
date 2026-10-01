@@ -1,6 +1,7 @@
 import { ResizePanel } from '@affine/component/resize-panel';
 import { AffineErrorComponent } from '@affine/core/components/affine/affine-error-boundary/affine-error-fallback';
 import { workbenchRoutes } from '@affine/core/desktop/workbench-router';
+import { ProjectTabs } from '@affine/core/modules/dikw-workbench/project-tabs';
 import {
   appSettingAtom,
   FrameworkScope,
@@ -64,12 +65,25 @@ export const WorkbenchRoot = memo(() => {
 
   return (
     <ViewIslandRegistryProvider>
-      <SplitView
-        className={styles.workbenchRootContainer}
-        views={views}
-        renderer={panelRenderer}
-        onMove={onMove}
-      />
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minWidth: 0,
+          minHeight: 0,
+          height: '100%',
+        }}
+      >
+        <ProjectTabs />
+        <SplitView
+          className={styles.workbenchRootContainer}
+          style={{ height: 'auto', minHeight: 0, minWidth: 0 }}
+          views={views}
+          renderer={panelRenderer}
+          onMove={onMove}
+        />
+      </div>
       <WorkbenchSidebar />
     </ViewIslandRegistryProvider>
   );

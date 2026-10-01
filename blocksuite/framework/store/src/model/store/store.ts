@@ -962,10 +962,10 @@ export class Store {
     };
 
     this.transact(() => {
-      this._crud.deleteBlock(
-        typeof model === 'string' ? model : model.id,
-        opts
-      );
+      const id = typeof model === 'string' ? model : model.id;
+      const current = this.getBlock(id)?.model;
+      if (!current || !current.beforeDelete(options)) return;
+      this._crud.deleteBlock(id, opts);
     });
   }
 

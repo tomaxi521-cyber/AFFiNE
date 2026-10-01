@@ -1,7 +1,6 @@
 import { Tooltip } from '@affine/component';
 import * as footerStyles from './footer-tools.css';
-import { BoardTree } from './board-tree';
-import { LibraryTree } from './library-tree';
+import { ProjectWorkspaces } from './project-workspaces';
 import {
   AppDownloadButton,
   AppSidebar,
@@ -15,10 +14,7 @@ import type { Workspace } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
 import { track } from '@affine/track';
 import type { Store } from '@blocksuite/affine/store';
-import {
-  ImportIcon,
-  SettingsIcon,
-} from '@blocksuite/icons/rc';
+import { ImportIcon, SettingsIcon } from '@blocksuite/icons/rc';
 import { useLiveData, useService, useServices } from '@toeverything/infra';
 import type { ReactElement } from 'react';
 import { memo, useCallback } from 'react';
@@ -53,11 +49,11 @@ export type RootAppSidebarProps = {
 };
 
 const BoardLibraryEntries = () => {
-  return <>
-    <BoardTree />
-    <LibraryTree kind="knowledge" />
-    <LibraryTree kind="artifact" />
-  </>;
+  return (
+    <>
+      <ProjectWorkspaces />
+    </>
+  );
 };
 
 /**
@@ -66,12 +62,10 @@ const BoardLibraryEntries = () => {
  *
  */
 export const RootAppSidebar = memo((): ReactElement => {
-  const { workbenchService, cMDKQuickSearchService } = useServices(
-    {
-      WorkbenchService,
-      CMDKQuickSearchService,
-    }
-  );
+  const { workbenchService, cMDKQuickSearchService } = useServices({
+    WorkbenchService,
+    CMDKQuickSearchService,
+  });
 
   const t = useI18n();
   const workspaceDialogService = useService(WorkspaceDialogService);
@@ -153,21 +147,37 @@ export const RootAppSidebar = memo((): ReactElement => {
           />
         </div>
       </SidebarContainer>
-      <SidebarScrollableContainer><BoardLibraryEntries /></SidebarScrollableContainer>
+      <SidebarScrollableContainer>
+        <BoardLibraryEntries />
+      </SidebarScrollableContainer>
       <SidebarContainer className={bottomContainer}>
         <SidebarAudioPlayer />
         {BUILD_CONFIG.isElectron ? <UpdaterButton /> : <AppDownloadButton />}
-        <nav aria-label="工作区工具" className={footerStyles.tools} data-testid="sidebar-footer-tools">
+        <nav
+          aria-label="工作区工具"
+          className={footerStyles.tools}
+          data-testid="sidebar-footer-tools"
+        >
           <TrashButton iconOnly />
           <Tooltip content={t['com.affine.settingSidebar.title']()}>
-            <button type="button" className={footerStyles.iconButton} aria-label={t['com.affine.settingSidebar.title']()}
-              data-testid="slider-bar-workspace-setting-button" onClick={onOpenSettingModal}>
+            <button
+              type="button"
+              className={footerStyles.iconButton}
+              aria-label={t['com.affine.settingSidebar.title']()}
+              data-testid="slider-bar-workspace-setting-button"
+              onClick={onOpenSettingModal}
+            >
               <SettingsIcon width={22} height={22} />
             </button>
           </Tooltip>
           <Tooltip content={t['Import']()}>
-            <button type="button" className={footerStyles.iconButton} aria-label={t['Import']()}
-              data-testid="slider-bar-import-button" onClick={onOpenImportModal}>
+            <button
+              type="button"
+              className={footerStyles.iconButton}
+              aria-label={t['Import']()}
+              data-testid="slider-bar-import-button"
+              onClick={onOpenImportModal}
+            >
               <ImportIcon width={22} height={22} />
             </button>
           </Tooltip>
