@@ -60,6 +60,7 @@
     { "path": "./blocksuite/affine/blocks/edgeless-text" },
     { "path": "./blocksuite/affine/blocks/embed" },
     { "path": "./blocksuite/affine/blocks/embed-doc" },
+    { "path": "./blocksuite/affine/blocks/folder" },
     { "path": "./blocksuite/affine/blocks/frame" },
     { "path": "./blocksuite/affine/blocks/image" },
     { "path": "./blocksuite/affine/blocks/latex" },

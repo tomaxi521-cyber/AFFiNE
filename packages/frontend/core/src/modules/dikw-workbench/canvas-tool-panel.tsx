@@ -137,7 +137,7 @@ export function CanvasToolPanel({
     };
   }, [journalKey]);
   const run = async (a: Attempt) => {
-    if (locked.current || !writable) return;
+    if (locked.current || !writable) return undefined;
     const retrying = !!pendingRef.current;
     locked.current = true;
     setBusy(true);
@@ -193,6 +193,7 @@ export function CanvasToolPanel({
       locked.current = false;
       if (mounted.current) setBusy(false);
     }
+    return undefined;
   };
   runRef.current = async a => {
     await run(a);

@@ -379,7 +379,7 @@ const DetailPageImpl = memo(function DetailPageImpl() {
             <div style={{ flexShrink: 0, position: 'relative', zIndex: 2 }}>
               {portalError && <p role="alert" style={{ margin: '4px 12px' }}>{portalError}</p>}
             </div>
-            {mode === 'edgeless' && <CanvasToolPanel key={doc.id} editor={editorContainer} docId={doc.id} readonly={readonly} />}
+            {mode === 'edgeless' && <CanvasToolPanel key={doc.id} editor={editorContainer} docId={doc.id} readonly={readonly !== false} />}
             <Scrollable.Root>
               <Scrollable.Viewport
                 onScroll={handleScroll}
