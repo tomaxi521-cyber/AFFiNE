@@ -169,8 +169,17 @@ export function remapCopySnapshot(
   return snapshot;
 }
 
+// Native block-added hooks regenerate audit metadata for the new author's copy.
+// Exclude exactly these four block props, never content, geometry or arbitrary metadata.
+function comparableBlocks(root: BlockSnapshot) {
+  const copy = structuredClone(root);
+  for (const block of snapshotBlocks(copy)) {
+    for (const key of ['meta:createdAt', 'meta:createdBy', 'meta:updatedAt', 'meta:updatedBy']) delete block.props[key];
+  }
+  return canonicalSnapshot(copy);
+}
 export function assertCopySnapshotEqual(expected: DocSnapshot, actual: DocSnapshot | undefined): void {
-  if (!actual || canonicalSnapshot(expected.blocks) !== canonicalSnapshot(actual.blocks)) {
+  if (!actual || comparableBlocks(expected.blocks) !== comparableBlocks(actual.blocks)) {
     throw new Error('复制内容校验失败；可能存在部分写入或后续编辑，不会覆盖已有内容');
   }
 }

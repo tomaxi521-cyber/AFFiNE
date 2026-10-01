@@ -87,6 +87,15 @@ describe('strict board copy snapshots', () => {
     expect(() => remapCopySnapshot(source, identities)).toThrow('内部引用缺失');
   });
 
+  test('native regenerated audit props are not content, but custom metadata remains exact', () => {
+    const { source } = fixture();
+    const actual = structuredClone(source);
+    Object.assign(actual.blocks.children[1].children[0].props, {'meta:createdAt': 42, 'meta:createdBy': 'copy-author', 'meta:updatedAt': 43, 'meta:updatedBy': 'copy-author'});
+    expect(() => assertCopySnapshotEqual(source, actual)).not.toThrow();
+    actual.blocks.children[1].children[0].props['meta:custom'] = 'changed';
+    expect(() => assertCopySnapshotEqual(source, actual)).toThrow('校验失败');
+  });
+
   test('truthy partial Transformer output, missing elements and changed content are never success', () => {
     const { source } = fixture();
     expect(() => assertCopySnapshotEqual(source, undefined)).toThrow('校验失败');
