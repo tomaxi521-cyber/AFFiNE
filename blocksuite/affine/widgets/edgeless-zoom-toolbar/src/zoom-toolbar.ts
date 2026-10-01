@@ -75,16 +75,19 @@ export class EdgelessZoomToolbar extends WithDisposable(LitElement) {
       font-family: ${unsafeCSS(baseTheme.fontSansFamily)};
     }
 
-    .dikw-view { display:flex; position:relative; gap:2px; padding:5px; border:1px solid var(--affine-border-color); border-radius:10px; background:var(--affine-background-overlay-panel-color); box-shadow:0 3px 14px rgb(0 0 0 / 8%); color:var(--affine-text-primary-color); }
-    .dikw-view button { width:44px; height:44px; padding:0; border:0; border-radius:7px; color:inherit; background:transparent; cursor:pointer; }
-    .dikw-view button svg { width:22px; height:22px; vertical-align:middle; }
+    .dikw-view { --dikw-view-button-size:36px; display:flex; position:relative; gap:2px; padding:5px; border:1px solid var(--affine-border-color); border-radius:10px; background:var(--affine-background-overlay-panel-color); box-shadow:0 3px 14px rgb(0 0 0 / 8%); color:var(--affine-text-primary-color); }
+    .dikw-view button { flex-shrink:0; width:var(--dikw-view-button-size); height:var(--dikw-view-button-size); padding:0; border:0; border-radius:7px; color:inherit; background:transparent; cursor:pointer; }
+    .dikw-view button svg { width:20px; height:20px; vertical-align:middle; }
     .dikw-view button:hover, .dikw-view button[aria-pressed='true'], .dikw-view button[aria-expanded='true'] { background:var(--affine-hover-color); }
     .dikw-view button:focus-visible { outline:2px solid var(--affine-primary-color); outline-offset:-2px; }
     .dikw-view button:disabled { opacity:.35; cursor:not-allowed; }
-    .dikw-view .pct { width:76px; font-size:13px; font-variant-numeric:tabular-nums; }
-    .dikw-view .separator { width:1px; background:var(--affine-border-color); margin:8px 3px; }
+    .dikw-view .pct { width:60px; font-size:12px; font-variant-numeric:tabular-nums; }
+    .dikw-view .separator { flex-shrink:0; width:1px; background:var(--affine-border-color); margin:6px 2px; }
     .dikw-view-menu { position:absolute; bottom:calc(100% + 8px); right:0; width:220px; max-height:calc(100vh - 130px); overflow:auto; padding:8px; background:var(--affine-background-overlay-panel-color); border:1px solid var(--affine-border-color); border-radius:10px; box-shadow:var(--affine-shadow-2); }
     .dikw-view-menu button { display:block; width:100%; padding:0 12px; text-align:left; }
+    @media (pointer: coarse) {
+      .dikw-view { --dikw-view-button-size:44px; }
+    }
     .zoom-percent:hover {
       color: var(--affine-primary-color);
       background-color: var(--affine-hover-color);

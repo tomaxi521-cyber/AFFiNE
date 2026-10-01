@@ -354,6 +354,10 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
 
   private _resizeObserver: ResizeObserver | null = null;
 
+  private _dikwDockRail: HTMLElement | null = null;
+
+  private _dikwViewControls: HTMLElement | null = null;
+
   private readonly _slotsProvider = new ContextProvider(this, {
     context: edgelessToolbarSlotsContext,
     initialValue: { resize: new Subject() } satisfies EdgelessToolbarSlots,
@@ -824,10 +828,11 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     );
     this._resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
-        const { width } = entry.contentRect;
-        this._onContainerResize({ w: width });
-        this._layoutDikwDock();
+        if (entry.target === this) {
+          this._onContainerResize({ w: entry.contentRect.width });
+        }
       }
+      this._layoutDikwDock();
     });
     this._resizeObserver.observe(this);
     this.disposables.add(
@@ -869,6 +874,8 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
     }
+    this._dikwDockRail = null;
+    this._dikwViewControls = null;
   }
 
   override firstUpdated() {
@@ -919,13 +926,43 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
   }
 
   private _layoutDikwDock() {
-    if(!this._isDikwBoard || this.isPresentMode)return;
-    const rail=this.renderRoot.querySelector<HTMLElement>('.dikw-toolbar');
-    if(!rail)return;
-    // A centered dock needs a full view-control width on both sides. Stack the
-    // creative dock one row above navigation when there is insufficient room.
-    const fits=this.clientWidth >= rail.scrollWidth + 520;
-    this.style.setProperty('--dikw-dock-bottom',fits?'14px':'80px');
+    if (!this._isDikwBoard || this.isPresentMode) return;
+    const rail = this.renderRoot.querySelector<HTMLElement>('.dikw-toolbar');
+    if (!rail) return;
+    // Measure sibling chrome, not the viewport or a fixed desktop reservation.
+    // This also keeps coarse-pointer targets, pinned tools and safe areas in sync.
+    const controls =
+      this.parentElement?.querySelector<HTMLElement>(
+        'affine-edgeless-zoom-toolbar-widget'
+      ) ?? null;
+    if (rail !== this._dikwDockRail) {
+      if (this._dikwDockRail) this._resizeObserver?.unobserve(this._dikwDockRail);
+      this._dikwDockRail = rail;
+      this._resizeObserver?.observe(rail);
+    }
+    if (controls !== this._dikwViewControls) {
+      if (this._dikwViewControls) {
+        this._resizeObserver?.unobserve(this._dikwViewControls);
+      }
+      this._dikwViewControls = controls;
+      if (controls) this._resizeObserver?.observe(controls);
+    }
+    const hostRect = this.getBoundingClientRect();
+    const railRect = rail.getBoundingClientRect();
+    const viewRect = controls?.getBoundingClientRect();
+    let bottom = 'max(12px, env(safe-area-inset-bottom))';
+    if (
+      viewRect &&
+      viewRect.width > 0 &&
+      viewRect.height > 0 &&
+      railRect.right + 8 > viewRect.left
+    ) {
+      bottom =
+        String(
+          Math.max(12, hostRect.bottom - viewRect.bottom) + viewRect.height + 8
+        ) + 'px';
+    }
+    this.style.setProperty('--dikw-dock-bottom', bottom);
   }
 
   override updated() { this._layoutDikwDock(); }

@@ -404,6 +404,16 @@ export class DomRenderer {
 
   private _render() {
     this._renderIncremental();
+    // Element renderers produce viewport pixels, just like CanvasRenderer.
+    // Nested editors are already scaled by their ancestors: cancel that scale
+    // per surface element, not on the shared root (which would create a new
+    // stacking context and break interleaving with notes and frames). CSS zoom
+    // also scales left/top, strokes and labels without overwriting rotation.
+    const viewScale = this.viewport.viewScale;
+    const inverse = Number.isFinite(viewScale) && viewScale > 0 ? 1 / viewScale : 1;
+    for (const element of this._elementsMap.values()) {
+      element.style.zoom = inverse === 1 ? '' : String(inverse);
+    }
   }
 
   private _watchSurface(surfaceModel: SurfaceBlockModel) {

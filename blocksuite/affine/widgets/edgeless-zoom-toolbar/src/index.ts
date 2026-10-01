@@ -25,7 +25,7 @@ export class AffineEdgelessZoomToolbarWidget extends WidgetComponent<RootBlockMo
       user-select: none;
     }
 
-    :host([data-dikw-board]) { left: auto; right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); pointer-events: auto; }
+    :host([data-dikw-board]) { left: auto; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); pointer-events: auto; }
     :host([data-dikw-board]) edgeless-zoom-toolbar { display: block; }
     mobile-zoom-ruler {
       pointer-events: auto;
