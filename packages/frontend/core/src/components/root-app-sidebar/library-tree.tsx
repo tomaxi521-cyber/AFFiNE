@@ -29,7 +29,7 @@ function LibraryContent({kind,storageKey}:{kind:ContentKind;storageKey:string}) 
  const ids=useLiveData(docs.list.nonTrashDocsIds$), readable=useReadableDocIds(ids);
  const repository=useMemo(()=>new ContentRepository(workspace.rootYDoc),[workspace]);
  const [,revision]=useState(0);
- useEffect(()=>repository.observe(()=>revision(v=>v+1)),[repository]);
+ useEffect(()=>{const stop=repository.observe(()=>revision(v=>v+1));revision(v=>v+1);return stop;},[repository]);
  const content=sidebarLibraryIds(ids,readable,relations,repository,kind);
  const label=kind==='knowledge'?'知识库':'产物库',route=kind==='knowledge'?'/knowledge':'/artifacts';
  const [expanded,setExpanded]=useState(()=>{try{return localStorage.getItem(storageKey)==='true';}catch{return false;}});

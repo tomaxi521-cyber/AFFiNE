@@ -35,6 +35,7 @@ function TreeContent({storageKey}:{storageKey:string}) {
   const visible=useMemo(()=>new Set(ids.filter(id=>readable.has(id))),[ids,readable]);
   const pathname=useLiveData(workbench.location$).pathname, activeId=pathname.slice(1);
   const roots=[...relations.values()].filter(r=>r.parentId===null), rootId=roots.length===1?roots[0].docId:undefined;
+  const [fallbackOpen,setFallbackOpen]=useState(false);
   const [expanded,setExpanded]=useState<Set<string>>(()=>{try{const v=JSON.parse(localStorage.getItem(storageKey)||'[]');return new Set(Array.isArray(v)?v.filter(x=>typeof x==='string'):[]);}catch{return new Set();}});
   const path=getBoardPath(activeId,relations);
   const ancestors=path.problem?[]:path.ids.slice(0,-1);
@@ -45,7 +46,7 @@ function TreeContent({storageKey}:{storageKey:string}) {
   // Native links preserve current-tab intent and the offline-safe /board root entry.
   // Visibility is permission-filtered above; destination access remains enforced by native routes.
   return <nav aria-label="工作台层级">
-    {!rows.length&&<div className={styles.row}><span style={{width:26}}/><button type="button" data-testid="dikw-main-board" className={styles.link} onClick={()=>workbench.open('/board')}><FolderIcon/>主工作台</button></div>}
+    {!rows.length&&<><div className={styles.row}><button type="button" className={styles.toggle} aria-label={(fallbackOpen?'收起':'展开')+'主工作台'} aria-expanded={fallbackOpen} onClick={()=>setFallbackOpen(v=>!v)}>{fallbackOpen?'▾':'▸'}</button><button type="button" data-testid="dikw-main-board" className={styles.link} onClick={()=>workbench.open('/board')}><FolderIcon open={fallbackOpen}/>主工作台</button></div>{fallbackOpen&&<p className={styles.empty}>暂无可显示的子白板</p>}</>}
     <ul className={styles.list}>{rows.map(row=><BoardRow key={row.id} {...row} root={row.id===rootId} active={row.id===activeId||(row.id===rootId&&pathname==='/board')} expanded={expanded.has(row.id)} onToggle={()=>setExpanded(old=>{const next=new Set(old);next.has(row.id)?next.delete(row.id):next.add(row.id);return next;})}/>)}</ul>
   </nav>;
 }

@@ -77,10 +77,7 @@ export class GuardService extends Service {
           >,
           this.isAdmin$,
         ]).subscribe(([permissions, isAdmin]) => {
-          if (isAdmin) {
-            return subscriber.next(true);
-          }
-          const current = permissions[action] ?? undefined;
+          const current = isAdmin ? true : permissions[action] ?? undefined;
           if (current !== prev) {
             prev = current;
             subscriber.next(current);
