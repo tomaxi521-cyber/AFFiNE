@@ -209,12 +209,17 @@ export class DikwWorkbenchService extends Service {
         try {
           const created = this.docsService.createDoc({ id: docId, title, primaryMode: 'edgeless' });
           if (created.id !== docId) throw new Error('创建中间件改变了子白板标识');
+          await this.workspace.engine.doc.waitForDocLoaded(docId);
+          await this.workspace.engine.doc.waitForUpdated(docId);
           saveOperation('created');
         } catch (cause) {
           throw new DikwChildCreationError(docId, operationId, cause);
         }
       }
       try {
+        this.workspace.docCollection.getDoc(docId)?.load();
+        await this.workspace.engine.doc.waitForDocLoaded(docId);
+        await this.workspace.engine.doc.waitForUpdated(docId);
         saveOperation('created');
         this.repository.registerChild(docId, parentId, operationId);
         await this.workspace.engine.doc.waitForUpdated(this.workspace.id);

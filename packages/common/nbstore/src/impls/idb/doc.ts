@@ -38,6 +38,11 @@ export class IndexedDBDocStorage extends DocStorageBase<IDBConnectionOptions> {
     while (true) {
       try {
         const trx = this.db.transaction(['updates', 'clocks'], 'readwrite');
+        const committed = trx.done;
+        // A request may reject before we reach the commit barrier. Observe the
+        // transaction rejection immediately as well, without swallowing the
+        // original promise used below to enforce successful completion.
+        void committed.catch(() => {});
 
         await trx.objectStore('updates').add({
           ...update,
@@ -47,6 +52,7 @@ export class IndexedDBDocStorage extends DocStorageBase<IDBConnectionOptions> {
         await trx.objectStore('clocks').put({ docId: update.docId, timestamp });
 
         trx.commit();
+        await committed;
       } catch (e) {
         if (e instanceof Error && e.name === 'ConstraintError') {
           retry++;

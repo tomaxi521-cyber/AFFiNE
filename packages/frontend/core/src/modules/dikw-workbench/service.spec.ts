@@ -150,6 +150,25 @@ describe('workbench orchestration', () => {
     expect(f.service.getPath('child').ids).toEqual(['main', 'child']);
     expect(f.service.relations$.value.has('child')).toBe(true);
   });
+  test('child content save completes before created journal, graph or parent card', async () => {
+    const f = fixture();
+    let finish!: () => void;
+    let started!: () => void;
+    const reached = new Promise<void>(resolve => { started = resolve; });
+    const saved = new Promise<void>(resolve => { finish = resolve; });
+    f.engine.doc.waitForUpdated.mockImplementation(async id => {
+      if (id === 'child') { started(); await saved; }
+    });
+    let complete = false;
+    const task = f.service.createChild('main', 'Child', 'op').then(id => { complete = true; return id; });
+    await reached;
+    expect(complete).toBe(false);
+    expect(f.repository.snapshot().has('child')).toBe(false);
+    expect(f.store.addBlock).not.toHaveBeenCalled();
+    expect(f.workspace.rootYDoc.getMap('dikw:child-operations:v1').get('op')).toMatchObject({state:'reserved'});
+    finish();
+    expect(await task).toBe('child');
+  });
   test('same operation cannot change title after completion', async () => {
     const f = fixture();
     await f.service.createChild('main', 'Child', 'op');
