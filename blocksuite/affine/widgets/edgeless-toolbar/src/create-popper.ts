@@ -131,7 +131,7 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
       Object.assign(clipWrapper.style, { left: (x-hostRect.left)+'px', top: (y-hostRect.top)+'px' });
     };
     stopPositioning = autoUpdate(reference, clipWrapper, updatePosition);
-    for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'dblclick', 'click', 'wheel']) {
+    for (const type of ['pointerdown', 'pointerup', 'mousedown', 'dblclick', 'click', 'wheel']) {
       clipWrapper.addEventListener(type, event => event.stopPropagation());
     }
   }
