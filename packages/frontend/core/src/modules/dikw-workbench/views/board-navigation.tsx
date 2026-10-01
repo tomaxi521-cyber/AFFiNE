@@ -9,6 +9,7 @@ export interface BoardNavigationItem {
 
 export interface BoardNavigationProps {
   canvasTools?: boolean;
+  actionsOnly?: boolean;
   /** Logical root-to-current parent chain, never a browser/reference history. */
   path: readonly BoardNavigationItem[];
   /** Direct logical children only; ordinary references belong elsewhere. */
@@ -51,6 +52,7 @@ const BoardNavigationContent = ({
   canReference = false,
   canNavigate = true,
   canvasTools = false,
+  actionsOnly = false,
 }: BoardNavigationProps) => {
   const id = useId();
   const [formOpen, setFormOpen] = useState(false);
@@ -128,7 +130,7 @@ const BoardNavigationContent = ({
   return (
     <section className={styles.container} aria-label="白板导航">
       <div className={styles.toolbar}>
-        <div className={styles.actions}>
+        {!actionsOnly && <><div className={styles.actions}>
           <button
             type="button"
             className={styles.textButton}
@@ -178,7 +180,7 @@ const BoardNavigationContent = ({
             ))}
           </ol>
           {!current ? <span className={styles.hint}>尚未选择白板。</span> : null}
-        </nav>
+        </nav></>}
         <div className={styles.actions}>
           {!canvasTools && <button
             ref={createButtonRef}

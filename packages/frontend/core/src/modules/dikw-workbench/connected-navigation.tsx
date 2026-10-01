@@ -31,11 +31,11 @@ export function useReadableDocIds(ids: readonly string[]) {
 type PendingChild = { title: string; id: string; docId?: string };
 
 /** Reset local attempts when the host switches documents; no stale completion navigation. */
-export function ConnectedBoardNavigation(props: { docId: string; readonly: boolean; canvasTools?: boolean }) {
+export function ConnectedBoardNavigation(props: { docId: string; readonly: boolean; canvasTools?: boolean; actionsOnly?: boolean }) {
   return <NavigationContent key={props.docId} {...props} />;
 }
 
-function NavigationContent({ docId, readonly, canvasTools }: { docId: string; readonly: boolean; canvasTools?: boolean }) {
+function NavigationContent({ docId, readonly, canvasTools, actionsOnly }: { docId: string; readonly: boolean; canvasTools?: boolean; actionsOnly?: boolean }) {
   const service = useService(DikwWorkbenchService);
   const docs = useService(DocsService);
   const guard = useService(GuardService);
@@ -128,7 +128,7 @@ function NavigationContent({ docId, readonly, canvasTools }: { docId: string; re
   const writable = !readonly && !workspace.openOptions.isSharedMode && canUpdate === true;
   const options = ids.filter(id => id !== docId && readable.has(id) && exists(id));
   return <>
-    <BoardNavigation canvasTools={canvasTools}
+    <BoardNavigation canvasTools={canvasTools} actionsOnly={actionsOnly}
       path={pathItems}
       childrenList={service.getChildren(docId).filter(child => readable.has(child.docId) && exists(child.docId)).map(child => item(child.docId))}
       onNavigate={safeNavigate}

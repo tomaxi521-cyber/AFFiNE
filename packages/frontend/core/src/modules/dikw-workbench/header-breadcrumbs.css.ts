@@ -6,4 +6,7 @@ export const ancestors=style({display:'flex',alignItems:'center',minWidth:0,flex
 export const crumb=style({display:'flex',alignItems:'center',gap:4,flexShrink:0,color:cssVarV2('text/secondary'),fontSize:13});
 export const link=style({display:'block',maxWidth:130,padding:'6px 4px',borderRadius:4,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'inherit',textDecoration:'none',selectors:{'&:hover':{background:cssVarV2('button/secondary')},'&:focus-visible':{outline:'2px solid '+cssVarV2('input/border/active'),outlineOffset:-2}}});
 export const current=style({minWidth:0,flex:'1 1 80px',overflow:'hidden'});
+export const tools=style({position:'relative',flexShrink:0});
+export const toolsSummary=style({cursor:'pointer',listStyle:'none',padding:'6px',borderRadius:4,color:cssVarV2('text/secondary')});
+export const toolsPanel=style({position:'absolute',right:0,top:'calc(100% + 6px)',width:320,maxWidth:'calc(100vw - 32px)',maxHeight:'70vh',overflowY:'auto',padding:8,zIndex:10,border:'1px solid '+cssVarV2('layer/insideBorder/border'),borderRadius:8,background:cssVarV2('layer/background/primary'),boxShadow:'0 4px 16px #0002'});
 export const title=style({minWidth:0,maxWidth:'100%',width:'100%'});

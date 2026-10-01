@@ -1,15 +1,21 @@
-import { DocsService } from '@affine/core/modules/doc';
+import { DocService, DocsService } from '@affine/core/modules/doc';
 import { ViewService, WorkbenchLink } from '@affine/core/modules/workbench';
 import { LiveData, useLiveData, useService } from '@toeverything/infra';
 import { useMemo, type ReactNode } from 'react';
 import { DikwWorkbenchService } from './service';
-import { useReadableDocIds } from './connected-navigation';
+import { ConnectedBoardNavigation, useReadableDocIds } from './connected-navigation';
+import { EditorService } from '@affine/core/modules/editor';
+import { useGuard } from '@affine/core/components/guard';
 import * as styles from './header-breadcrumbs.css';
 
 /** Navigation only: the current crumb remains the native editable document title. */
 export function HeaderBreadcrumbs({docId,children}:{docId:string;children:ReactNode}) {
   const service=useService(DikwWorkbenchService), docs=useService(DocsService);
   const view=useService(ViewService).view;
+  const mode=useLiveData(useService(EditorService).editor.mode$);
+  const doc=useService(DocService).doc;
+  const trashed=useLiveData(doc.meta$.map(meta=>meta.trash));
+  const canEdit=useGuard('Doc_Update',docId);
   const relations=useLiveData(service.relations$);
   const ids=useLiveData(docs.list.nonTrashDocsIds$);
   const readable=useReadableDocIds(ids);
@@ -25,5 +31,6 @@ export function HeaderBreadcrumbs({docId,children}:{docId:string;children:ReactN
       return <span className={styles.crumb} key={id}><WorkbenchLink draggable={false} className={styles.link} to={relations.get(id)?.parentId===null?'/board':'/'+id+'?mode=edgeless'} title={title}>{title}</WorkbenchLink><span aria-hidden="true">/</span></span>;
     })}</div>
     <div className={styles.current} aria-current="page">{children}</div>
+    <details className={styles.tools} onKeyDown={e=>{e.stopPropagation();if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus();}}}><summary className={styles.toolsSummary} aria-label="白板层级操作" title="子白板与层级操作">⌄</summary><div className={styles.toolsPanel}><ConnectedBoardNavigation docId={docId} readonly={!canEdit||!!trashed} canvasTools={mode==='edgeless'} actionsOnly /></div></details>
   </nav>;
 }
