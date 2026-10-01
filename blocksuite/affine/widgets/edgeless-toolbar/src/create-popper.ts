@@ -93,7 +93,7 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
   let removed = false;
   if (toolbar) {
     Object.assign(clipWrapper.style, {
-      position: 'fixed',
+      position: 'absolute',
       height: 'auto',
       width: `${Math.max(160, Math.min(680, toolbar.clientWidth - 104))}px`,
       maxWidth: 'calc(100vw - 24px)',
@@ -111,7 +111,7 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
       clipWrapper.style.width = `${Math.max(160, Math.min(680, toolbar.clientWidth - 104))}px`;
       computePosition(reference, clipWrapper, {
         placement: 'right-start',
-        strategy: 'fixed',
+        strategy: 'absolute',
         middleware: [offset(12), flip(), shift({ padding: 12 })],
       }).then(({ x, y }) => {
         if (removed) return;

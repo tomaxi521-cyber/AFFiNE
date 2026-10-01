@@ -261,12 +261,12 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     if (restoreFocus && trigger) {
       // Lit may replace the rail buttons when the panel state changes. Focus
       // the committed button, not the outgoing render's soon-detached node.
-      void this.updateComplete.then(() => {
-        if (!this.isConnected) return;
+      void this.updateComplete.then(() => requestAnimationFrame(() => {
+        if (!this.isConnected || this._dikwMoreOpen || this._dikwContextTool) return;
         this.renderRoot.querySelector<HTMLButtonElement>(
           `.dikw-tool[data-tool="${trigger}"]`
-        )?.focus();
-      });
+        )?.focus({ preventScroll: true });
+      }));
     }
   };
 
@@ -589,7 +589,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
         data-app-theme=${this._appTheme$.value}
         @keydown=${this._onDikwPanelKeyDown}
         @keyup=${stopPropagation}
-        @pointerdown=${stopPropagation} @mousedown=${stopPropagation}
+        @pointerdown=${stopPropagation} @pointerup=${stopPropagation} @mousedown=${stopPropagation} @mouseup=${stopPropagation}
         @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}
       >
         <div class="dikw-panel-heading"><span>更多工具</span>
@@ -607,7 +607,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       ${this._dikwContextTool && !unavailable ? html`
         <section class="dikw-context-panel" aria-label="当前工具选项"
           @keydown=${this._onDikwPanelKeyDown} @keyup=${stopPropagation}
-          @pointerdown=${stopPropagation} @mousedown=${stopPropagation}
+          @pointerdown=${stopPropagation} @pointerup=${stopPropagation} @mousedown=${stopPropagation} @mouseup=${stopPropagation}
           @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}>
           <div class="dikw-panel-heading"><span>当前工具选项</span>
             <button type="button" aria-label="关闭工具选项" @click=${() => this._closeDikwPanels(true)}>×</button>
