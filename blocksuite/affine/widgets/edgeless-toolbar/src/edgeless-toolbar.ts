@@ -44,6 +44,12 @@ import {
 } from './context.js';
 import type { MenuPopper } from './create-popper.js';
 import {
+  DIKW_BOARD_GRAPH_MAP,
+  isDikwBoard,
+  renderDikwToolbar,
+} from './dikw-toolbar.js';
+import { dikwToolbarStyles } from './dikw-toolbar.styles.js';
+import {
   QuickToolIdentifier,
   SeniorToolIdentifier,
 } from './extension/index.js';
@@ -222,11 +228,26 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     .transform-button:hover svg {
       transform: scale(1.15);
     }
+    ${dikwToolbarStyles}
   `;
 
   private readonly _appTheme$ = computed(() => {
     return this.std.get(ThemeProvider).app$.value;
   });
+
+  @state()
+  private accessor _isDikwBoard = false;
+
+  @state()
+  private accessor _dikwMoreOpen = false;
+
+  private readonly _toggleDikwMore = () => {
+    if (this.store.readonly || this.hasAttribute('disabled')) return;
+    this._moreQuickToolsMenu?.close();
+    this.activePopper?.dispose();
+    this.activePopper = null;
+    this._dikwMoreOpen = !this._dikwMoreOpen;
+  };
 
   private _moreQuickToolsMenu: MenuHandler | null = null;
 
@@ -584,6 +605,25 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
   override connectedCallback() {
     super.connectedCallback();
     this._toolbarProvider.setValue(this);
+    const graph = this.store.workspace.doc.getMap(DIKW_BOARD_GRAPH_MAP);
+    const updateBoardVariant = () => {
+      this._isDikwBoard = isDikwBoard(
+        graph.get('board:' + this.store.id),
+        this.store.id
+      );
+      this.toggleAttribute('data-dikw-board', this._isDikwBoard);
+      // Outer widgets-container explicitly enables pointer events; override on host
+      // so a fullscreen chrome box never intercepts canvas gestures.
+      if (this._isDikwBoard) this.style.pointerEvents = 'none';
+      else this.style.removeProperty('pointer-events');
+      if (!this._isDikwBoard) this._dikwMoreOpen = false;
+    };
+    updateBoardVariant();
+    graph.observe(updateBoardVariant);
+    this.disposables.add(() => graph.unobserve(updateBoardVariant));
+    this.disposables.add(
+      this.gfx.tool.currentToolName$.subscribe(() => this.requestUpdate())
+    );
     this._resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width } = entry.contentRect;
@@ -605,6 +645,10 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
           Escape: () => {
             if (this.gfx.selection.editing) return;
             if (this.edgelessTool === 'frameNavigator') return;
+            if (this._isDikwBoard && this._dikwMoreOpen && !this.activePopper) {
+              this._dikwMoreOpen = false;
+              this._moreQuickToolsMenu?.close();
+            }
             if (this.edgelessTool === 'default') {
               if (this.activePopper) {
                 this.activePopper.dispose();
@@ -639,12 +683,19 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     );
     _disposables.add(
       slots.readonlyUpdated.subscribe(() => {
+        if (this._isDikwBoard && this.store.readonly) {
+          this._dikwMoreOpen = false;
+          this._moreQuickToolsMenu?.close();
+          this.activePopper?.dispose();
+          this.activePopper = null;
+        }
         this.requestUpdate();
       })
     );
     _disposables.add(
       slots.toolbarLocked.subscribe(disabled => {
         this.toggleAttribute('disabled', disabled);
+        if (this._isDikwBoard) this.requestUpdate();
       })
     );
     // This state from `editPropsStore` is not reactive,
@@ -660,13 +711,22 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
 
   override render() {
     const type = this.edgelessTool;
-    if (this.store.readonly && type !== 'frameNavigator') {
+    if (!this._isDikwBoard && this.store.readonly && type !== 'frameNavigator') {
       return nothing;
     }
 
     return html`
+      ${this._isDikwBoard && !this.isPresentMode
+        ? renderDikwToolbar(this, this._dikwMoreOpen, this._toggleDikwMore)
+        : nothing}
       <div
         class="edgeless-toolbar-wrapper"
+        id=${this._isDikwBoard ? 'dikw-native-dock' : nothing}
+        ?hidden=${
+          this._isDikwBoard &&
+          !this.isPresentMode &&
+          (!this._dikwMoreOpen || this.store.readonly)
+        }
         data-app-theme=${this._appTheme$.value}
       >
         <div
@@ -706,7 +766,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
                     ></presentation-toolbar>`
                   : nothing
               }
-              ${this.isPresentMode ? nothing : this._renderContent()}
+              ${this.isPresentMode || this.store.readonly ? nothing : this._renderContent()}
             </div>
           </smooth-corner>
         </div>

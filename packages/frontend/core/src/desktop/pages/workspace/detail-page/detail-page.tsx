@@ -19,6 +19,7 @@ import { TopTip } from '@affine/core/components/top-tip';
 import { ServerService } from '@affine/core/modules/cloud';
 import { DocService } from '@affine/core/modules/doc';
 import { ConnectedBoardNavigation } from '@affine/core/modules/dikw-workbench/connected-navigation';
+import { CanvasToolPanel } from '@affine/core/modules/dikw-workbench/canvas-tool-panel';
 import { bindChildPortalNavigation } from '@affine/core/modules/dikw-workbench/portal-interaction';
 import { GuardService } from '@affine/core/modules/permissions';
 import { EditorService } from '@affine/core/modules/editor';
@@ -353,8 +354,9 @@ const DetailPageImpl = memo(function DetailPageImpl() {
             <TopTip pageId={doc.id} workspace={workspace} />
             <div style={{ flexShrink: 0, position: 'relative', zIndex: 2 }}>
               {portalError && <p role="alert" style={{ margin: '4px 12px' }}>{portalError}</p>}
-              <ConnectedBoardNavigation key={doc.id} docId={doc.id} readonly={readonly} />
+              <ConnectedBoardNavigation key={doc.id} docId={doc.id} readonly={readonly} canvasTools={mode === 'edgeless'} />
             </div>
+            {mode === 'edgeless' && <CanvasToolPanel key={doc.id} editor={editorContainer} docId={doc.id} readonly={readonly} />}
             <Scrollable.Root>
               <Scrollable.Viewport
                 onScroll={handleScroll}

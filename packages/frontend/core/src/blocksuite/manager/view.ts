@@ -1,4 +1,5 @@
 import type { ReactToLit } from '@affine/component';
+import { DikwCanvasViewExtension } from '../view-extensions/dikw-canvas';
 import { AIViewExtension } from '@affine/core/blocksuite/view-extensions/ai';
 import { CloudViewExtension } from '@affine/core/blocksuite/view-extensions/cloud';
 import { CodeBlockPreviewViewExtension } from '@affine/core/blocksuite/view-extensions/code-block-preview';
@@ -88,6 +89,7 @@ class ViewProvider {
       AffineThemeViewExtension,
       AffineEditorViewExtension,
       AffineEditorConfigViewExtension,
+      DikwCanvasViewExtension,
       AffineIconPickerExtension,
       CodeBlockPreviewViewExtension,
       EdgelessBlockHeaderConfigViewExtension,

@@ -8,6 +8,7 @@ export interface BoardNavigationItem {
 }
 
 export interface BoardNavigationProps {
+  canvasTools?: boolean;
   /** Logical root-to-current parent chain, never a browser/reference history. */
   path: readonly BoardNavigationItem[];
   /** Direct logical children only; ordinary references belong elsewhere. */
@@ -49,6 +50,7 @@ const BoardNavigationContent = ({
   canCreate = false,
   canReference = false,
   canNavigate = true,
+  canvasTools = false,
 }: BoardNavigationProps) => {
   const id = useId();
   const [formOpen, setFormOpen] = useState(false);
@@ -178,7 +180,7 @@ const BoardNavigationContent = ({
           {!current ? <span className={styles.hint}>尚未选择白板。</span> : null}
         </nav>
         <div className={styles.actions}>
-          <button
+          {!canvasTools && <button
             ref={createButtonRef}
             type="button"
             className={styles.textButton}
@@ -192,8 +194,8 @@ const BoardNavigationContent = ({
             }}
           >
             新建子白板
-          </button>
-          {onReference ? (
+          </button>}
+          {!canvasTools && onReference ? (
             <button
               type="button"
               className={styles.textButton}

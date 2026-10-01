@@ -3,6 +3,7 @@ import { cssVarV2 } from '@toeverything/theme/v2';
 import { globalStyle, style } from '@vanilla-extract/css';
 
 export const mainContainer = style({
+  position: 'relative',
   containerType: 'inline-size',
   display: 'flex',
   flexDirection: 'column',

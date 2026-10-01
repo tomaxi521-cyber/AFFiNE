@@ -15,6 +15,8 @@ import { BlocksuiteHeaderTitle } from '@affine/core/blocksuite/block-suite-heade
 import { EditorModeSwitch } from '@affine/core/blocksuite/block-suite-mode-switch';
 import { useRegisterCopyLinkCommands } from '@affine/core/components/hooks/affine/use-register-copy-link-commands';
 import { HeaderDivider } from '@affine/core/components/pure/header';
+import { BoardViewSwitch } from '@affine/core/modules/dikw-workbench/board-view-switch';
+import { DikwWorkbenchService } from '@affine/core/modules/dikw-workbench/service';
 import { DocService } from '@affine/core/modules/doc';
 import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
 import { EditorService } from '@affine/core/modules/editor';
@@ -150,12 +152,14 @@ export function NormalPageHeader({ page, workspace }: PageHeaderProps) {
 
   const editor = useService(EditorService).editor;
   const currentMode = useLiveData(editor.mode$);
+  const boardService = useService(DikwWorkbenchService);
+  const isBoard = useLiveData(boardService.relations$).has(page.id);
 
   return (
     <Header className={styles.header} ref={containerRef}>
       <ViewTitle title={title} />
       <ViewIcon icon={currentMode ?? 'page'} />
-      <EditorModeSwitch />
+      {isBoard ? <BoardViewSwitch /> : <EditorModeSwitch />}
       <BlocksuiteHeaderTitle inputHandleRef={titleInputHandleRef} />
       <TemplateMark />
       <div className={styles.iconButtonContainer}>

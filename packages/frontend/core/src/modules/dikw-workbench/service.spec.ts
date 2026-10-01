@@ -348,6 +348,20 @@ describe('workbench orchestration', () => {
     expect(cards[2].model.props.xywh).toBe('[3328,-250,800,455]');
     expect({ blocks, elements: surface.elementModels, card: cards[0] }).toEqual(oldContent);
   });
+  test('places a new child at immutable requested world coordinates on retry', async () => {
+    const f = fixture(); const placement = { x: -250, y: 320, width: 600, height: 400 };
+    await f.service.createChild('main', 'Child', 'placed', placement);
+    expect(f.cards[0].model.props.xywh).toBe('[-250,320,600,400]');
+    await f.service.createChild('main', 'Child', 'placed', placement);
+    expect(f.docs.createDoc).toHaveBeenCalledTimes(1);
+    await expect(f.service.createChild('main', 'Child', 'placed', { ...placement, x: 10 })).rejects.toThrow();
+    expect(f.cards).toHaveLength(1);
+  });
+  test('invalid placement fails before creating any native document', async () => {
+    const f = fixture();
+    await expect(f.service.createChild('main', 'Child', 'bad', { x: NaN, y: 0, width: 800, height: 455 })).rejects.toThrow();
+    expect(f.docs.createDoc).not.toHaveBeenCalled();
+  });
   test('negative-coordinate note alone determines placement rather than the origin', () => {
     const { store, cards, blocks } = cardStore();
     blocks.push({

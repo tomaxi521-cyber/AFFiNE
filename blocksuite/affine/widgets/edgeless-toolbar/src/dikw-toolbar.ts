@@ -1,0 +1,153 @@
+import { ShapeType } from '@blocksuite/affine-model';
+import { EditPropsStore } from '@blocksuite/affine-shared/services';
+import { stopPropagation } from '@blocksuite/affine-shared/utils';
+import {
+  ConnectorLIcon,
+  EdgelessIcon,
+  HandIcon,
+  MoreHorizontalIcon,
+  PageIcon,
+  SelectIcon,
+  ShapeIcon,
+  TextIcon,
+} from '@blocksuite/icons/lit';
+import { ToolIdentifier, type ToolType } from '@blocksuite/std/gfx';
+import { html, nothing } from 'lit';
+
+import type { EdgelessToolbarWidget } from './edgeless-toolbar.js';
+
+export const DIKW_BOARD_GRAPH_MAP = 'dikw:board-graph:v1';
+
+/** Match the workspace relation contract, not arbitrary edgeless documents. */
+export function isDikwBoard(value: unknown, docId: string): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return (
+    record.version === 1 &&
+    record.docId === docId &&
+    typeof record.operationId === 'string' &&
+    record.operationId.length > 0 &&
+    (record.parentId === null ||
+      (typeof record.parentId === 'string' && record.parentId.length > 0)) &&
+    record.parentId !== docId
+  );
+}
+
+const tools = [
+  { name: 'default', label: '选择', shortcut: 'V', icon: SelectIcon },
+  { name: 'pan', label: '抓手', shortcut: 'H', icon: HandIcon },
+  { name: 'affine:note', label: '笔记', shortcut: 'N', icon: PageIcon },
+  { name: 'text', label: '文字', shortcut: 'T', icon: TextIcon },
+  { name: 'shape', label: '形状', shortcut: 'S', icon: ShapeIcon },
+  { name: 'connector', label: '连接线', shortcut: 'C', icon: ConnectorLIcon },
+] as const;
+
+function toolOptions(host: EdgelessToolbarWidget, name: string) {
+  switch (name) {
+    case 'pan':
+      return { panning: false };
+    case 'affine:note':
+      return { childFlavour: 'affine:paragraph', childType: 'text', tip: 'Text' };
+    case 'shape':
+      return { shapeName: ShapeType.Rect };
+    case 'connector':
+      return { mode: host.std.get(EditPropsStore).lastProps$.value.connector.mode };
+    default:
+      return {};
+  }
+}
+
+function navigateToolbar(event: KeyboardEvent) {
+  // Native buttons own Enter/Space. Do not let those keys pan the canvas.
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.stopPropagation();
+    return;
+  }
+  if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+  const toolbar = event.currentTarget as HTMLElement;
+  const buttons = Array.from(
+    toolbar.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')
+  );
+  const index = buttons.indexOf(event.target as HTMLButtonElement);
+  if (index < 0 || !buttons.length) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const next = event.key === 'Home'
+    ? 0
+    : event.key === 'End'
+      ? buttons.length - 1
+      : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+  buttons[next]?.focus();
+}
+
+/** Plain buttons activate existing controllers; native dock/context stays intact. */
+export function renderDikwToolbar(
+  host: EdgelessToolbarWidget,
+  moreOpen: boolean,
+  toggleMore: () => void
+) {
+  const locked = host.hasAttribute('disabled');
+  const readonly = host.store.readonly;
+  const closePopper = () => {
+    host.activePopper?.dispose();
+    host.activePopper = null;
+  };
+  return html`
+    <div class="dikw-toolbar" role="toolbar" aria-label="白板工具" aria-orientation="vertical"
+      @keydown=${navigateToolbar}
+      @keyup=${(event: KeyboardEvent) => {
+        if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
+      }}
+      @pointerdown=${stopPropagation} @mousedown=${stopPropagation}
+      @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}>
+      ${tools.map(tool => {
+        const controller = host.std.getOptional(ToolIdentifier(tool.name));
+        const requiresEdit = tool.name !== 'default' && tool.name !== 'pan';
+        const disabled = locked || !controller || (readonly && requiresEdit);
+        return html`
+          <button type="button" class="dikw-tool" data-tool=${tool.name}
+            aria-label=${tool.label} aria-keyshortcuts=${tool.shortcut}
+            aria-pressed=${host.edgelessTool === tool.name ? 'true' : 'false'}
+            title=${tool.label + ' (' + tool.shortcut + ')'} ?disabled=${disabled}
+            @click=${() => {
+              if (disabled || host.hasAttribute('disabled') || (host.store.readonly && requiresEdit)) return;
+              closePopper();
+              // Gfx packages depend on this widget: resolve registered controllers
+              // rather than importing their constructors and creating a cycle.
+              if (controller) {
+                host.gfx.tool.setTool(
+                  controller.constructor as ToolType,
+                  toolOptions(host, tool.name)
+                );
+              }
+            }}>
+            <span aria-hidden="true">${tool.icon()}</span>
+            <affine-tooltip tip-position="right">${tool.label} (${tool.shortcut})</affine-tooltip>
+          </button>
+        `;
+      })}
+      <span class="dikw-toolbar-divider" role="separator"></span>
+      <button type="button" class="dikw-tool" data-tool="whiteboard" aria-label="白板" title="白板"
+        aria-pressed=${host.edgelessTool === 'dikw:board-placement' ? 'true' : 'false'}
+        ?disabled=${locked || readonly}
+        @click=${() => {
+          if (host.store.readonly || host.hasAttribute('disabled')) return;
+          closePopper();
+          host.dispatchEvent(new CustomEvent('dikw:board-tool', {
+            bubbles: true, composed: true, detail: { action: 'open' },
+          }));
+        }}>
+        <span aria-hidden="true">${EdgelessIcon()}</span>
+        <affine-tooltip tip-position="right">白板 · 新建或从已有白板复制</affine-tooltip>
+      </button>
+      <button type="button" class="dikw-tool" data-tool="more" aria-label="更多工具"
+        title="更多工具" aria-expanded=${moreOpen ? 'true' : 'false'}
+        aria-controls="dikw-native-dock" ?disabled=${locked || readonly}
+        @click=${() => { closePopper(); toggleMore(); }}>
+        <span aria-hidden="true">${MoreHorizontalIcon()}</span>
+        <affine-tooltip tip-position="right">${moreOpen ? '收起更多工具' : '更多工具'}</affine-tooltip>
+      </button>
+      ${readonly ? html`<span class="dikw-readonly">只读</span>` : nothing}
+    </div>
+  `;
+}

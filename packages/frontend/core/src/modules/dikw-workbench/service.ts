@@ -16,14 +16,18 @@ import { fetchMainBoardSeed, type DecodedMainBoardSeed } from './bootstrap';
 import { ensureLocalMainBoardSeed } from './local-bootstrap';
 
 const CHILD_OPERATIONS = 'dikw:child-operations:v1';
-type ChildOperation = { parentId: string; title: string; docId: string; state: 'reserved' | 'created' };
+export type BoardPlacement = { x: number; y: number; width: number; height: number };
+function validPlacement(p: BoardPlacement | undefined): boolean {
+  return p === undefined || (!!p && [p.x,p.y,p.width,p.height].every(Number.isFinite) && p.width >= 160 && p.height >= 100 && p.width <= 10000 && p.height <= 10000);
+}
+type ChildOperation = { parentId: string; title: string; docId: string; state: 'reserved' | 'created'; placement?: BoardPlacement };
 
 function parseChildOperation(value: unknown): ChildOperation | undefined {
   if (value === undefined) return undefined;
   if (!value || typeof value !== 'object') throw new Error('子白板操作记录损坏，需要恢复');
   const op = value as Partial<ChildOperation>;
   if (!op.parentId || typeof op.parentId !== 'string' || !op.docId || typeof op.docId !== 'string' ||
-      !op.title || typeof op.title !== 'string' || (op.state !== 'reserved' && op.state !== 'created')) {
+      !op.title || typeof op.title !== 'string' || !validPlacement(op.placement) || (op.state !== 'reserved' && op.state !== 'created')) {
     throw new Error('子白板操作记录损坏，需要恢复');
   }
   return op as ChildOperation;
@@ -45,7 +49,7 @@ export class DikwChildCreationError extends Error {
 export class DikwWorkbenchService extends Service {
   readonly relations$: LiveData<ReadonlyMap<string, BoardRelation>>;
   private mainTask?: Promise<string>;
-  private readonly childTasks = new Map<string, { parentId: string; title: string; task: Promise<string> }>();
+  private readonly childTasks = new Map<string, { parentId: string; title: string; placement?: BoardPlacement; task: Promise<string> }>();
 
   constructor(
     private readonly docsService: DocsService,
@@ -149,19 +153,20 @@ export class DikwWorkbenchService extends Service {
     return seed.docId;
   }
 
-  createChild(parentId: string, title: string, operationId = nanoid()): Promise<string> {
+  createChild(parentId: string, title: string, operationId = nanoid(), placement?: BoardPlacement): Promise<string> {
+    if (!validPlacement(placement)) return Promise.reject(new Error('白板放置区域无效'));
     if (!parentId || !operationId || !title.trim()) return Promise.reject(new Error('请输入子白板标题'));
     const running = this.childTasks.get(operationId);
     if (running) {
-      return running.parentId === parentId && running.title === title.trim() ? running.task : Promise.reject(new Error('操作已属于其他父白板'));
+      return running.parentId === parentId && running.title === title.trim() && JSON.stringify(running.placement) === JSON.stringify(placement) ? running.task : Promise.reject(new Error('操作已属于其他父白板'));
     }
-    const task = this.createChildLocked(parentId, title.trim(), operationId)
+    const task = this.createChildLocked(parentId, title.trim(), operationId, placement)
       .finally(() => this.childTasks.delete(operationId));
-    this.childTasks.set(operationId, { parentId, title: title.trim(), task });
+    this.childTasks.set(operationId, { parentId, title: title.trim(), placement, task });
     return task;
   }
 
-  private async createChildLocked(parentId: string, title: string, operationId: string): Promise<string> {
+  private async createChildLocked(parentId: string, title: string, operationId: string, placement?: BoardPlacement): Promise<string> {
     await this.rootReady();
     await this.canCreate();
     await this.canEdit(parentId);
@@ -188,7 +193,7 @@ export class DikwWorkbenchService extends Service {
       const previous = journal ?? synced;
       const relation = [...this.repository.snapshot().values()].find(r => r.operationId === operationId);
       for (const op of [journal, synced]) {
-        if (op && (op.parentId !== parentId || op.title !== title ||
+        if (op && (op.parentId !== parentId || op.title !== title || JSON.stringify(op.placement) !== JSON.stringify(placement) ||
             (previous && op.docId !== previous.docId))) throw new Error('同一操作不能改变父白板或标题');
       }
       if (relation && (relation.parentId !== parentId ||
@@ -198,7 +203,7 @@ export class DikwWorkbenchService extends Service {
         throw new DikwChildCreationError(docId, operationId, new Error('上次创建状态待恢复，请勿重复创建'));
       }
       const saveOperation = (state: ChildOperation['state']) => {
-        const operation: ChildOperation = { parentId, title, docId, state };
+        const operation: ChildOperation = { parentId, title, docId, state, ...(placement ? { placement } : {}) };
         localStorage.setItem(journalKey, JSON.stringify(operation));
         operations.set(operationId, operation);
       };
@@ -235,7 +240,7 @@ export class DikwWorkbenchService extends Service {
         saveOperation('created');
         this.repository.registerChild(docId, parentId, operationId);
         await this.workspace.engine.doc.waitForUpdated(this.workspace.id);
-        await this.insertReference(parentId, docId, insertChildBoardPortal);
+        await this.insertReference(parentId, docId, (store, target) => insertChildBoardPortal(store, target, placement));
         return docId;
       } catch (cause) {
         throw new DikwChildCreationError(docId, operationId, cause);
@@ -277,7 +282,8 @@ export class DikwWorkbenchService extends Service {
 
 /** Child creation only: a native, live edgeless preview, not a moved/copied doc.
  * Old linked cards and existing portals are reused verbatim on retry. */
-export function insertChildBoardPortal(store: Store, target: string): void {
+export function insertChildBoardPortal(store: Store, target: string, placement?: BoardPlacement): void {
+  if (!validPlacement(placement)) throw new Error('白板放置区域无效');
   if (store.readonly) throw new Error('白板为只读');
   const surface = store.getBlocksByFlavour('affine:surface')[0]?.model as SurfaceBlockModel | undefined;
   if (!surface) throw new Error('源白板画布尚未就绪');
@@ -305,12 +311,14 @@ export function insertChildBoardPortal(store: Store, target: string): void {
   const x = right === -Infinity ? 0 : right + 64;
   const y = top === Infinity ? 0 : top;
   // Native EMBED_CARD_WIDTH/HEIGHT.syncedDoc (800 × 455), not linked-card size.
+  store.captureSync?.();
   store.addBlock('affine:embed-synced-doc', {
     pageId: target,
     params: { mode: 'edgeless' },
     style: 'syncedDoc',
-    xywh: JSON.stringify([x, y, 800, 455]),
+    xywh: JSON.stringify(placement ? [placement.x, placement.y, placement.width, placement.height] : [x, y, 800, 455]),
   }, surface.id);
+  store.captureSync?.();
 }
 
 /** Inserts a native surface child; never use the move-to-linked-doc command.
