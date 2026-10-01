@@ -259,9 +259,14 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     this._dikwMoreOpen = false;
     this._dikwContextTool = '';
     if (restoreFocus && trigger) {
-      this.renderRoot.querySelector<HTMLButtonElement>(
-        `.dikw-tool[data-tool="${trigger}"]`
-      )?.focus();
+      // Lit may replace the rail buttons when the panel state changes. Focus
+      // the committed button, not the outgoing render's soon-detached node.
+      void this.updateComplete.then(() => {
+        if (!this.isConnected) return;
+        this.renderRoot.querySelector<HTMLButtonElement>(
+          `.dikw-tool[data-tool="${trigger}"]`
+        )?.focus();
+      });
     }
   };
 
