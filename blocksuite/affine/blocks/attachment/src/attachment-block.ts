@@ -182,8 +182,8 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
     // Native surface More > Reload calls this hook; reset HTML consent locally.
     if (isOfflineHtml(this.model.props) && this.model.props.embed) {
       this.offlineHtmlView?.reset();
-      return;
     }
+    // Also used for initial/source-change resource loading: never skip the blob URL.
     refreshData(this).catch(console.error);
   };
 
