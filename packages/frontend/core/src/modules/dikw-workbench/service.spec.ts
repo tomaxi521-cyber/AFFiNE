@@ -119,9 +119,9 @@ describe('workbench orchestration', () => {
     expect(f.repository.snapshot().get('main')?.parentId).toBe(null);
     expect(f.engine.doc.storage.pushDocUpdate).toHaveBeenCalledTimes(1);
   });
-  test('first local bootstrap explicitly fails without creating', async () => {
+  test('local bootstrap with incomplete root fails without native create', async () => {
     const f = fixture(false); f.workspace.flavour = 'local';
-    await expect(f.service.ensureMainBoard()).rejects.toThrow('本地主白板初始化暂不可用');
+    await expect(f.service.ensureMainBoard()).rejects.toThrow();
     expect(f.docs.createDoc).not.toHaveBeenCalled();
   });
   test('shared mode never writes', async () => {

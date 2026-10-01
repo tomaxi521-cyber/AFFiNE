@@ -9,7 +9,8 @@ import type { GuardService } from '../permissions';
 import type { WorkspaceService } from '../workspace';
 import type { BoardRelation } from './board-graph';
 import { BoardRepository } from './board-repository';
-import { fetchMainBoardSeed, localMainBoardUnavailable } from './bootstrap';
+import { fetchMainBoardSeed, type DecodedMainBoardSeed } from './bootstrap';
+import { ensureLocalMainBoardSeed } from './local-bootstrap';
 
 const CHILD_OPERATIONS = 'dikw:child-operations:v1';
 type ChildOperation = { parentId: string; title: string; docId: string; state: 'reserved' | 'created' };
@@ -107,11 +108,21 @@ export class DikwWorkbenchService extends Service {
     const loadedMain = this.mainId();
     if (loadedMain) return loadedMain;
     this.assertWritable();
-    if (this.workspace.flavour === 'local') return localMainBoardUnavailable();
     await this.canCreate();
-    const server = this.workspaceServerService.server;
-    if (!server) throw new Error('工作区服务器尚未就绪');
-    const seed = await fetchMainBoardSeed(server.fetch, this.workspace.id);
+    let seed: DecodedMainBoardSeed;
+    if (this.workspace.flavour === 'local') {
+      const result = await ensureLocalMainBoardSeed({
+        workspaceId: this.workspace.id, flavour: this.workspace.flavour, rootDoc: this.workspace.rootYDoc,
+        waitForRootLoaded: () => this.workspace.engine.doc.waitForDocLoaded(this.workspace.id),
+        assertWritable: () => this.canCreate(),
+      });
+      if (!result.seed) return result.docId;
+      seed = result.seed;
+    } else {
+      const server = this.workspaceServerService.server;
+      if (!server) throw new Error('工作区服务器尚未就绪');
+      seed = await fetchMainBoardSeed(server.fetch, this.workspace.id);
+    }
     await this.canCreate();
     const concurrent = this.mainId();
     if (concurrent && concurrent !== seed.docId) throw new Error('主白板关系冲突，需要修复');
