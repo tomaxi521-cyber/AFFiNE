@@ -58,6 +58,7 @@ export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEdit
  useEffect(()=>{
    const host=editor?.origin;const std=editor?.std;if(!host||!std||!isBoard)return;
    const gfx=std.get(GfxControllerIdentifier);
+   const tool=gfx.tool; if(!tool)return;
    const handler=(event:Event)=>{
      const e=event as CustomEvent<{action:string;placement?:BoardPlacement}>;
      // Ignore embedded-preview events: only the current captured editor may mutate.
@@ -67,7 +68,7 @@ export function CanvasToolPanel({ editor, docId, readonly }: {editor: AffineEdit
      if(e.detail?.action==='cancel-placement'){armed.current=false;setPlacing(false);}
    };
    host.addEventListener('dikw:board-tool',handler);
-   return()=>{host.removeEventListener('dikw:board-tool',handler);armed.current=false;if(gfx.tool.currentToolName$.peek()===BoardPlacementTool.toolName)gfx.tool.setTool(DefaultTool);};
+   return()=>{host.removeEventListener('dikw:board-tool',handler);armed.current=false;if(host.isConnected && tool.currentToolName$.peek()===BoardPlacementTool.toolName)tool.setTool(DefaultTool);};
  },[editor,docId,isBoard]);
  const arm=(from?:string)=>{if(!writable||pendingRef.current||busy)return;const std=editor?.std;if(!std)return;sourceRef.current=from;armed.current=true;setOpen(false);setError('');setPlacing(true);std.get(GfxControllerIdentifier).tool.setTool(BoardPlacementTool);};
  const cancel=()=>{armed.current=false;setPlacing(false);editor?.std.get(GfxControllerIdentifier).tool.setTool(DefaultTool);setOpen(false);};
