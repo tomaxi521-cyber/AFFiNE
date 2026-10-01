@@ -30,13 +30,13 @@ interface DataTableToolbarProps<TData> {
 }
 
 const sortOptions: { value: AdminWorkspaceSort; label: string }[] = [
-  { value: AdminWorkspaceSort.CreatedAt, label: 'Created time' },
-  { value: AdminWorkspaceSort.BlobCount, label: 'Blob count' },
-  { value: AdminWorkspaceSort.BlobSize, label: 'Blob size' },
-  { value: AdminWorkspaceSort.SnapshotCount, label: 'Snapshot count' },
-  { value: AdminWorkspaceSort.SnapshotSize, label: 'Snapshot size' },
-  { value: AdminWorkspaceSort.MemberCount, label: 'Member count' },
-  { value: AdminWorkspaceSort.PublicPageCount, label: 'Public pages' },
+  { value: AdminWorkspaceSort.CreatedAt, label: '创建时间' },
+  { value: AdminWorkspaceSort.BlobCount, label: '二进制对象数量' },
+  { value: AdminWorkspaceSort.BlobSize, label: '二进制对象大小' },
+  { value: AdminWorkspaceSort.SnapshotCount, label: '快照数量' },
+  { value: AdminWorkspaceSort.SnapshotSize, label: '快照大小' },
+  { value: AdminWorkspaceSort.MemberCount, label: '成员数量' },
+  { value: AdminWorkspaceSort.PublicPageCount, label: '公开页面' },
 ];
 
 export function DataTableToolbar<TData>({
@@ -73,22 +73,22 @@ export function DataTableToolbar<TData>({
   const selectedSortLabel = useMemo(
     () =>
       sortOptions.find(option => option.value === sort)?.label ??
-      'Created time',
+      '创建时间',
     [sort]
   );
 
   const flagOptions: { key: keyof WorkspaceFlagFilter; label: string }[] = [
-    { key: 'public', label: 'Public' },
-    { key: 'enableSharing', label: 'Enable sharing' },
-    { key: 'enableAi', label: 'Enable AI' },
-    { key: 'enableUrlPreview', label: 'Enable URL preview' },
-    { key: 'enableDocEmbedding', label: 'Enable doc embedding' },
+    { key: 'public', label: '公开' },
+    { key: 'enableSharing', label: '启用共享' },
+    { key: 'enableAi', label: '启用 AI' },
+    { key: 'enableUrlPreview', label: '启用 URL 预览' },
+    { key: 'enableDocEmbedding', label: '启用文档向量化' },
   ];
 
   const flagLabel = (value: boolean | undefined) => {
-    if (value === true) return 'On';
-    if (value === false) return 'Off';
-    return 'Any';
+    if (value === true) return '开启';
+    if (value === false) return '关闭';
+    return '不限';
   };
 
   const handleFlagToggle = useCallback(
@@ -117,7 +117,7 @@ export function DataTableToolbar<TData>({
               className="h-8 px-2 lg:px-3"
               disabled={disabled}
             >
-              Sort: {selectedSortLabel}
+              排序：{selectedSortLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[220px] p-2">
@@ -145,7 +145,7 @@ export function DataTableToolbar<TData>({
               className="h-8 px-2 lg:px-3"
               disabled={disabled}
             >
-              Flags
+              功能开关
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[260px] p-2">
@@ -170,7 +170,7 @@ export function DataTableToolbar<TData>({
         </Popover>
         <div className="flex">
           <Input
-            placeholder="Search Workspace / Owner"
+            placeholder="搜索工作区 / 所有者"
             value={value}
             onChange={onValueChange}
             className="h-8 w-[150px] lg:w-[250px]"

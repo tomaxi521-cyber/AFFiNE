@@ -17,16 +17,15 @@ export const DeleteAccountDialog = ({
     <TypeConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Delete Account ?"
+      title="删除账号？"
       description={
         <>
-          <span className="font-bold">{email}</span> will be permanently
-          deleted. This operation is irreversible. Please proceed with caution.
+          <span className="font-bold">{email}</span> 将被永久删除。此操作不可撤销，请谨慎操作。
         </>
       }
       targetText={email}
-      inputPlaceholder="Please type email to confirm"
-      confirmText="Delete"
+      inputPlaceholder="请输入邮箱以确认"
+      confirmText="删除"
       confirmButtonVariant="destructive"
       onConfirm={onDelete}
       onClose={onClose}

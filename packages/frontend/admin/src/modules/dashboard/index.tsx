@@ -153,12 +153,12 @@ const adminDashboardTopSharedLinksQuery: typeof adminDashboardQuery = {
 }`,
 };
 
-const intFormatter = new Intl.NumberFormat('en-US');
-const compactFormatter = new Intl.NumberFormat('en-US', {
+const intFormatter = new Intl.NumberFormat('zh-CN');
+const compactFormatter = new Intl.NumberFormat('zh-CN', {
   notation: 'compact',
   maximumFractionDigits: 1,
 });
-const utcDateTimeFormatter = new Intl.DateTimeFormat('en-US', {
+const utcDateTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'UTC',
   year: 'numeric',
   month: 'numeric',
@@ -168,7 +168,7 @@ const utcDateTimeFormatter = new Intl.DateTimeFormat('en-US', {
   second: '2-digit',
   hour12: false,
 });
-const utcDateFormatter = new Intl.DateTimeFormat('en-US', {
+const utcDateFormatter = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'UTC',
   year: 'numeric',
   month: 'numeric',
@@ -263,7 +263,7 @@ function TrendChart({
   secondaryFormatter?: (value: number) => string;
 }) {
   if (points.length === 0) {
-    return <div className="text-sm text-muted-foreground">No data</div>;
+    return <div className="text-sm text-muted-foreground">暂无数据</div>;
   }
 
   const chartPoints =
@@ -405,7 +405,7 @@ function MultiTrendChart({
   if (points.length === 0 || visibleSeries.length === 0) {
     return (
       <div className="flex h-44 items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/15 text-sm text-muted-foreground">
-        No mail deliveries in this window
+        此时间范围内没有邮件投递记录
       </div>
     );
   }
@@ -505,7 +505,7 @@ function PrimaryMetricCard({
       <CardHeader className="pb-2">
         <CardDescription className="flex items-center gap-2 text-sm">
           <UsersIcon className="h-4 w-4" aria-hidden="true" />
-          Current Sync Active Users
+          当前同步活跃用户
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1.5">
@@ -554,9 +554,9 @@ function SecondaryMetricCard({
 
 function rangeOptionLabel(option: number, unit: 'hours' | 'days') {
   if (unit === 'hours') {
-    return option === 168 ? '7d' : `${option}h`;
+    return option === 168 ? '7 天' : `${option} 小时`;
   }
-  return `${option}d`;
+  return `${option} 天`;
 }
 
 function PanelRangeSelect({
@@ -600,17 +600,17 @@ function LicensePreviewDialog({
 }) {
   const rows = license
     ? [
-        ['Status', license.valid ? 'Valid' : 'Invalid'],
-        ['License ID', license.id],
-        ['Workspace ID', license.workspaceId],
-        ['Plan', license.plan],
-        ['Recurring', license.recurring],
-        ['Seats', intFormatter.format(license.quantity)],
-        ['Issued At', formatDateTime(license.issuedAt)],
-        ['File Expires At', formatDateTime(license.expiresAt)],
-        ['License Ends At', formatDateTime(license.endAt)],
-        ['Entity', license.entity],
-        ['Issuer', license.issuer],
+        ['状态', license.valid ? '有效' : '无效'],
+        ['许可证 ID', license.id],
+        ['工作区 ID', license.workspaceId],
+        ['套餐', license.plan],
+        ['计费周期', license.recurring],
+        ['席位数', intFormatter.format(license.quantity)],
+        ['签发时间', formatDateTime(license.issuedAt)],
+        ['文件过期时间', formatDateTime(license.expiresAt)],
+        ['许可证到期时间', formatDateTime(license.endAt)],
+        ['授权主体', license.entity],
+        ['签发者', license.issuer],
       ]
     : [];
 
@@ -618,9 +618,9 @@ function LicensePreviewDialog({
     <Dialog open={!!license} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>License Preview</DialogTitle>
+          <DialogTitle>许可证预览</DialogTitle>
           <DialogDescription>
-            Signature and payload format are valid.
+            签名和载荷格式有效。
           </DialogDescription>
         </DialogHeader>
         <div className="rounded-lg border border-border/60 overflow-hidden">
@@ -637,7 +637,7 @@ function LicensePreviewDialog({
           ))}
         </div>
         <DialogFooter className="mt-2">
-          <Button onClick={() => onOpenChange(false)}>Confirm</Button>
+          <Button onClick={() => onOpenChange(false)}>确认</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -663,13 +663,13 @@ function DashboardActions({
   });
 
   const notifyNoFileSelected = useCallback(() => {
-    toast.error('No license file selected.');
+    toast.error('未选择许可证文件。');
   }, []);
 
   const openLicensePicker = useCallback(() => {
     const input = inputRef.current;
     if (!input) {
-      toast.error('Failed to open license file picker.');
+      toast.error('无法打开许可证文件选择器。');
       return;
     }
 
@@ -706,7 +706,7 @@ function DashboardActions({
         })
         .catch(error => {
           console.error(error);
-          toast.error('Failed to preview license.');
+          toast.error('许可证预览失败。');
         });
     },
     [notifyNoFileSelected, previewLicense]
@@ -719,7 +719,7 @@ function DashboardActions({
         : [
             {
               key: 'preview-license',
-              label: 'Preview license',
+              label: '预览许可证',
               onSelect: openLicensePicker,
             },
           ],
@@ -730,7 +730,7 @@ function DashboardActions({
     <>
       <div className="flex flex-wrap items-center justify-end gap-3">
         <span className="text-xs text-muted-foreground tabular-nums">
-          Updated at {formatDateTime(updatedAt)}
+          更新于 {formatDateTime(updatedAt)}
         </span>
         <div className="flex items-center gap-2">
           <Button
@@ -743,12 +743,12 @@ function DashboardActions({
               className={`h-3.5 w-3.5 mr-1.5 ${isValidating ? 'animate-spin' : ''}`}
               aria-hidden="true"
             />
-            Refresh
+            刷新
           </Button>
           {menuItems.length ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" aria-label="Dashboard menu">
+                <Button variant="outline" size="sm" aria-label="仪表盘菜单">
                   <ChevronDownIcon className="h-3.5 w-3.5" aria-hidden />
                 </Button>
               </DropdownMenuTrigger>
@@ -787,7 +787,7 @@ function DashboardPageSkeleton() {
   return (
     <div className="h-dvh flex-1 flex-col flex overflow-hidden">
       <Header
-        title="Dashboard"
+        title="仪表盘"
         endFix={
           <div className="flex items-center gap-3">
             <Skeleton className="h-3 w-44" />
@@ -885,14 +885,14 @@ function TopSharedLinksSection({
     <Card className="border-border/60 bg-card shadow-1">
       <CardHeader className="flex flex-col gap-3 pb-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1.5">
-          <CardTitle className="text-base">Top Shared Links</CardTitle>
+          <CardTitle className="text-base">热门分享链接</CardTitle>
           <CardDescription>
-            Top {topSharedLinks.length} links in the last{' '}
-            {topSharedLinksWindow.effectiveSize} days
+            最近 {topSharedLinksWindow.effectiveSize} 天的前 {topSharedLinks.length}
+            个链接
           </CardDescription>
         </div>
         <PanelRangeSelect
-          ariaLabel="Top shared links range"
+          ariaLabel="热门分享链接时间范围"
           value={sharedLinkWindowDays}
           options={SHARED_DAY_OPTIONS}
           unit="days"
@@ -903,26 +903,25 @@ function TopSharedLinksSection({
         {topSharedLinks.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border/60 p-8 text-center bg-muted/15">
             <div className="text-sm font-medium">
-              No shared links in this window
+              此时间范围内没有分享链接
             </div>
             <div className="text-xs text-muted-foreground mt-2">
-              Publish pages and collect traffic, then this table will rank links
-              by views.
+              发布页面并获得访问后，此表将按浏览量对链接排名。
             </div>
             <Button asChild variant="outline" size="sm" className="mt-4">
-              <Link to={ROUTES.admin.workspaces}>Go to Workspaces</Link>
+              <Link to={ROUTES.admin.workspaces}>前往工作区</Link>
             </Button>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Workspace</TableHead>
-                <TableHead className="text-right">Views</TableHead>
-                <TableHead className="text-right">Unique</TableHead>
-                <TableHead className="text-right">Guest</TableHead>
-                <TableHead>Last Accessed</TableHead>
+                <TableHead>文档</TableHead>
+                <TableHead>工作区</TableHead>
+                <TableHead className="text-right">浏览量</TableHead>
+                <TableHead className="text-right">独立访客</TableHead>
+                <TableHead className="text-right">访客浏览量</TableHead>
+                <TableHead>最近访问时间</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -975,7 +974,7 @@ function TopSharedLinksSection({
 }
 
 function mailWindowLabel(hours: number) {
-  return hours === 24 ? '24h' : '7d';
+  return hours === 24 ? '24 小时' : '7 天';
 }
 
 function mailBucketLabel(value: string, hours: number) {
@@ -1049,6 +1048,23 @@ function combineMailSeries(
   };
 }
 
+const MAIL_SERIES_LABELS: Record<string, string> = {
+  sent: '已发送',
+  failed: '失败',
+  skipped: '已跳过',
+  canceled: '已取消',
+  queued: '排队中',
+  sending: '发送中',
+  retry_wait: '等待重试',
+  pending_status: '待处理',
+  successful: '成功',
+  unsuccessful: '未成功',
+  pending: '待处理',
+  auth: '身份验证',
+  notification: '通知',
+  workspace_invitation: '工作区邀请',
+};
+
 function MailDeliverySection({
   hours,
   onHoursChange,
@@ -1083,7 +1099,7 @@ function MailDeliverySection({
             analytics.byStatus.find(series => series.key === 'failed'),
             combineMailSeries(
               'pending_status',
-              'Pending',
+              '待处理',
               analytics.byStatus.filter(series =>
                 ['queued', 'sending'].includes(series.key)
               )
@@ -1092,7 +1108,7 @@ function MailDeliverySection({
           ].filter(series => series !== undefined);
   const chartSeries = sourceSeries.map((series, index) => ({
     key: series.key,
-    label: series.label,
+    label: MAIL_SERIES_LABELS[series.key] ?? series.label,
     total: series.total,
     color: seriesColor(series.key, index),
   }));
@@ -1112,16 +1128,16 @@ function MailDeliverySection({
         <div className="space-y-1.5">
           <CardTitle className="flex items-center gap-2 text-base">
             <MailIcon className="h-4 w-4" aria-hidden="true" />
-            Email Delivery Trend
+            邮件投递趋势
           </CardTitle>
           <CardDescription>
-            {mailWindowLabel(hours)} at{' '}
-            {analytics.window.bucket === 'Hour' ? 'hour' : 'day'} bucket in UTC
+            最近 {mailWindowLabel(hours)}，按
+            {analytics.window.bucket === 'Hour' ? '小时' : '天'}汇总（UTC）
           </CardDescription>
         </div>
         <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
           <PanelRangeSelect
-            ariaLabel="Email delivery range"
+            ariaLabel="邮件投递时间范围"
             value={hours}
             options={MAIL_HOUR_OPTIONS}
             unit="hours"
@@ -1135,9 +1151,9 @@ function MailDeliverySection({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="type">Mail type</SelectItem>
-              <SelectItem value="outcome">Success / failure</SelectItem>
+              <SelectItem value="status">状态</SelectItem>
+              <SelectItem value="type">邮件类型</SelectItem>
+              <SelectItem value="outcome">成功 / 失败</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1145,25 +1161,25 @@ function MailDeliverySection({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <div className="rounded-md border border-border/60 bg-muted/15 px-3 py-2">
-            <div className="text-xs text-muted-foreground">Sent</div>
+            <div className="text-xs text-muted-foreground">已发送</div>
             <div className="mt-1 text-xl font-semibold tabular-nums">
               {compactFormatter.format(analytics.summary.sent)}
             </div>
           </div>
           <div className="rounded-md border border-border/60 bg-muted/15 px-3 py-2">
-            <div className="text-xs text-muted-foreground">Not delivered</div>
+            <div className="text-xs text-muted-foreground">未送达</div>
             <div className="mt-1 text-xl font-semibold tabular-nums">
               {compactFormatter.format(failedLike)}
             </div>
           </div>
           <div className="rounded-md border border-border/60 bg-muted/15 px-3 py-2">
-            <div className="text-xs text-muted-foreground">Pending</div>
+            <div className="text-xs text-muted-foreground">待处理</div>
             <div className="mt-1 text-xl font-semibold tabular-nums">
               {compactFormatter.format(pending)}
             </div>
           </div>
           <div className="rounded-md border border-border/60 bg-muted/15 px-3 py-2">
-            <div className="text-xs text-muted-foreground">Success rate</div>
+            <div className="text-xs text-muted-foreground">成功率</div>
             <div className="mt-1 text-xl font-semibold tabular-nums">
               {(analytics.summary.successRate * 100).toFixed(1)}%
             </div>
@@ -1171,7 +1187,7 @@ function MailDeliverySection({
         </div>
 
         <MultiTrendChart
-          ariaLabel="Email delivery trend"
+          ariaLabel="邮件投递趋势"
           points={chartPoints}
           series={chartSeries}
           valueFormatter={value => intFormatter.format(value)}
@@ -1295,7 +1311,7 @@ function DashboardPageContent() {
   return (
     <div className="h-dvh flex-1 flex-col flex overflow-hidden">
       <Header
-        title="Dashboard"
+        title="仪表盘"
         endFix={
           <DashboardActions
             updatedAt={dashboard.generatedAt}
@@ -1313,20 +1329,20 @@ function DashboardPageContent() {
           <div className="h-full min-w-0 lg:col-span-5">
             <PrimaryMetricCard
               value={intFormatter.format(dashboard.syncActiveUsers)}
-              description={`${dashboard.syncWindow.effectiveSize}h active window`}
+              description={`${dashboard.syncWindow.effectiveSize} 小时活跃统计范围`}
             />
           </div>
           <div className="h-full min-w-0 lg:col-span-3">
             <SecondaryMetricCard
-              title="Copilot Conversations"
+              title="AI 助手对话数"
               value={intFormatter.format(dashboard.copilotConversations)}
-              description={`${dashboard.copilotWindow.effectiveSize}d aggregation`}
+              description={`${dashboard.copilotWindow.effectiveSize} 天汇总`}
               icon={
                 <MessageSquareTextIcon className="h-4 w-4" aria-hidden="true" />
               }
               action={
                 <PanelRangeSelect
-                  ariaLabel="Copilot conversations range"
+                  ariaLabel="AI 助手对话时间范围"
                   value={copilotWindowDays}
                   options={COPILOT_DAY_OPTIONS}
                   unit="days"
@@ -1340,7 +1356,7 @@ function DashboardPageContent() {
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-2 text-sm">
                   <DatabaseIcon className="h-4 w-4" aria-hidden="true" />
-                  Managed Storage
+                  托管存储
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1348,8 +1364,8 @@ function DashboardPageContent() {
                   {formatBytes(totalStorageBytes)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Workspace {formatBytes(dashboard.workspaceStorageBytes)} •
-                  Blob {formatBytes(dashboard.blobStorageBytes)}
+                  工作区 {formatBytes(dashboard.workspaceStorageBytes)} •
+                  文件 {formatBytes(dashboard.blobStorageBytes)}
                 </p>
               </CardContent>
             </Card>
@@ -1361,14 +1377,14 @@ function DashboardPageContent() {
             <CardHeader className="flex flex-col gap-3 pb-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-1.5">
                 <CardTitle className="text-base">
-                  Sync Active Users Trend
+                  同步活跃用户趋势
                 </CardTitle>
                 <CardDescription>
-                  {dashboard.syncWindow.effectiveSize}h at minute bucket
+                  {dashboard.syncWindow.effectiveSize} 小时，按分钟汇总
                 </CardDescription>
               </div>
               <PanelRangeSelect
-                ariaLabel="Sync active users range"
+                ariaLabel="同步活跃用户时间范围"
                 value={syncHistoryHours}
                 options={SYNC_HOUR_OPTIONS}
                 unit="hours"
@@ -1377,9 +1393,9 @@ function DashboardPageContent() {
             </CardHeader>
             <CardContent className="space-y-3">
               <TrendChart
-                ariaLabel="Sync active users trend"
+                ariaLabel="同步活跃用户趋势"
                 points={syncPoints}
-                primaryLabel="Sync Active Users"
+                primaryLabel="同步活跃用户"
                 primaryFormatter={value => intFormatter.format(value)}
               />
             </CardContent>
@@ -1389,14 +1405,14 @@ function DashboardPageContent() {
             <CardHeader className="flex flex-col gap-3 pb-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-1.5">
                 <CardTitle className="text-base">
-                  Storage Trend (Workspace + Blob)
+                  存储趋势（工作区 + 文件）
                 </CardTitle>
                 <CardDescription>
-                  {dashboard.storageWindow.effectiveSize}d at day bucket
+                  {dashboard.storageWindow.effectiveSize} 天，按天汇总
                 </CardDescription>
               </div>
               <PanelRangeSelect
-                ariaLabel="Storage trend range"
+                ariaLabel="存储趋势时间范围"
                 value={storageHistoryDays}
                 options={STORAGE_DAY_OPTIONS}
                 unit="days"
@@ -1405,22 +1421,22 @@ function DashboardPageContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <TrendChart
-                ariaLabel="Workspace and blob storage trend"
+                ariaLabel="工作区和文件存储趋势"
                 points={storagePoints}
-                primaryLabel="Workspace Storage"
+                primaryLabel="工作区存储"
                 primaryFormatter={value => formatBytes(value)}
-                secondaryLabel="Blob Storage"
+                secondaryLabel="文件存储"
                 secondaryFormatter={value => formatBytes(value)}
               />
 
               <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-primary" />
-                  Workspace: {formatBytes(dashboard.workspaceStorageBytes)}
+                  工作区：{formatBytes(dashboard.workspaceStorageBytes)}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-foreground/50" />
-                  Blob: {formatBytes(dashboard.blobStorageBytes)}
+                  文件：{formatBytes(dashboard.blobStorageBytes)}
                 </div>
               </div>
             </CardContent>

@@ -12,6 +12,21 @@ export interface ParsedUser {
   importError?: string;
 }
 
+// Keep validation identifiers stable: the table uses them to highlight fields.
+// Translate only at display boundaries, never in validation or imported data.
+export const localizeUserValidationError = (error?: string) => {
+  switch (error) {
+    case 'Invalid password format':
+      return '密码格式无效';
+    case 'Invalid email format':
+      return '邮箱格式无效';
+    case 'Duplicate email address':
+      return '邮箱地址重复';
+    default:
+      return error;
+  }
+};
+
 export enum ImportStatus {
   Success = 'success',
   Failed = 'failed',
@@ -119,7 +134,7 @@ export const exportImportResults = (results: ParsedUser[]) => {
     `import_results_${new Date().toISOString().slice(0, 10)}.csv`
   );
 
-  toast.success(`Exported ${results.length} import results`);
+  toast.success(`已导出 ${results.length} 条导入结果`);
 };
 
 /**
@@ -165,7 +180,7 @@ export const processCSVFile = async (
       .map(row => row.split(','));
 
     if (rows.length < 2) {
-      toast.error('CSV file format is incorrect or empty');
+      toast.error('CSV 文件格式不正确或内容为空');
       onError();
       return;
     }
@@ -181,7 +196,7 @@ export const processCSVFile = async (
     const usersWithEmail = users.filter(user => user.email);
 
     if (usersWithEmail.length === 0) {
-      toast.error('CSV file contains no valid user data');
+      toast.error('CSV 文件中没有有效的用户数据');
       onError();
       return;
     }
@@ -190,7 +205,7 @@ export const processCSVFile = async (
     const hasValidUsers = validatedUsers.some(user => user.valid !== false);
 
     if (!hasValidUsers) {
-      toast.error('CSV file contains no valid user data');
+      toast.error('CSV 文件中没有有效的用户数据');
       onError();
       return;
     }
@@ -198,7 +213,7 @@ export const processCSVFile = async (
     onSuccess(validatedUsers);
   } catch (error) {
     console.error('Failed to parse CSV file', error);
-    toast.error('Failed to parse CSV file');
+    toast.error('解析 CSV 文件失败');
     onError();
   }
 };

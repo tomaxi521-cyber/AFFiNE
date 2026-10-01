@@ -34,7 +34,7 @@ export function Auth() {
         .then(async response => {
           if (!response.ok) {
             const data = await response.json();
-            throw new Error(data.message || 'Failed to login');
+            throw new Error(data.message || '登录失败');
           }
           return response.json();
         })
@@ -59,15 +59,15 @@ export function Auth() {
             },
           }) => {
             if (features.includes(FeatureType.Admin)) {
-              toast.success('Logged in successfully');
+              toast.success('登录成功');
               await revalidate();
             } else {
-              toast.error('You are not an admin');
+              toast.error('您不是管理员');
             }
           }
         )
         .catch(err => {
-          toast.error(`Failed to login: ${err.message}`);
+          toast.error(`登录失败：${err.message}`);
         });
     },
     [revalidate]
@@ -82,15 +82,15 @@ export function Auth() {
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">Login</h1>
+            <h1 className="text-3xl font-bold">登录</h1>
             <p className="text-balance text-muted-foreground">
-              Enter your email below to login to your account
+              请在下方输入邮箱以登录账号
             </p>
           </div>
           <form onSubmit={login} action="#">
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">邮箱</Label>
                 <Input
                   id="email"
                   type="email"
@@ -102,7 +102,7 @@ export function Auth() {
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">密码</Label>
                 </div>
                 <Input
                   id="password"
@@ -113,7 +113,7 @@ export function Auth() {
                 />
               </div>
               <Button onClick={login} type="submit" className="w-full">
-                Login
+                登录
               </Button>
             </div>
           </form>
@@ -122,7 +122,7 @@ export function Auth() {
       <div className="hidden bg-muted lg:flex lg:justify-center">
         <img
           src={logo}
-          alt="Image"
+          alt="AFFiNE 标志"
           className="h-1/2 object-cover dark:brightness-[0.2] dark:grayscale relative top-1/4 "
         />
       </div>

@@ -25,7 +25,7 @@ export function WorkspacePage() {
 
   return (
     <div className="h-dvh flex-1 flex-col flex">
-      <Header title="Workspaces" />
+      <Header title="工作区" />
 
       <DataTable
         data={workspaces}

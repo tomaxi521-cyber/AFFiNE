@@ -34,35 +34,35 @@ export function Nav({ isCollapsed = false }: NavProps) {
           <NavItem
             to={ROUTES.admin.dashboard}
             icon={<BarChart3Icon size={18} />}
-            label="Dashboard"
+            label="仪表盘"
             isCollapsed={isCollapsed}
           />
         )}
         <NavItem
           to={ROUTES.admin.accounts}
           icon={<AccountIcon fontSize={20} />}
-          label="Accounts"
+          label="账号管理"
           isCollapsed={isCollapsed}
         />
         {environment.isSelfHosted ? null : (
           <NavItem
             to={ROUTES.admin.workspaces}
             icon={<LayoutDashboardIcon size={18} />}
-            label="Workspaces"
+            label="工作区"
             isCollapsed={isCollapsed}
           />
         )}
         <NavItem
           to={ROUTES.admin.queue}
           icon={<ListChecksIcon size={18} />}
-          label="Queue"
+          label="任务队列"
           isCollapsed={isCollapsed}
         />
         <SettingsItem isCollapsed={isCollapsed} />
         <NavItem
           to={ROUTES.admin.about}
           icon={<SelfhostIcon fontSize={20} />}
-          label="About"
+          label="关于"
           isCollapsed={isCollapsed}
         />
       </nav>

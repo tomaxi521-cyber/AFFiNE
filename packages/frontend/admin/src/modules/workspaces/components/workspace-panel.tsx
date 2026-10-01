@@ -44,13 +44,13 @@ export function WorkspacePanel({
     return (
       <div className="flex flex-col h-full">
         <RightPanelHeader
-          title="Workspace"
+          title="工作区"
           handleClose={onClose}
           handleConfirm={onClose}
           canSave={false}
         />
         <div className="p-6 text-sm text-muted-foreground">
-          Workspace not found.
+          未找到工作区。
         </div>
       </div>
     );
@@ -127,14 +127,14 @@ function WorkspacePanelContent({
           revalidate(adminWorkspacesQuery),
           revalidate(adminWorkspaceQuery, vars => vars?.id === workspace.id),
         ]);
-        toast.success('Workspace updated successfully');
+        toast.success('工作区更新成功');
         setBaseline({
           flags: { ...flags },
         });
         setHasDirtyChanges(false);
         onClose();
       } catch (e) {
-        toast.error(`Failed to update workspace: ${(e as Error).message}`);
+        toast.error(`更新工作区失败：${(e as Error).message}`);
       }
     };
     update().catch(() => {});
@@ -153,31 +153,31 @@ function WorkspacePanelContent({
   return (
     <div className="flex h-full flex-col bg-background">
       <RightPanelHeader
-        title="Update Workspace"
+        title="更新工作区"
         handleClose={onClose}
         handleConfirm={handleSave}
         canSave={hasChanges && !isMutating}
       />
       <div className="flex flex-col gap-4 overflow-y-auto p-4">
         <div className="space-y-2 rounded-xl border border-border/60 bg-card p-3 shadow-sm">
-          <div className="text-xs text-muted-foreground">Workspace ID</div>
+          <div className="text-xs text-muted-foreground">工作区 ID</div>
           <div className="text-sm font-mono break-all">{workspace.id}</div>
           <div className="flex flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">Name</Label>
+            <Label className="text-xs text-muted-foreground">名称</Label>
             <Input
               value={flags.name}
               onChange={e =>
                 setFlags(prev => ({ ...prev, name: e.target.value }))
               }
-              placeholder="Workspace name"
+              placeholder="工作区名称"
             />
           </div>
         </div>
 
         <div className="rounded-xl border border-border/60 bg-card shadow-sm">
           <FlagItem
-            label="Public"
-            description="Allow public access to workspace pages"
+            label="公开"
+            description="允许公开访问工作区页面"
             checked={flags.public}
             onCheckedChange={value =>
               setFlags(prev => ({ ...prev, public: value }))
@@ -185,8 +185,8 @@ function WorkspacePanelContent({
           />
           <Separator />
           <FlagItem
-            label="Enable AI"
-            description="Allow AI features in this workspace"
+            label="启用 AI"
+            description="允许在此工作区中使用 AI 功能"
             checked={flags.enableAi}
             onCheckedChange={value =>
               setFlags(prev => ({ ...prev, enableAi: value }))
@@ -194,8 +194,8 @@ function WorkspacePanelContent({
           />
           <Separator />
           <FlagItem
-            label="Enable URL Preview"
-            description="Allow URL previews in shared pages"
+            label="启用 URL 预览"
+            description="允许在共享页面中预览 URL"
             checked={flags.enableUrlPreview}
             onCheckedChange={value =>
               setFlags(prev => ({ ...prev, enableUrlPreview: value }))
@@ -203,8 +203,8 @@ function WorkspacePanelContent({
           />
           <Separator />
           <FlagItem
-            label="Allow Workspace Sharing"
-            description="Allow pages in this workspace to be shared publicly"
+            label="允许工作区共享"
+            description="允许公开共享此工作区中的页面"
             checked={flags.enableSharing}
             onCheckedChange={value =>
               setFlags(prev => ({ ...prev, enableSharing: value }))
@@ -212,8 +212,8 @@ function WorkspacePanelContent({
           />
           <Separator />
           <FlagItem
-            label="Enable Doc Embedding"
-            description="Allow document embedding for search"
+            label="启用文档向量化"
+            description="允许将文档向量化以用于搜索"
             checked={flags.enableDocEmbedding}
             onCheckedChange={value =>
               setFlags(prev => ({ ...prev, enableDocEmbedding: value }))
@@ -223,37 +223,37 @@ function WorkspacePanelContent({
 
         <div className="grid grid-cols-2 gap-3">
           <MetricCard
-            label="Snapshot Size"
+            label="快照大小"
             value={formatBytes(workspace.snapshotSize)}
           />
           <MetricCard
-            label="Snapshot Count"
+            label="快照数量"
             value={`${workspace.snapshotCount}`}
           />
           <MetricCard
-            label="Blob Size"
+            label="二进制对象大小"
             value={formatBytes(workspace.blobSize)}
           />
-          <MetricCard label="Blob Count" value={`${workspace.blobCount}`} />
+          <MetricCard label="二进制对象数量" value={`${workspace.blobCount}`} />
           <MetricCard
-            label="Active Members"
+            label="活跃成员"
             value={`${workspace.memberCount}`}
           />
           <MetricCard
-            label="Shared Pages"
+            label="共享页面"
             value={`${workspace.publicPageCount}`}
           />
         </div>
 
         <div className="rounded-xl border border-border/60 bg-card shadow-sm">
           <div className="px-3 py-2 text-sm font-medium">
-            Members and Invitations
+            成员与邀请
           </div>
           <Separator />
           <div className="flex flex-col divide-y">
             {memberList.length === 0 ? (
               <div className="px-3 py-3 text-xs text-muted-foreground">
-                No members or invitations.
+                暂无成员或邀请。
               </div>
             ) : (
               memberList.map(member => (

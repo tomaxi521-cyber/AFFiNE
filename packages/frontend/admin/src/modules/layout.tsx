@@ -203,12 +203,13 @@ export const LeftPanel = ({
             size="icon"
           >
             <AlignJustifyIcon size={20} />
+            <span className="sr-only">打开导航菜单</span>
           </Button>
         </SheetTrigger>
         <SheetHeader className="hidden">
           <SheetTitle>AFFiNE</SheetTitle>
           <SheetDescription>
-            Admin panel for managing accounts, AI, config, and settings
+            用于管理账号、AI、配置及设置的管理面板
           </SheetDescription>
         </SheetHeader>
         <SheetContent
@@ -294,9 +295,9 @@ export const RightPanel = ({
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetHeader className="hidden">
-          <SheetTitle>Right Panel</SheetTitle>
+          <SheetTitle>右侧面板</SheetTitle>
           <SheetDescription>
-            For displaying additional information
+            用于显示更多信息
           </SheetDescription>
         </SheetHeader>
         <SheetContent

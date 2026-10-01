@@ -19,7 +19,7 @@ export function Setup() {
       <div className="hidden lg:block relative overflow-hidden ">
         <img
           src={logo}
-          alt="Image"
+          alt="AFFiNE 标志"
           className="absolute object-right-bottom bottom-0 right-0 h-3/4"
         />
       </div>

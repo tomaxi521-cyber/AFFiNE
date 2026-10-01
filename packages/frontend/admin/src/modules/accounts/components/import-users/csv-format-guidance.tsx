@@ -20,12 +20,12 @@ export const CsvFormatGuidance: FC<CsvFormatGuidanceProps> = ({
         <WarningIcon fontSize={16} className="text-foreground" />
       </div>
       <div>
-        <p>CSV file includes username, email, and password.</p>
+        <p>CSV 文件包含用户名、邮箱和密码。</p>
         <ul>
           {[
-            `Username (optional): any text.`,
-            `Email (required): e.g., user@example.com.`,
-            `Password (optional): ${passwordLimits.minLength}–${passwordLimits.maxLength} characters.`,
+            `用户名（选填）：任意文本。`,
+            `邮箱（必填）：例如 user@example.com。`,
+            `密码（选填）：${passwordLimits.minLength}–${passwordLimits.maxLength} 个字符。`,
           ].map((text, index) => (
             <li
               key={`guidance-${index}`}

@@ -112,8 +112,8 @@ const conversionsActionGroup = {
           .contentPadding="${'8px'}"
           .button=${html`
             <editor-icon-button
-              aria-label="Conversions"
-              .tooltip="${'Turn into'}"
+              aria-label="转换类型"
+              .tooltip="${'转换为'}"
             >
               ${conversion.icon} ${EditorChevronDown}
             </editor-icon-button>
@@ -123,13 +123,13 @@ const conversionsActionGroup = {
             ${repeat(
               textConversionConfigs.filter(c => c.flavour !== 'affine:divider'),
               item => item.name,
-              ({ flavour, type, name, icon }) => html`
+              ({ flavour, type, name, label, icon }) => html`
                 <editor-menu-action
-                  aria-label=${name}
+                  aria-label=${label}
                   ?data-selected=${conversion.name === name}
                   @click=${() => update(flavour, type)}
                 >
-                  ${icon}<span class="label">${name}</span>
+                  ${icon}<span class="label">${label}</span>
                 </editor-menu-action>
               `
             )}

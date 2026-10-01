@@ -28,26 +28,26 @@ export const buildConnectorDenseMenu: DenseMenuBuilder = (edgeless, gfx) => {
 
   const iconSize = { width: '20', height: '20' };
   return menu.subMenu({
-    name: 'Connector',
+    name: '连接线',
     prefix: ConnectorCIcon(iconSize),
     select: createSelect(prevMode, false),
     isSelected,
     options: {
       items: [
         menu.action({
-          name: 'Curve',
+          name: '曲线',
           prefix: ConnectorCIcon(iconSize),
           select: createSelect(ConnectorMode.Curve),
           isSelected: isSelected && prevMode === ConnectorMode.Curve,
         }),
         menu.action({
-          name: 'Elbowed',
+          name: '折线',
           prefix: ConnectorEIcon(iconSize),
           select: createSelect(ConnectorMode.Orthogonal),
           isSelected: isSelected && prevMode === ConnectorMode.Orthogonal,
         }),
         menu.action({
-          name: 'Straight',
+          name: '直线',
           prefix: ConnectorLIcon(iconSize),
           select: createSelect(ConnectorMode.Straight),
           isSelected: isSelected && prevMode === ConnectorMode.Straight,

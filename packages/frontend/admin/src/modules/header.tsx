@@ -27,6 +27,7 @@ export const Header = ({
             size="icon"
             className="h-7 w-7 cursor-pointer p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={togglePanel}
+            aria-label="切换侧边栏"
           >
             <SidebarIcon width={20} height={20} />
           </Button>
@@ -59,6 +60,7 @@ export const RightPanelHeader = ({
           className="h-7 w-7 text-muted-foreground hover:text-foreground"
           variant="ghost"
           onClick={handleClose}
+          aria-label="关闭面板"
         >
           <XIcon size={18} />
         </Button>
@@ -69,6 +71,7 @@ export const RightPanelHeader = ({
           className="h-7 w-7 text-primary hover:text-primary"
           variant="ghost"
           onClick={handleConfirm}
+          aria-label="保存更改"
           disabled={!canSave}
         >
           <CheckIcon size={18} />

@@ -7,10 +7,12 @@ import { repeat } from 'lit/directives/repeat.js';
 const SHAPE_STYLE_LIST = [
   {
     value: ShapeStyle.General,
+    label: '常规',
     icon: StyleGeneralIcon(),
   },
   {
     value: ShapeStyle.Scribbled,
+    label: '手绘',
     icon: StyleScribbleIcon(),
   },
 ];
@@ -36,12 +38,12 @@ export class EdgelessShapeStylePanel extends LitElement {
     return repeat(
       SHAPE_STYLE_LIST,
       item => item.value,
-      ({ value, icon }) =>
+      ({ value, icon, label }) =>
         html`<edgeless-tool-icon-button
           .tipPosition=${'top'}
           .activeMode=${'background'}
-          aria-label=${value}
-          .tooltip=${value}
+          aria-label=${label}
+          .tooltip=${label}
           .active=${this.value === value}
           .iconSize=${'20px'}
           @click=${() => this._onSelect(value)}

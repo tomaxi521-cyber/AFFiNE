@@ -79,7 +79,7 @@ const FormatErrorFooter: FC<FormatErrorFooterProps> = ({
       onClick={downloadCsvTemplate}
       className="mb-2 sm:mb-0 text-[15px] px-0 py-2 h-10 underline cursor-pointer"
     >
-      CSV template
+      CSV 模板
     </div>
     <Button
       type="button"
@@ -87,7 +87,7 @@ const FormatErrorFooter: FC<FormatErrorFooterProps> = ({
       onClick={resetFormatError}
       className="w-full sm:w-auto text-[15px] px-4 py-2 h-10"
     >
-      Done
+      完成
     </Button>
   </>
 );
@@ -119,7 +119,7 @@ const PreviewModeFooter: FC<PreviewModeFooterProps> = ({
       className="w-full mb-2 sm:mb-0 sm:w-auto"
       disabled={isImporting}
     >
-      Cancel
+      取消
     </Button>
     <Button
       type="button"
@@ -130,7 +130,7 @@ const PreviewModeFooter: FC<PreviewModeFooterProps> = ({
         parsedUsers.some(user => user.importStatus === ImportStatus.Processing)
       }
     >
-      {isImporting ? 'Importing...' : isImported ? 'Export' : 'Confirm Import'}
+      {isImporting ? '正在导入…' : isImported ? '导出' : '确认导入'}
     </Button>
   </>
 );
@@ -154,7 +154,7 @@ const InitialFooter: FC<InitialFooterProps> = ({
       onClick={downloadCsvTemplate}
       className="mb-2 sm:mb-0 underline text-[15px] cursor-pointer"
     >
-      CSV template
+      CSV 模板
     </div>
     <Button
       type="button"
@@ -162,7 +162,7 @@ const InitialFooter: FC<InitialFooterProps> = ({
       className="w-full sm:w-auto text-[15px] px-4 py-2 h-10"
       disabled={isImporting}
     >
-      {isImporting ? 'Parsing...' : 'Choose a file'}
+      {isImporting ? '正在解析…' : '选择文件'}
     </Button>
   </>
 );

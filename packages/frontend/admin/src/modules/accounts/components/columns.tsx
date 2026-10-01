@@ -103,7 +103,7 @@ export const useColumns = ({
 
               table.toggleAllPageRowsSelected(!!value);
             }}
-            aria-label="Select all"
+            aria-label="全选"
             className="translate-y-[2px]"
           />
         ),
@@ -121,7 +121,7 @@ export const useColumns = ({
               }
               row.toggleSelected(!!value);
             }}
-            aria-label="Select row"
+            aria-label="选择此行"
             className="translate-y-[2px]"
           />
         ),
@@ -137,7 +137,7 @@ export const useColumns = ({
           <DataTableColumnHeader
             className="text-xs"
             column={column}
-            title="Name"
+            title="名称"
           />
         ),
         cell: ({ row }) => (
@@ -153,12 +153,12 @@ export const useColumns = ({
                 <span>{row.original.name}</span>
                 {row.original.features.includes(FeatureType.Admin) && (
                   <span className="ml-2 inline-flex h-5 items-center rounded-md border border-border/60 bg-chip-blue px-2 py-0.5 text-xxs font-medium text-chip-text">
-                    Admin
+                    管理员
                   </span>
                 )}
                 {row.original.disabled && (
                   <span className="ml-2 inline-flex h-5 items-center rounded-md border border-border/60 bg-chip-white px-2 py-0.5 text-xxs font-medium">
-                    Disabled
+                    已禁用
                   </span>
                 )}
               </div>
@@ -177,7 +177,7 @@ export const useColumns = ({
           <DataTableColumnHeader
             className="text-xs max-md:hidden"
             column={column}
-            title="User Detail"
+            title="用户详情"
           />
         ),
         cell: ({ row: { original: user } }) => (
@@ -193,8 +193,8 @@ export const useColumns = ({
                   IconFalse={
                     <UnlockIcon fontSize={16} className="text-destructive" />
                   }
-                  textTrue="Password Set"
-                  textFalse="No Password"
+                  textTrue="已设置密码"
+                  textFalse="未设置密码"
                 />
                 <StatusItem
                   condition={user.emailVerified}
@@ -210,8 +210,8 @@ export const useColumns = ({
                       className="text-destructive"
                     />
                   }
-                  textTrue="Email Verified"
-                  textFalse="Email Not Verified"
+                  textTrue="邮箱已验证"
+                  textFalse="邮箱未验证"
                 />
               </div>
               <div className="flex flex-wrap gap-2 items-center">
@@ -225,7 +225,7 @@ export const useColumns = ({
                     </span>
                   ))
                 ) : (
-                  <span className="text-muted-foreground">No features</span>
+                  <span className="text-muted-foreground">暂无功能</span>
                 )}
               </div>
             </div>
@@ -241,7 +241,7 @@ export const useColumns = ({
           <DataTableColumnHeader
             className="text-xs"
             column={column}
-            title="Actions"
+            title="操作"
           />
         ),
         cell: ({ row: { original: user } }) => (

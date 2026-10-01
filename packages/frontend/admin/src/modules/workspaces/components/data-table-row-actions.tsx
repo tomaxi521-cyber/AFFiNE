@@ -107,7 +107,7 @@ export function DataTableRowActions({
           onClick={handleEdit}
         >
           <EditIcon fontSize={18} />
-          <span>Edit</span>
+          <span>编辑</span>
         </Button>
         <Button
           variant="ghost"
@@ -116,7 +116,7 @@ export function DataTableRowActions({
           onClick={handleSharedLinks}
         >
           <LinkIcon fontSize={18} />
-          <span>Shared links</span>
+          <span>共享链接</span>
         </Button>
       </div>
       <DiscardChanges

@@ -48,14 +48,14 @@ export function AuthSigningKeys() {
       if (pending.type === 'rotate') {
         await rotate({ expectedActiveKeyId: pending.keyId });
         notify.success({
-          title: 'Signing key rotated',
-          message: 'New access tokens now use the replacement key.',
+          title: '签名密钥已轮换',
+          message: '新的访问令牌现在使用替换后的密钥。',
         });
       } else {
         await remove({ id: pending.keyId });
         notify.success({
-          title: 'Signing key deleted',
-          message: 'The expired signing key was removed.',
+          title: '签名密钥已删除',
+          message: '已移除过期的签名密钥。',
         });
       }
       setPending(undefined);
@@ -63,7 +63,7 @@ export function AuthSigningKeys() {
     } catch (error) {
       const friendly = error as UserFriendlyError;
       notify.error({
-        title: 'Signing key update failed',
+        title: '签名密钥更新失败',
         message: friendly.message,
       });
     }
@@ -73,11 +73,10 @@ export function AuthSigningKeys() {
     <Card className="border-border/60 shadow-none">
       <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
         <div className="space-y-1">
-          <CardTitle className="text-sm">Access token signing keys</CardTitle>
+          <CardTitle className="text-sm">访问令牌签名密钥</CardTitle>
           <p className="text-xs leading-5 text-muted-foreground">
-            This server generated and stored its signing key automatically.
-            Rotate it here when needed; key material is never shown in the admin
-            panel.
+            服务器已自动生成并存储签名密钥。
+            可在需要时于此处轮换；管理面板不会显示密钥内容。
           </p>
         </div>
         <Button
@@ -88,14 +87,13 @@ export function AuthSigningKeys() {
             if (active) setPending({ type: 'rotate', keyId: active.id });
           }}
         >
-          Rotate key
+          轮换密钥
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {keys.length === 0 ? (
           <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-            No active signing key is available. Restart the server to retry
-            automatic initialization.
+            没有可用的活动签名密钥。请重启服务器以重试自动初始化。
           </div>
         ) : (
           keys.map(key => {
@@ -112,19 +110,19 @@ export function AuthSigningKeys() {
                         key.status === 'active' ? 'default' : 'secondary'
                       }
                     >
-                      {key.status === 'active' ? 'Active' : 'Retiring'}
+                      {key.status === 'active' ? '使用中' : '退役中'}
                     </Badge>
                     {key.source === 'auto' ? (
-                      <Badge variant="outline">Auto-generated</Badge>
+                      <Badge variant="outline">自动生成</Badge>
                     ) : null}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Created {formatDate(key.createdAt)}
+                    创建于 {formatDate(key.createdAt)}
                     {key.verifyUntil
-                      ? ` · Verifiable until ${formatDate(key.verifyUntil)}`
+                      ? ` · 可验证至 ${formatDate(key.verifyUntil)}`
                       : ''}
                     {key.retiredAt
-                      ? ` · Retired ${formatDate(key.retiredAt)}`
+                      ? ` · 退役于 ${formatDate(key.retiredAt)}`
                       : ''}
                   </div>
                 </div>
@@ -136,14 +134,14 @@ export function AuthSigningKeys() {
                     disabled={!key.canDelete || mutating}
                     title={
                       key.canDelete
-                        ? 'Delete expired key'
-                        : 'This key can be deleted after its verification window ends.'
+                        ? '删除过期密钥'
+                        : '此密钥的验证有效期结束后即可删除。'
                     }
                     onClick={() =>
                       setPending({ type: 'delete', keyId: key.id })
                     }
                   >
-                    Delete
+                    删除
                   </Button>
                 ) : null}
               </div>
@@ -159,15 +157,15 @@ export function AuthSigningKeys() {
         }}
         title={
           pending?.type === 'delete'
-            ? 'Delete signing key?'
-            : 'Rotate signing key?'
+            ? '删除签名密钥？'
+            : '轮换签名密钥？'
         }
         description={
           pending?.type === 'delete'
-            ? 'The expired key will be permanently removed.'
-            : 'A new key will become active immediately. The current key remains available only long enough to verify access tokens already issued.'
+            ? '过期密钥将被永久移除。'
+            : '新密钥将立即生效。当前密钥仅在验证已签发访问令牌所需的期限内保留。'
         }
-        confirmText={pending?.type === 'delete' ? 'Delete key' : 'Rotate key'}
+        confirmText={pending?.type === 'delete' ? '删除密钥' : '轮换密钥'}
         confirmButtonVariant={
           pending?.type === 'delete' ? 'destructive' : 'default'
         }
@@ -180,5 +178,5 @@ export function AuthSigningKeys() {
 }
 
 function formatDate(value?: string | null) {
-  return value ? new Date(value).toLocaleString() : 'Unknown';
+  return value ? new Date(value).toLocaleString('zh-CN') : '未知';
 }

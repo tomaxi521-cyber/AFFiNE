@@ -6,7 +6,7 @@ import { AboutAFFiNE } from './about';
 export function ConfigPage() {
   return (
     <div className="h-dvh flex-1 space-y-1 flex-col flex">
-      <Header title="Server" />
+      <Header title="服务器" />
       <ScrollArea>
         <AboutAFFiNE />
       </ScrollArea>

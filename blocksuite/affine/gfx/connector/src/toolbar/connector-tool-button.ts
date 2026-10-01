@@ -1,4 +1,4 @@
-import { ConnectorMode, getConnectorModeName } from '@blocksuite/affine-model';
+import { ConnectorMode } from '@blocksuite/affine-model';
 import { EditPropsStore } from '@blocksuite/affine-shared/services';
 import { QuickToolMixin } from '@blocksuite/affine-widget-edgeless-toolbar';
 import { SignalWatcher } from '@blocksuite/global/lit';
@@ -11,6 +11,12 @@ import { computed } from '@preact/signals-core';
 import { css, html, LitElement } from 'lit';
 
 import { ConnectorTool } from '../connector-tool';
+
+const modeLabels = {
+  [ConnectorMode.Straight]: '直线',
+  [ConnectorMode.Orthogonal]: '折线',
+  [ConnectorMode.Curve]: '曲线',
+};
 
 const IcomMap = {
   [ConnectorMode.Straight]: ConnectorLIcon(),
@@ -57,7 +63,7 @@ export class EdgelessConnectorToolButton extends QuickToolMixin(
           this.popper
             ? ''
             : html`<affine-tooltip-content-with-shortcut
-                data-tip="${getConnectorModeName(mode)}"
+                data-tip="${modeLabels[mode]}"
                 data-shortcut="${'C'}"
               ></affine-tooltip-content-with-shortcut>`
         }

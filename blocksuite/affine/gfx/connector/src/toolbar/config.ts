@@ -232,7 +232,7 @@ export const connectorToolbarConfig = {
         };
 
         return renderMenu({
-          label: 'Style',
+          label: '样式',
           items: LINE_STYLE_LIST,
           currentValue: rough,
           onPick,
@@ -256,7 +256,7 @@ export const connectorToolbarConfig = {
             };
 
             return renderMenu({
-              label: 'Start point style',
+              label: '起点样式',
               items: FRONT_ENDPOINT_STYLE_LIST,
               currentValue: pointStyle,
               onPick,
@@ -266,7 +266,7 @@ export const connectorToolbarConfig = {
         {
           id: 'b.flip-direction',
           icon: FlipDirectionIcon(),
-          tooltip: 'Flip direction',
+          tooltip: '反转方向',
           run(ctx) {
             const models = ctx.getSurfaceModelsByType(ConnectorElementModel);
             if (!models.length) return;
@@ -302,7 +302,7 @@ export const connectorToolbarConfig = {
             };
 
             return renderMenu({
-              label: 'End point style',
+              label: '终点样式',
               items: REAR_ENDPOINT_STYLE_LIST,
               currentValue: pointStyle,
               onPick,
@@ -323,8 +323,8 @@ export const connectorToolbarConfig = {
             };
 
             return renderMenu({
-              label: 'Shape',
-              tooltip: 'Connector shape',
+              label: '形状',
+              tooltip: '连接线形状',
               items: CONNECTOR_MODE_LIST,
               currentValue: mode,
               onPick,
@@ -335,7 +335,7 @@ export const connectorToolbarConfig = {
     },
     {
       id: 'g.text',
-      tooltip: 'Add text',
+      tooltip: '添加文本',
       icon: AddTextIcon(),
       when(ctx) {
         const models = ctx.getSurfaceModelsByType(ConnectorElementModel);

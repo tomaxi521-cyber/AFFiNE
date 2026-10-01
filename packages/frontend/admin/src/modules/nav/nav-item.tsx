@@ -27,14 +27,14 @@ export const NavItem = ({ icon, label, to, isCollapsed }: NavItemProps) => {
 
   if (isCollapsed) {
     return (
-      <NavLink to={to} className={className}>
+      <NavLink to={to} className={className} aria-label={label}>
         {icon}
       </NavLink>
     );
   }
 
   return (
-    <NavLink to={to} className={className}>
+    <NavLink to={to} className={className} aria-label={label}>
       <span className="flex items-center p-0.5">{icon}</span>
       <span className="truncate">{label}</span>
     </NavLink>

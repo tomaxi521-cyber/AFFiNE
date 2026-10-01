@@ -3,7 +3,7 @@ import { html } from 'lit';
 
 export const noteSeniorTool = SeniorToolExtension('note', ({ block }) => {
   return {
-    name: 'Note',
+    name: '笔记',
     content: html`<edgeless-note-senior-button
       .edgeless=${block}
     ></edgeless-note-senior-button>`,

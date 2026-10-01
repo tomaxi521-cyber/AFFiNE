@@ -53,15 +53,15 @@ export const CreateAdmin = ({
       <div className="flex flex-col pl-1 max-lg:p-4 max-w-96 mb-5">
         <div className="flex flex-col mb-16 max-sm:mb-6">
           <h1 className="text-lg font-semibold">
-            Create Administrator Account
+            创建管理员账号
           </h1>
           <p className="text-sm text-muted-foreground">
-            This account can also be used to log in as an AFFiNE user.
+            此账号也可用于登录 AFFiNE。
           </p>
         </div>
         <div className="flex flex-col gap-9">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">名称</Label>
             <Input
               id="name"
               type="text"
@@ -71,7 +71,7 @@ export const CreateAdmin = ({
             />
           </div>
           <div className="grid gap-2 relative">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">邮箱</Label>
             <Input
               id="email"
               type="email"
@@ -82,12 +82,12 @@ export const CreateAdmin = ({
             <p
               className={`absolute text-sm text-destructive -bottom-6 ${invalidEmail ? '' : 'opacity-0 pointer-events-none'}`}
             >
-              Invalid email address.
+              邮箱地址无效。
             </p>
           </div>
           <div className="grid gap-2">
             <div className="flex items-center">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">密码</Label>
             </div>
             <Input
               id="password"
@@ -101,11 +101,9 @@ export const CreateAdmin = ({
             <p
               className={`text-sm text-muted-foreground ${invalidPassword && 'text-destructive'}`}
             >
-              {invalidPassword ? 'Invalid password. ' : ''}Please enter{' '}
+              {invalidPassword ? '密码无效。' : ''}请输入
               {String(passwordLimits.minLength)}-
-              {String(passwordLimits.maxLength)} digit password, it is
-              recommended to include 2+ of: uppercase, lowercase, numbers,
-              symbols.
+              {String(passwordLimits.maxLength)} 位密码，建议包含大写字母、小写字母、数字、符号中的至少两种。
             </p>
           </div>
         </div>

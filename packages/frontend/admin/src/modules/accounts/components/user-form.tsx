@@ -12,7 +12,11 @@ import { FeatureToggleList } from '../../../components/shared/feature-toggle-lis
 import { useServerConfig } from '../../common';
 import { RightPanelHeader } from '../../header';
 import type { UserInput, UserType } from '../schema';
-import { validateEmails, validatePassword } from '../utils/csv-utils';
+import {
+  localizeUserValidationError,
+  validateEmails,
+  validatePassword,
+} from '../utils/csv-utils';
 import { useCreateUser, useUpdateUser } from './use-user-management';
 
 type UserFormProps = {
@@ -123,30 +127,30 @@ function UserForm({
       <div className="flex-grow space-y-3 overflow-y-auto p-4">
         <div className="flex flex-col rounded-xl border border-border bg-card shadow-sm">
           <InputItem
-            label="User name"
+            label="用户名"
             field="name"
             value={changes.name}
             onChange={setField}
-            placeholder="Enter user name"
+            placeholder="请输入用户名"
           />
           <Separator />
           <InputItem
-            label="Email"
+            label="邮箱"
             field="email"
             value={changes.email}
             onChange={setField}
-            placeholder="Enter email address"
+            placeholder="请输入邮箱地址"
           />
           {showOption && (
             <>
               <Separator />
               <InputItem
-                label="Password"
+                label="密码"
                 field="password"
                 value={changes.password}
                 onChange={setField}
                 optional
-                placeholder="Enter password"
+                placeholder="请输入密码"
               />
             </>
           )}
@@ -195,12 +199,13 @@ function InputItem({
         {label}
         {optional && (
           <span className="ml-1 font-normal text-muted-foreground">
-            (optional)
+            （选填）
           </span>
         )}
       </Label>
       <Input
         type="text"
+        aria-label={label}
         className="py-2 px-3 text-sm font-normal h-9"
         value={value}
         onChange={onValueChange}
@@ -246,7 +251,11 @@ export function CreateUserForm({
         passwordLimits
       );
       if (!passwordValidation.valid || !emailValidation[0].valid) {
-        toast.error(passwordValidation.error || emailValidation[0].error);
+        toast.error(
+          localizeUserValidationError(
+            passwordValidation.error || emailValidation[0].error
+          )
+        );
         return;
       }
       create(user);
@@ -256,7 +265,7 @@ export function CreateUserForm({
 
   return (
     <UserForm
-      title="Create User"
+      title="创建用户"
       onClose={onComplete}
       onConfirm={handleCreateUser}
       onValidate={validateCreateUser}
@@ -302,7 +311,7 @@ export function UpdateUserForm({
 
   return (
     <UserForm
-      title="Update User"
+      title="更新用户"
       defaultValue={user}
       onClose={onComplete}
       onConfirm={onUpdateUser}
@@ -315,7 +324,7 @@ export function UpdateUserForm({
             variant="outline"
             onClick={onResetPassword}
           >
-            <span>Reset Password</span>
+            <span>重置密码</span>
             <ChevronRightIcon size={16} className="text-muted-foreground" />
           </Button>
           <Button
@@ -323,7 +332,7 @@ export function UpdateUserForm({
             variant="outline"
             onClick={onDeleteAccount}
           >
-            <span>Delete Account</span>
+            <span>删除账号</span>
             <ChevronRightIcon size={16} />
           </Button>
         </div>

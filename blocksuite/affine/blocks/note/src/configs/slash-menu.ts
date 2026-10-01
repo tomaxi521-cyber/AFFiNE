@@ -33,7 +33,7 @@ const noteSlashMenuConfig: SlashMenuConfig = {
       .filter(i => i.type && ['h1', 'h2', 'h3', 'text'].includes(i.type))
       .map(config => createConversionItem(config, `0_Basic@${basicIndex++}`)),
     {
-      name: 'Other Headings',
+      name: '其他标题',
       icon: HeadingsIcon(),
       group: `0_Basic@${basicIndex++}`,
       subMenu: textConversionConfigs
@@ -82,13 +82,21 @@ function createConversionItem(
   config: TextConversionConfig,
   group?: SlashMenuItem['group']
 ): SlashMenuActionItem {
-  const { name, description, icon, flavour, type, searchAlias = [] } = config;
-  return {
+  const {
     name,
+    label,
+    description,
+    icon,
+    flavour,
+    type,
+    searchAlias = [],
+  } = config;
+  return {
+    name: label,
     group,
     description,
     icon,
-    searchAlias,
+    searchAlias: [name, ...searchAlias],
     tooltip: tooltips[name],
     when: ({ model }) => model.store.schema.flavourSchemaMap.has(flavour),
     action: ({ std }) => {

@@ -77,7 +77,7 @@ describe('AuthSigningKeys', () => {
     render(<AuthSigningKeys />);
 
     expect(screen.queryByText(/secret/i)).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Rotate key' }));
+    fireEvent.click(screen.getByRole('button', { name: '轮换密钥' }));
     fireEvent.click(screen.getByRole('button', { name: 'confirm-action' }));
     await vi.waitFor(() =>
       expect(mocks.rotate).toHaveBeenCalledWith({
@@ -85,7 +85,7 @@ describe('AuthSigningKeys', () => {
       })
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    fireEvent.click(screen.getByRole('button', { name: '删除' }));
     fireEvent.click(screen.getByRole('button', { name: 'confirm-action' }));
     await vi.waitFor(() =>
       expect(mocks.remove).toHaveBeenCalledWith({ id: 'expired-key' })

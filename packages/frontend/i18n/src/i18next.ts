@@ -9,7 +9,10 @@ import { SUPPORTED_LANGUAGES } from './resources';
 
 const logger = new DebugLogger('i18n');
 
+// The application selects zh-Hans by default after reading the saved preference.
+// Keep bootstrap synchronous to avoid overwriting a saved language during init.
 const defaultLng: Language = 'en';
+const fallbackLng: Language = 'en';
 
 let _instance: i18n | null = null;
 export const getOrCreateI18n = (): i18n => {
@@ -41,7 +44,7 @@ export const getOrCreateI18n = (): i18n => {
         lng: defaultLng,
         fallbackLng: code => {
           // always fallback to english
-          const fallbacks: string[] = [defaultLng];
+          const fallbacks: string[] = [fallbackLng];
           const langPart = code.split('-')[0];
 
           // fallback xx-YY to xx, e.g. es-AR to es
@@ -61,8 +64,8 @@ export const getOrCreateI18n = (): i18n => {
         debug: false,
         partialBundledLanguages: true,
         resources: {
-          [defaultLng]: {
-            translation: SUPPORTED_LANGUAGES[defaultLng].resource,
+          [fallbackLng]: {
+            translation: SUPPORTED_LANGUAGES[fallbackLng].resource,
           },
         },
         interpolation: {

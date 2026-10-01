@@ -22,7 +22,7 @@ export const FeatureFilterPopover = ({
   availableFeatures,
   onChange,
   align = 'start',
-  buttonLabel = 'Features',
+  buttonLabel = '功能',
   disabled = false,
 }: FeatureFilterPopoverProps) => {
   const handleFeatureToggle = useCallback(
@@ -67,7 +67,7 @@ export const FeatureFilterPopover = ({
         align={align}
         className="w-[240px] p-2 flex flex-col gap-2"
       >
-        <div className="text-xs font-medium px-1">Filter by feature</div>
+        <div className="text-xs font-medium px-1">按功能筛选</div>
         <div className="flex flex-col gap-1 max-h-64 overflow-auto">
           {availableFeatures.map(feature => (
             <label
@@ -92,7 +92,7 @@ export const FeatureFilterPopover = ({
             onClick={handleClearFeatures}
             disabled={disabled || selectedFeatures.length === 0}
           >
-            Clear
+            清除
           </Button>
         </div>
       </PopoverContent>

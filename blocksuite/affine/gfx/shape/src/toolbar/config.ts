@@ -86,7 +86,7 @@ export const shapeToolbarConfig = {
 
         return renderMenu({
           icon: ShapeIcon(),
-          label: 'Switch shape type',
+          label: '切换形状类型',
           items: ShapeComponentConfig.map(item => ({
             key: item.tooltip,
             value: item.name,
@@ -123,7 +123,7 @@ export const shapeToolbarConfig = {
         };
 
         return renderMenu({
-          label: 'Style',
+          label: '样式',
           items: LINE_STYLE_LIST,
           currentValue: shapeStyle === ShapeStyle.Scribbled,
           onPick,
@@ -260,7 +260,7 @@ export const shapeToolbarConfig = {
     },
     {
       id: 'f.text',
-      tooltip: 'Add text',
+      tooltip: '添加文本',
       icon: AddTextIcon(),
       when(ctx) {
         const models = ctx.getSurfaceModelsByType(ShapeElementModel);

@@ -34,7 +34,7 @@ vi.mock('./config-input-row', () => ({
       <button
         type="button"
         onClick={() => {
-          onErrorChange?.(field, 'Invalid JSON format');
+          onErrorChange?.(field, 'JSON 格式无效');
         }}
       >
         mark-error-{field}
@@ -193,7 +193,7 @@ describe('SettingsPage', () => {
       return;
     }
 
-    const saveButton = within(serverItem).getByRole('button', { name: 'Save' });
+    const saveButton = within(serverItem).getByRole('button', { name: '保存' });
     expect(saveButton.hasAttribute('disabled')).toBe(false);
 
     fireEvent.click(

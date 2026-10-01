@@ -49,7 +49,7 @@ export const FileUploadArea = forwardRef<
   const validateAndProcessFile = useAsyncCallback(
     async (file: File) => {
       if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-        toast.error('Please upload a CSV file');
+        toast.error('请上传 CSV 文件');
         return;
       }
       await onFileSelected(file);
@@ -103,11 +103,11 @@ export const FileUploadArea = forwardRef<
         />
         <div className="text-xs font-medium text-muted-foreground">
           {isDragging
-            ? 'Release mouse to upload file'
-            : 'Upload your CSV file or drag it here'}
+            ? '松开鼠标上传文件'
+            : '上传 CSV 文件或将其拖到此处'}
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          {isDragging ? 'Preparing to upload...' : ''}
+          {isDragging ? '正在准备上传…' : ''}
         </p>
       </div>
       <input

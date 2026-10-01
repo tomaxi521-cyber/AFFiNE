@@ -245,62 +245,62 @@ export const TodoTooltip = html`<svg width="170" height="68" viewBox="0 0 170 68
 export const tooltips: Record<string, SlashMenuTooltip> = {
   Text: {
     figure: TextTooltip,
-    caption: 'Text',
+    caption: '文本',
   },
 
   'Heading 1': {
     figure: Heading1Tooltip,
-    caption: 'Heading #1',
+    caption: '一级标题',
   },
 
   'Heading 2': {
     figure: Heading2Tooltip,
-    caption: 'Heading #2',
+    caption: '二级标题',
   },
 
   'Heading 3': {
     figure: Heading3Tooltip,
-    caption: 'Heading #3',
+    caption: '三级标题',
   },
 
   'Heading 4': {
     figure: Heading4Tooltip,
-    caption: 'Heading #4',
+    caption: '四级标题',
   },
 
   'Heading 5': {
     figure: Heading5Tooltip,
-    caption: 'Heading #5',
+    caption: '五级标题',
   },
 
   'Heading 6': {
     figure: Heading6Tooltip,
-    caption: 'Heading #6',
+    caption: '六级标题',
   },
 
   'Code Block': {
     figure: CodeBlockTooltip,
-    caption: 'Code Block',
+    caption: '代码块',
   },
 
   Quote: {
     figure: QuoteTooltip,
-    caption: 'Quote',
+    caption: '引用',
   },
 
   Divider: {
     figure: DividerTooltip,
-    caption: 'Divider',
+    caption: '分割线',
   },
 
   'Bulleted List': {
     figure: BulletedListTooltip,
-    caption: 'Bulleted List',
+    caption: '无序列表',
   },
 
   'Numbered List': {
     figure: NumberedListTooltip,
-    caption: 'Numbered List',
+    caption: '有序列表',
   },
 
   Bold: {
@@ -325,6 +325,6 @@ export const tooltips: Record<string, SlashMenuTooltip> = {
 
   'To-do List': {
     figure: TodoTooltip,
-    caption: 'To-do List',
+    caption: '待办列表',
   },
 };

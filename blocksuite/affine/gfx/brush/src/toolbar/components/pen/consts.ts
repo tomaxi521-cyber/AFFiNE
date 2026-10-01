@@ -19,11 +19,11 @@ export const penIconMap = {
 
 export const penInfoMap: { [k in Pen]: { tip: string; shortcut: string } } = {
   brush: {
-    tip: 'Pen',
+    tip: '画笔',
     shortcut: 'P',
   },
   highlighter: {
-    tip: 'Highlighter',
+    tip: '荧光笔',
     shortcut: '⇧ P',
   },
 };

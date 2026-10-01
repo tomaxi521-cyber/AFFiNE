@@ -62,10 +62,10 @@ export function useImportUsersState({
 
       if (failedCount > 0) {
         toast.info(
-          `Successfully imported ${successCount} users, ${failedCount} failed`
+          `成功导入 ${successCount} 位用户，${failedCount} 位导入失败`
         );
       } else {
-        toast.success(`Successfully imported ${successCount} users`);
+        toast.success(`成功导入 ${successCount} 位用户`);
       }
 
       const successfulUserEmails = new Set(
@@ -140,7 +140,7 @@ export function useImportUsersState({
       await importUsers({ users: validUsersToImport }, importUsersCallback);
     } catch (error) {
       console.error('Failed to import users', error);
-      toast.error('Failed to import users');
+      toast.error('导入用户失败');
       setIsImporting(false);
     }
   }, [importUsers, importUsersCallback, parsedUsers]);

@@ -106,7 +106,7 @@ const Inputs: Record<
         onValidationChange?.(undefined);
         onChange(value);
       } catch {
-        onValidationChange?.('Invalid JSON format');
+        onValidationChange?.('JSON 格式无效');
         // Keep the draft "dirty" even when JSON is temporarily invalid
         // so Save/Cancel state can reflect real editing progress.
         onChange(nextText);
@@ -133,7 +133,7 @@ const Inputs: Record<
         onValueChange={onChange}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Select an option" />
+          <SelectValue placeholder="请选择一个选项" />
         </SelectTrigger>
         <SelectContent>
           {options?.map(option => (

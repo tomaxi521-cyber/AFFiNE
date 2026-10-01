@@ -48,7 +48,7 @@ export const builtinMiscToolbarConfig = {
     {
       placement: ActionPlacement.Start,
       id: 'a.release-from-group',
-      tooltip: 'Release from group',
+      tooltip: '移出组合',
       icon: ReleaseFromGroupIcon(),
       when(ctx) {
         const models = ctx.getSurfaceModels();
@@ -78,9 +78,9 @@ export const builtinMiscToolbarConfig = {
     {
       placement: ActionPlacement.Start,
       id: 'b.add-frame',
-      label: 'Frame',
+      label: '画框',
       showLabel: true,
-      tooltip: 'Frame',
+      tooltip: '画框',
       icon: FrameIcon(),
       when(ctx) {
         const models = ctx.getSurfaceModels();
@@ -121,9 +121,9 @@ export const builtinMiscToolbarConfig = {
     {
       placement: ActionPlacement.Start,
       id: 'c.add-group',
-      label: 'Group',
+      label: '组合',
       showLabel: true,
-      tooltip: 'Group',
+      tooltip: '组合',
       icon: GroupingIcon(),
       when(ctx) {
         const models = ctx.getSurfaceModels();
@@ -172,16 +172,16 @@ export const builtinMiscToolbarConfig = {
 
         return renderAlignmentMenu(ctx, models, {
           icon: AlignLeftIcon(),
-          label: 'Align objects',
-          tooltip: 'Align objects',
+          label: '对齐对象',
+          tooltip: '对齐对象',
         });
       },
     },
     {
       placement: ActionPlacement.End,
       id: 'a.draw-connector',
-      label: 'Draw connector',
-      tooltip: 'Draw connector',
+      label: '绘制连接线',
+      tooltip: '绘制连接线',
       icon: ConnectorCIcon(),
       when(ctx) {
         const models = ctx.getSurfaceModels();
@@ -222,7 +222,7 @@ export const builtinMiscToolbarConfig = {
     {
       placement: ActionPlacement.End,
       id: 'b.lock',
-      tooltip: 'Lock',
+      tooltip: '锁定',
       icon: LockIcon(),
       run(ctx) {
         const models = ctx.getSurfaceModels();
@@ -335,7 +335,7 @@ export const builtinLockedToolbarConfig = {
     {
       placement: ActionPlacement.End,
       id: 'b.unlock',
-      label: 'Click to unlock',
+      label: '点击解锁',
       showLabel: true,
       icon: UnlockIcon(),
       run(ctx) {

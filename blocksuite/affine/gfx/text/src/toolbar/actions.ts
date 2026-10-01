@@ -157,8 +157,8 @@ export function createTextActions<
             .contentPadding="${'8px'}"
             .button=${html`
               <editor-icon-button
-                aria-label="Font"
-                .tooltip="${'Font'}"
+                aria-label="字体"
+                .tooltip="${'字体'}"
                 .justify="${'space-between'}"
                 .iconContainerWidth="${'40px'}"
               >
@@ -239,7 +239,7 @@ export function createTextActions<
         return html`
           <edgeless-color-picker-button
             class="text-color"
-            .label="${'Text color'}"
+            .label="${'文字颜色'}"
             .pick=${onPick}
             .color=${color}
             .theme=${theme}
@@ -289,8 +289,8 @@ export function createTextActions<
             .contentPadding="${'8px'}"
             .button=${html`
               <editor-icon-button
-                aria-label="Font style"
-                .tooltip="${'Font style'}"
+                aria-label="字体样式"
+                .tooltip="${'字体样式'}"
                 .justify="${'space-between'}"
                 .iconContainerWidth="${'90px'}"
                 .disabled=${disabled}
@@ -378,7 +378,7 @@ export function createTextActions<
         };
 
         return renderMenu({
-          label: 'Alignment',
+          label: '对齐方式',
           items: TEXT_ALIGN_LIST,
           currentValue: textAlign,
           onPick,

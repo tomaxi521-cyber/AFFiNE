@@ -113,7 +113,7 @@ export function DataTableToolbar<TData>({
     const selectedRows = table.getFilteredSelectedRowModel().rows;
 
     if (selectedRows.length === 0) {
-      alert('Please select at least one user to export');
+      alert('请至少选择一位要导出的用户');
       return;
     }
 
@@ -132,9 +132,10 @@ export function DataTableToolbar<TData>({
           size="sm"
           className="h-8 px-2 lg:px-3"
           onClick={handleImportUsers}
+          aria-label="导入用户"
         >
           <ImportIcon fontSize={20} />
-          <span className="ml-2 hidden md:inline-block">Import</span>
+          <span className="ml-2 hidden md:inline-block">导入</span>
         </Button>
 
         <Button
@@ -142,12 +143,13 @@ export function DataTableToolbar<TData>({
           size="sm"
           className="h-8 px-2 lg:px-3"
           onClick={handleExportUsers}
+          aria-label="导出用户"
           disabled={
             !table || table.getFilteredSelectedRowModel().rows.length === 0
           }
         >
           <ExportIcon fontSize={20} />
-          <span className="ml-2 hidden md:inline-block">Export</span>
+          <span className="ml-2 hidden md:inline-block">导出</span>
         </Button>
 
         {table && (
@@ -173,7 +175,7 @@ export function DataTableToolbar<TData>({
         />
         <div className="flex">
           <Input
-            placeholder="Search Email / UUID"
+            placeholder="搜索邮箱 / UUID"
             value={value}
             onChange={onValueChange}
             className="h-8 w-[150px] lg:w-[250px]"
@@ -183,7 +185,7 @@ export function DataTableToolbar<TData>({
           className="h-8 px-2 lg:px-3 space-x-[6px] text-sm font-medium"
           onClick={handleOpenConfirm}
         >
-          <PlusIcon fontSize={20} /> <span>Add User</span>
+          <PlusIcon fontSize={20} /> <span>添加用户</span>
         </Button>
       </div>
 

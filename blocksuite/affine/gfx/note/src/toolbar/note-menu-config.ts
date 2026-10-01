@@ -32,7 +32,7 @@ const LIST_ITEMS = [
     name: 'Bulleted List',
     description: 'A simple bulleted list.',
     icon: BulletedListIcon,
-    tooltip: 'Drag/Click to insert Bulleted List',
+    tooltip: '拖动或点击插入无序列表',
   },
   {
     flavour: 'affine:list',
@@ -40,7 +40,7 @@ const LIST_ITEMS = [
     name: 'Numbered List',
     description: 'A list with numbering.',
     icon: NumberedListIcon,
-    tooltip: 'Drag/Click to insert Numbered List',
+    tooltip: '拖动或点击插入有序列表',
   },
   {
     flavour: 'affine:list',
@@ -48,7 +48,7 @@ const LIST_ITEMS = [
     name: 'To-do List',
     description: 'Track tasks with a to-do list.',
     icon: CheckBoxIcon,
-    tooltip: 'Drag/Click to insert To-do List',
+    tooltip: '拖动或点击插入待办列表',
   },
 ];
 
@@ -59,7 +59,7 @@ const TEXT_ITEMS = [
     name: 'Text',
     description: 'Start typing with plain text.',
     icon: TextIcon,
-    tooltip: 'Drag/Click to insert Text block',
+    tooltip: '拖动或点击插入文本块',
   },
   {
     flavour: 'affine:paragraph',
@@ -67,7 +67,7 @@ const TEXT_ITEMS = [
     name: 'Heading 1',
     description: 'Headings in the largest font.',
     icon: Heading1Icon,
-    tooltip: 'Drag/Click to insert Heading 1',
+    tooltip: '拖动或点击插入一级标题',
   },
   {
     flavour: 'affine:paragraph',
@@ -75,7 +75,7 @@ const TEXT_ITEMS = [
     name: 'Heading 2',
     description: 'Headings in the 2nd font size.',
     icon: Heading2Icon,
-    tooltip: 'Drag/Click to insert Heading 2',
+    tooltip: '拖动或点击插入二级标题',
   },
   {
     flavour: 'affine:paragraph',
@@ -83,7 +83,7 @@ const TEXT_ITEMS = [
     name: 'Heading 3',
     description: 'Headings in the 3rd font size.',
     icon: Heading3Icon,
-    tooltip: 'Drag/Click to insert Heading 3',
+    tooltip: '拖动或点击插入三级标题',
   },
   {
     flavour: 'affine:paragraph',
@@ -91,7 +91,7 @@ const TEXT_ITEMS = [
     name: 'Heading 4',
     description: 'Heading in the 4th font size.',
     icon: Heading4Icon,
-    tooltip: 'Drag/Click to insert Heading 4',
+    tooltip: '拖动或点击插入四级标题',
   },
   {
     flavour: 'affine:paragraph',
@@ -99,7 +99,7 @@ const TEXT_ITEMS = [
     name: 'Heading 5',
     description: 'Heading in the 5th font size.',
     icon: Heading5Icon,
-    tooltip: 'Drag/Click to insert Heading 5',
+    tooltip: '拖动或点击插入五级标题',
   },
   {
     flavour: 'affine:paragraph',
@@ -107,7 +107,7 @@ const TEXT_ITEMS = [
     name: 'Heading 6',
     description: 'Heading in the 6th font size.',
     icon: Heading6Icon,
-    tooltip: 'Drag/Click to insert Heading 6',
+    tooltip: '拖动或点击插入六级标题',
   },
   {
     flavour: 'affine:code',
@@ -115,7 +115,7 @@ const TEXT_ITEMS = [
     name: 'Code Block',
     description: 'Capture a code snippet.',
     icon: CodeBlockIcon,
-    tooltip: 'Drag/Click to insert Code Block',
+    tooltip: '拖动或点击插入代码块',
   },
   {
     flavour: 'affine:paragraph',
@@ -123,7 +123,7 @@ const TEXT_ITEMS = [
     name: 'Quote',
     description: 'Capture a quote.',
     icon: QuoteIcon,
-    tooltip: 'Drag/Click to insert Quote',
+    tooltip: '拖动或点击插入引用',
   },
   {
     flavour: 'affine:divider',
@@ -131,7 +131,7 @@ const TEXT_ITEMS = [
     name: 'Divider',
     description: 'A visual divider.',
     icon: DividerIcon,
-    tooltip: 'A visual divider',
+    tooltip: '分割线',
   },
 ];
 
@@ -143,8 +143,8 @@ export const NOTE_MENU_ITEMS = TEXT_ITEMS.concat(LIST_ITEMS)
       icon: item.icon,
       tooltip:
         item.type !== 'text'
-          ? item.tooltip.replace('Drag/Click to insert ', '')
-          : 'Text',
+          ? item.tooltip.replace('拖动或点击插入', '')
+          : '文本',
       childFlavour: item.flavour as NoteChildrenFlavour,
       childType: item.type,
     } as NoteMenuItem;

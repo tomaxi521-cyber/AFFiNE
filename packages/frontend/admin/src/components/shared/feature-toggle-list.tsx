@@ -42,7 +42,7 @@ export const FeatureToggleList = ({
   if (!features.length) {
     return (
       <div className={cn(className, 'px-3 py-2 text-xs text-muted-foreground')}>
-        No configurable features.
+        暂无可配置的功能。
       </div>
     );
   }

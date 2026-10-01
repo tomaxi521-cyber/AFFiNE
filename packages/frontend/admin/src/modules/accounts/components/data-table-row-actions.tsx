@@ -67,11 +67,11 @@ export function DataTableRowActions({ user }: DataTableRowActionsProps) {
     navigator.clipboard
       .writeText(resetPasswordLink)
       .then(() => {
-        toast('Reset password link copied to clipboard');
+        toast('重置密码链接已复制到剪贴板');
         setResetPasswordDialogOpen(false);
       })
       .catch(e => {
-        toast.error('Failed to copy reset password link: ' + e.message);
+        toast.error('复制重置密码链接失败：' + e.message);
       });
   }, [resetPasswordLink]);
 
@@ -172,7 +172,7 @@ export function DataTableRowActions({ user }: DataTableRowActionsProps) {
             size="icon"
           >
             <MoreHorizontalIcon fontSize={20} />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">打开菜单</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[214px] p-1.5">
@@ -181,14 +181,14 @@ export function DataTableRowActions({ user }: DataTableRowActionsProps) {
             className="px-2 py-[6px] text-sm font-normal gap-2 cursor-pointer"
           >
             <EditIcon fontSize={20} />
-            Edit
+            编辑
           </DropdownMenuItem>
           <DropdownMenuItem
             className="px-2 py-[6px] text-sm font-normal gap-2 cursor-pointer"
             onSelect={openResetPasswordDialog}
           >
             <LockIcon fontSize={20} />
-            {user.hasPassword ? 'Reset Password' : 'Setup Account'}
+            {user.hasPassword ? '重置密码' : '设置账号'}
           </DropdownMenuItem>
           {user.disabled && (
             <DropdownMenuItem
@@ -196,7 +196,7 @@ export function DataTableRowActions({ user }: DataTableRowActionsProps) {
               onSelect={openEnableDialog}
             >
               <AccountBanIcon fontSize={20} />
-              Enable Email
+              启用邮箱
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
@@ -206,7 +206,7 @@ export function DataTableRowActions({ user }: DataTableRowActionsProps) {
               onSelect={openDisableDialog}
             >
               <AccountBanIcon fontSize={20} />
-              Disable & Delete data
+              禁用并删除数据
             </DropdownMenuItem>
           )}
           <DropdownMenuItem
@@ -214,7 +214,7 @@ export function DataTableRowActions({ user }: DataTableRowActionsProps) {
             onSelect={openDeleteDialog}
           >
             <DeleteIcon fontSize={20} />
-            Delete
+            删除
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

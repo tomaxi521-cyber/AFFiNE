@@ -2,486 +2,486 @@
   "metrics": {
     "enabled": {
       "type": "Boolean",
-      "desc": "Enable metric and tracing collection"
+      "desc": "启用指标和链路追踪数据采集"
     }
   },
   "crypto": {
     "privateKey": {
       "type": "String",
-      "desc": "The private key for used by the crypto module to create signed tokens or encrypt data.",
+      "desc": "加密模块用于创建签名令牌或加密数据的私钥。",
       "env": "AFFINE_PRIVATE_KEY"
     }
   },
   "job": {
     "queue": {
       "type": "Object",
-      "desc": "The config for job queues",
+      "desc": "任务队列配置",
       "link": "https://api.docs.bullmq.io/interfaces/v5.QueueOptions.html"
     },
     "worker": {
       "type": "Object",
-      "desc": "The config for job workers",
+      "desc": "任务执行器配置",
       "link": "https://api.docs.bullmq.io/interfaces/v5.WorkerOptions.html"
     },
     "queues.copilot": {
       "type": "Object",
-      "desc": "The config for copilot job queue"
+      "desc": "AI 助手任务队列配置"
     },
     "queues.calendar": {
       "type": "Object",
-      "desc": "The config for calendar job queue"
+      "desc": "日历任务队列配置"
     },
     "queues.doc": {
       "type": "Object",
-      "desc": "The config for doc job queue"
+      "desc": "文档任务队列配置"
     },
     "queues.indexer": {
       "type": "Object",
-      "desc": "The config for indexer job queue"
+      "desc": "索引器任务队列配置"
     },
     "queues.notification": {
       "type": "Object",
-      "desc": "The config for notification job queue"
+      "desc": "通知任务队列配置"
     },
     "queues.nightly": {
       "type": "Object",
-      "desc": "The config for nightly job queue"
+      "desc": "夜间任务队列配置"
     },
     "queues.backendRuntime": {
       "type": "Object",
-      "desc": "The config for backend runtime job queue"
+      "desc": "后端运行时任务队列配置"
     },
     "queues.inviteAbuse": {
       "type": "Object",
-      "desc": "The config for invite abuse disposition job queue"
+      "desc": "邀请滥用处置任务队列配置"
     }
   },
   "throttle": {
     "enabled": {
       "type": "Boolean",
-      "desc": "Whether the throttler is enabled."
+      "desc": "是否启用限流器。"
     },
     "throttlers.default": {
       "type": "Object",
-      "desc": "The config for the default throttler."
+      "desc": "默认限流器配置。"
     },
     "throttlers.strict": {
       "type": "Object",
-      "desc": "The config for the strict throttler."
+      "desc": "严格限流器配置。"
     }
   },
   "auth": {
     "allowSignup": {
       "type": "Boolean",
-      "desc": "Whether allow new registrations."
+      "desc": "是否允许新用户注册。"
     },
     "allowSignupForOauth": {
       "type": "Boolean",
-      "desc": "Whether allow new registrations via configured oauth."
+      "desc": "是否允许通过已配置的 OAuth 注册新用户。"
     },
     "requireEmailDomainVerification": {
       "type": "Boolean",
-      "desc": "Whether require email domain record verification before accessing restricted resources."
+      "desc": "是否要求在访问受限资源前验证邮箱域名记录。"
     },
     "requireEmailVerification": {
       "type": "Boolean",
-      "desc": "Whether require email verification before accessing restricted resources(not implemented)."
+      "desc": "是否要求在访问受限资源前验证邮箱（尚未实现）。"
     },
     "newAccountShareActionDelay": {
       "type": "Number",
-      "desc": "Minimum account age in seconds before new accounts can invite members or create share links."
+      "desc": "新账号能够邀请成员或创建分享链接前必须等待的最短时间，单位为秒。"
     },
     "trustedCloudflareHeaders": {
       "type": "Boolean",
-      "desc": "Whether request abuse source facts should trust Cloudflare headers from the origin edge."
+      "desc": "判断滥用请求来源时，是否信任源站边缘节点传入的 Cloudflare 请求头。"
     },
     "inviteQuotaShadowMode": {
       "type": "Boolean",
-      "desc": "Whether workspace invite quota should record would-block decisions without rejecting requests or executing abuse actions."
+      "desc": "工作区邀请配额是否仅记录本应拦截的判定，而不拒绝请求或执行滥用处置操作。"
     },
     "inviteQuotaFailOpenOnRuntimeError": {
       "type": "Boolean",
-      "desc": "Whether workspace invite quota should fail open when native runtime admission is unavailable. Keep disabled for production."
+      "desc": "原生运行时准入机制不可用时，工作区邀请配额是否放行请求。生产环境中请保持禁用。"
     },
     "passwordRequirements": {
       "type": "Object",
-      "desc": "The password strength requirements when set new password."
+      "desc": "设置新密码时的密码强度要求。"
     },
     "session.ttl": {
       "type": "Number",
-      "desc": "Application auth expiration time in seconds."
+      "desc": "应用身份认证的有效期，单位为秒。"
     },
     "session.ttr": {
       "type": "Number",
-      "desc": "Application auth time to refresh in seconds."
+      "desc": "应用身份认证的刷新间隔，单位为秒。"
     },
     "token.accessTokenTtl": {
       "type": "Number",
-      "desc": "Access JWT expiration time in seconds."
+      "desc": "访问 JWT 的有效期，单位为秒。"
     },
     "token.refreshIdleTtl": {
       "type": "Number",
-      "desc": "Auth refresh session inactivity expiration in seconds."
+      "desc": "身份认证刷新会话的空闲过期时间，单位为秒。"
     },
     "token.refreshAbsoluteTtl": {
       "type": "Number",
-      "desc": "Auth refresh session absolute expiration in seconds."
+      "desc": "身份认证刷新会话的绝对有效期，单位为秒。"
     },
     "token.refreshGracePeriod": {
       "type": "Number",
-      "desc": "One-use refresh rotation concurrency grace period in seconds."
+      "desc": "一次性刷新令牌轮换的并发宽限期，单位为秒。"
     },
     "token.refreshRetention": {
       "type": "Number",
-      "desc": "Retention for expired auth refresh generations in seconds."
+      "desc": "已过期身份认证刷新代次的保留时间，单位为秒。"
     }
   },
   "mailer": {
     "SMTP.name": {
       "type": "String",
-      "desc": "Hostname used for SMTP HELO/EHLO (e.g. mail.example.com). Leave empty to use the system hostname.",
+      "desc": "用于 SMTP HELO/EHLO 的主机名（例如 mail.example.com）。留空则使用系统主机名。",
       "env": "MAILER_SERVERNAME"
     },
     "SMTP.host": {
       "type": "String",
-      "desc": "Host of the email server (e.g. smtp.gmail.com)",
+      "desc": "邮件服务器主机地址（例如 smtp.gmail.com）",
       "env": "MAILER_HOST"
     },
     "SMTP.port": {
       "type": "Number",
-      "desc": "Port of the email server (they commonly are 25, 465 or 587)",
+      "desc": "邮件服务器端口（通常为 25、465 或 587）",
       "env": "MAILER_PORT"
     },
     "SMTP.username": {
       "type": "String",
-      "desc": "Username used to authenticate the email server",
+      "desc": "用于邮件服务器身份验证的用户名",
       "env": "MAILER_USER"
     },
     "SMTP.password": {
       "type": "String",
-      "desc": "Password used to authenticate the email server",
+      "desc": "用于邮件服务器身份验证的密码",
       "env": "MAILER_PASSWORD"
     },
     "SMTP.sender": {
       "type": "String",
-      "desc": "Sender of all the emails (e.g. \"AFFiNE Self Hosted &lt;noreply@example.com&gt;\")",
+      "desc": "所有邮件的发件人（例如 \"AFFiNE Self Hosted &lt;noreply@example.com&gt;\"）",
       "env": "MAILER_SENDER"
     },
     "SMTP.ignoreTLS": {
       "type": "Boolean",
-      "desc": "Whether ignore email server's TLS certificate verification. Enable it for self-signed certificates.",
+      "desc": "是否跳过邮件服务器的 TLS 证书验证。使用自签名证书时可启用。",
       "env": "MAILER_IGNORE_TLS"
     },
     "fallbackDomains": {
       "type": "Array",
-      "desc": "The emails from these domains are always sent using the fallback SMTP server."
+      "desc": "来自这些域名的邮件始终通过备用 SMTP 服务器发送。"
     },
     "deliveryWorker.batchSize": {
       "type": "Number",
-      "desc": "Number of mail delivery rows claimed by each worker tick."
+      "desc": "邮件投递任务执行器每次运行时领取的投递记录数。"
     },
     "deliveryWorker.leaseMs": {
       "type": "Number",
-      "desc": "Mail delivery worker lease duration in milliseconds."
+      "desc": "邮件投递任务执行器的租约时长，单位为毫秒。"
     },
     "deliveryWorker.retentionDays": {
       "type": "Number",
-      "desc": "Days to retain anonymized terminal mail delivery ledger rows."
+      "desc": "已匿名化且处于终态的邮件投递台账记录的保留天数。"
     },
     "fallbackSMTP.name": {
       "type": "String",
-      "desc": "Hostname used for fallback SMTP HELO/EHLO (e.g. mail.example.com). Leave empty to use the system hostname."
+      "desc": "用于备用 SMTP HELO/EHLO 的主机名（例如 mail.example.com）。留空则使用系统主机名。"
     },
     "fallbackSMTP.host": {
       "type": "String",
-      "desc": "Host of the email server (e.g. smtp.gmail.com)"
+      "desc": "邮件服务器主机地址（例如 smtp.gmail.com）"
     },
     "fallbackSMTP.port": {
       "type": "Number",
-      "desc": "Port of the email server (they commonly are 25, 465 or 587)"
+      "desc": "邮件服务器端口（通常为 25、465 或 587）"
     },
     "fallbackSMTP.username": {
       "type": "String",
-      "desc": "Username used to authenticate the email server"
+      "desc": "用于邮件服务器身份验证的用户名"
     },
     "fallbackSMTP.password": {
       "type": "String",
-      "desc": "Password used to authenticate the email server"
+      "desc": "用于邮件服务器身份验证的密码"
     },
     "fallbackSMTP.sender": {
       "type": "String",
-      "desc": "Sender of all the emails (e.g. \"AFFiNE Self Hosted &lt;noreply@example.com&gt;\")"
+      "desc": "所有邮件的发件人（例如 \"AFFiNE Self Hosted &lt;noreply@example.com&gt;\"）"
     },
     "fallbackSMTP.ignoreTLS": {
       "type": "Boolean",
-      "desc": "Whether ignore email server's TLS certificate verification. Enable it for self-signed certificates."
+      "desc": "是否跳过邮件服务器的 TLS 证书验证。使用自签名证书时可启用。"
     }
   },
   "doc": {
     "experimental.yocto": {
       "type": "Boolean",
-      "desc": "Use `y-octo` to merge updates at the same time when merging using Yjs."
+      "desc": "使用 Yjs 合并更新时，同时使用 `y-octo` 进行合并。"
     },
     "history.interval": {
       "type": "Number",
-      "desc": "The minimum time interval in milliseconds of creating a new history snapshot when doc get updated."
+      "desc": "文档更新时创建新历史快照的最短时间间隔，单位为毫秒。"
     }
   },
   "storages": {
     "avatar.publicPath": {
       "type": "String",
-      "desc": "The public accessible path prefix for user avatars."
+      "desc": "用户头像的公开访问路径前缀。"
     },
     "avatar.storage": {
       "type": "Object",
-      "desc": "The config of storage for user avatars."
+      "desc": "用户头像的存储配置。"
     },
     "blob.storage": {
       "type": "Object",
-      "desc": "The config of storage for all uploaded blobs(images, videos, etc.)."
+      "desc": "所有已上传二进制对象（图片、视频等）的存储配置。"
     }
   },
   "websocket": {
     "transports": {
       "type": "Array",
-      "desc": "The enabled transports for accepting websocket traffics.",
+      "desc": "用于接收 WebSocket 流量的已启用传输方式。",
       "link": "https://docs.nestjs.com/websockets/gateways#transports"
     },
     "maxHttpBufferSize": {
       "type": "Number",
-      "desc": "How many bytes or characters a message can be, before closing the session (to avoid DoS)."
+      "desc": "单条消息允许的最大字节数或字符数，超过后将关闭会话（以避免 DoS 攻击）。"
     }
   },
   "server": {
     "name": {
       "type": "String",
-      "desc": "A recognizable name for the server. Will be shown when connected with AFFiNE Desktop."
+      "desc": "便于识别的服务器名称，连接 AFFiNE 桌面端时会显示。"
     },
     "externalUrl": {
       "type": "String",
-      "desc": "Base url of AFFiNE server, used for generating external urls.\nDefault to be `[server.protocol]://[server.host][:server.port]` if not specified.\n    ",
+      "desc": "AFFiNE 服务器的基础 URL，用于生成外部 URL。\n未指定时默认为 `[server.protocol]://[server.host][:server.port]`。\n    ",
       "env": "AFFINE_SERVER_EXTERNAL_URL"
     },
     "https": {
       "type": "Boolean",
-      "desc": "Whether the server is hosted on a ssl enabled domain (https://).",
+      "desc": "服务器是否部署在启用 SSL 的域名上（https://）。",
       "env": "AFFINE_SERVER_HTTPS"
     },
     "host": {
       "type": "String",
-      "desc": "Where the server get deployed(FQDN).",
+      "desc": "服务器部署位置的完全限定域名（FQDN）。",
       "env": "AFFINE_SERVER_HOST"
     },
     "hosts": {
       "type": "Array",
-      "desc": "Multiple hosts the server will accept requests from."
+      "desc": "服务器接受请求的多个主机名。"
     },
     "listenAddr": {
       "type": "String",
-      "desc": "The address to listen on (e.g., 0.0.0.0 for IPv4, :: for IPv6).",
+      "desc": "监听地址（例如 IPv4 使用 0.0.0.0，IPv6 使用 ::）。",
       "env": "LISTEN_ADDR"
     },
     "port": {
       "type": "Number",
-      "desc": "Which port the server will listen on.",
+      "desc": "服务器监听的端口。",
       "env": "AFFINE_SERVER_PORT"
     },
     "path": {
       "type": "String",
-      "desc": "Subpath where the server get deployed if there is one.(e.g. /affine)",
+      "desc": "服务器部署的子路径（如有，例如 /affine）。",
       "env": "AFFINE_SERVER_SUB_PATH"
     }
   },
   "flags": {
     "allowGuestDemoWorkspace": {
       "type": "Boolean",
-      "desc": "Whether allow guest users to create demo workspaces."
+      "desc": "是否允许访客创建演示工作区。"
     }
   },
   "docService": {
     "endpoint": {
       "type": "String",
-      "desc": "The endpoint of the doc service.",
+      "desc": "文档服务的端点。",
       "env": "DOC_SERVICE_ENDPOINT"
     }
   },
   "telemetry": {
     "allowedOrigin": {
       "type": "Array",
-      "desc": "Allowed origins for telemetry collection."
+      "desc": "允许采集遥测数据的来源。"
     },
     "ga4.measurementId": {
       "type": "String",
-      "desc": "GA4 Measurement ID for Measurement Protocol.",
+      "desc": "用于 Measurement Protocol 的 GA4 衡量 ID。",
       "env": "GA4_MEASUREMENT_ID"
     },
     "ga4.apiSecret": {
       "type": "String",
-      "desc": "GA4 API secret for Measurement Protocol.",
+      "desc": "用于 Measurement Protocol 的 GA4 API 密钥。",
       "env": "GA4_API_SECRET"
     },
     "dedupe.ttlHours": {
       "type": "Number",
-      "desc": "Telemetry dedupe TTL in hours."
+      "desc": "遥测数据去重的有效期（TTL），单位为小时。"
     },
     "dedupe.maxEntries": {
       "type": "Number",
-      "desc": "Telemetry dedupe max entries."
+      "desc": "遥测数据去重的最大条目数。"
     },
     "batch.maxEvents": {
       "type": "Number",
-      "desc": "Max events per telemetry batch."
+      "desc": "每批遥测数据的最大事件数。"
     }
   },
   "client": {
     "versionControl.enabled": {
       "type": "Boolean",
-      "desc": "Whether check version of client before accessing the server."
+      "desc": "是否在访问服务器前检查客户端版本。"
     },
     "versionControl.requiredVersion": {
       "type": "String",
-      "desc": "Allowed version range of the app that allowed to access the server. Requires 'client/versionControl.enabled' to be true to take effect."
+      "desc": "允许访问服务器的应用版本范围。需将 'client/versionControl.enabled' 设为 true 才能生效。"
     }
   },
   "calendar": {
     "google": {
       "type": "Object",
-      "desc": "Google Calendar integration config",
+      "desc": "Google 日历集成配置",
       "link": "https://developers.google.com/calendar/api/guides/push"
     },
     "caldav": {
       "type": "Object",
-      "desc": "CalDAV integration config"
+      "desc": "CalDAV 集成配置"
     }
   },
   "captcha": {
     "enabled": {
       "type": "Boolean",
-      "desc": "Check captcha challenge when user authenticating the app."
+      "desc": "用户进行应用身份验证时检查验证码挑战。"
     },
     "config": {
       "type": "Object",
-      "desc": "The config for the captcha plugin."
+      "desc": "验证码插件配置。"
     }
   },
   "copilot": {
     "enabled": {
       "type": "Boolean",
-      "desc": "Enable AI features. Workspace owners configure provider keys in Workspace Settings → Integrations → AI BYOK."
+      "desc": "启用 AI 功能。工作区所有者可在工作区设置 → 集成 → AI BYOK 中配置服务提供商密钥。"
     },
     "unsplash": {
       "type": "Object",
-      "desc": "The config for the unsplash key."
+      "desc": "Unsplash 密钥配置。"
     },
     "exa": {
       "type": "Object",
-      "desc": "The config for the exa web search key."
+      "desc": "Exa 网页搜索密钥配置。"
     },
     "storage": {
       "type": "Object",
-      "desc": "The config for the storage provider."
+      "desc": "存储服务提供商配置。"
     },
     "byok.enabled": {
       "type": "Boolean",
-      "desc": "Allow workspace owners and admins to configure AI provider keys through AI BYOK."
+      "desc": "允许工作区所有者和管理员通过 AI BYOK 配置 AI 服务提供商密钥。"
     },
     "byok.allowedProviders": {
       "type": "Array",
-      "desc": "AI providers that workspace owners and admins may add through AI BYOK."
+      "desc": "工作区所有者和管理员可通过 AI BYOK 添加的 AI 服务提供商。"
     },
     "byok.allowCustomEndpoint": {
       "type": "Boolean",
-      "desc": "Allow AI BYOK keys to use a custom provider endpoint."
+      "desc": "允许 AI BYOK 密钥使用自定义服务提供商端点。"
     },
     "byok.allowPrivateEndpoint": {
       "type": "Boolean",
-      "desc": "Whether workspace BYOK custom endpoints may resolve to private network targets. Enabling this allows workspace owners and admins to send provider probe requests to the private network."
+      "desc": "是否允许工作区 BYOK 自定义端点解析到私有网络目标。启用后，工作区所有者和管理员可向私有网络发送服务提供商探测请求。"
     }
   },
   "indexer": {
     "enabled": {
       "type": "Boolean",
-      "desc": "Enable indexer plugin",
+      "desc": "启用索引器插件",
       "env": "AFFINE_INDEXER_ENABLED"
     },
     "provider.type": {
       "type": "String",
-      "desc": "Indexer search service provider name",
+      "desc": "索引器搜索服务提供商名称",
       "env": "AFFINE_INDEXER_SEARCH_PROVIDER"
     },
     "provider.endpoint": {
       "type": "String",
-      "desc": "Indexer search service endpoint",
+      "desc": "索引器搜索服务端点",
       "env": "AFFINE_INDEXER_SEARCH_ENDPOINT"
     },
     "provider.apiKey": {
       "type": "String",
-      "desc": "Indexer search service api key. Optional for elasticsearch",
+      "desc": "索引器搜索服务 API 密钥。对于 Elasticsearch，此项可选。",
       "link": "https://www.elastic.co/guide/server/current/api-key.html",
       "env": "AFFINE_INDEXER_SEARCH_API_KEY"
     },
     "provider.username": {
       "type": "String",
-      "desc": "Indexer search service auth username, if not set, basic auth will be disabled. Optional for elasticsearch",
+      "desc": "索引器搜索服务的身份验证用户名；未设置时将禁用基本身份验证。对于 Elasticsearch，此项可选。",
       "link": "https://www.elastic.co/guide/en/elasticsearch/reference/current/http-clients.html",
       "env": "AFFINE_INDEXER_SEARCH_USERNAME"
     },
     "provider.password": {
       "type": "String",
-      "desc": "Indexer search service auth password, if not set, basic auth will be disabled. Optional for elasticsearch",
+      "desc": "索引器搜索服务的身份验证密码；未设置时将禁用基本身份验证。对于 Elasticsearch，此项可选。",
       "env": "AFFINE_INDEXER_SEARCH_PASSWORD"
     },
     "autoIndex.batchSize": {
       "type": "Number",
-      "desc": "Number of workspaces automatically indexed per batch"
+      "desc": "每批自动建立索引的工作区数量"
     }
   },
   "oauth": {
     "providers.google": {
       "type": "Object",
-      "desc": "Google OAuth provider config",
+      "desc": "Google OAuth 提供商配置",
       "link": "https://developers.google.com/identity/protocols/oauth2/web-server"
     },
     "providers.github": {
       "type": "Object",
-      "desc": "GitHub OAuth provider config",
+      "desc": "GitHub OAuth 提供商配置",
       "link": "https://docs.github.com/en/apps/oauth-apps"
     },
     "providers.oidc": {
       "type": "Object",
-      "desc": "OIDC OAuth provider config. Private network access requires allowPrivateNetwork: true",
+      "desc": "OIDC OAuth 提供商配置。访问私有网络需要设置 allowPrivateNetwork: true",
       "link": "https://openid.net/specs/openid-connect-core-1_0.html"
     },
     "providers.apple": {
       "type": "Object",
-      "desc": "Apple OAuth provider config",
+      "desc": "Apple OAuth 提供商配置",
       "link": "https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/implementing_sign_in_with_apple_in_your_app"
     }
   },
   "payment": {
     "enabled": {
       "type": "Boolean",
-      "desc": "Whether enable payment plugin"
+      "desc": "是否启用支付插件"
     },
     "showLifetimePrice": {
       "type": "Boolean",
-      "desc": "Whether enable lifetime price and allow user to pay for it."
+      "desc": "是否启用终身价格并允许用户购买。"
     },
     "stripe": {
       "type": "Object",
-      "desc": "Stripe sdk options and credentials",
+      "desc": "Stripe SDK 选项和凭据",
       "link": "https://docs.stripe.com/api"
     },
     "revenuecat": {
       "type": "Object",
-      "desc": "RevenueCat integration configs",
+      "desc": "RevenueCat 集成配置",
       "link": "https://www.revenuecat.com/docs/"
     }
   },
   "worker": {
     "allowedOrigin": {
       "type": "Array",
-      "desc": "Allowed origin"
+      "desc": "允许的来源"
     }
   }
 }
