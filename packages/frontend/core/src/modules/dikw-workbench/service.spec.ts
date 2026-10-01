@@ -163,7 +163,11 @@ describe('workbench orchestration', () => {
     expect(a).toBe(b); expect(await a).toBe('child');
     expect(await f.service.createChild('main', 'Child', 'op')).toBe('child');
     expect(f.docs.createDoc).toHaveBeenCalledTimes(1);
-    expect(f.docs.createDoc).toHaveBeenCalledWith({ id: 'child', title: 'Child', primaryMode: 'edgeless' });
+    expect(f.docs.createDoc).toHaveBeenCalledWith(expect.objectContaining({ id: 'child', title: 'Child', primaryMode: 'edgeless', docProps: { onStoreLoad: expect.any(Function) } }));
+    const callback = (f.docs.createDoc.mock.calls[0] as unknown as [{ docProps: { onStoreLoad: Function } }])[0].docProps.onStoreLoad;
+    const note = { id: 'new-note' }; const updateBlock = vi.fn();
+    callback({ getBlock: () => ({ model: note }), updateBlock }, { noteId: 'new-note' });
+    expect(updateBlock).toHaveBeenCalledWith(note, { displayMode: 'doc' });
     expect(f.store.addBlock).toHaveBeenCalledTimes(1);
     expect(f.store.addBlock).toHaveBeenCalledWith('affine:embed-synced-doc', {
       pageId: 'child', xywh: '[0,0,800,455]', style: 'syncedDoc', params: { mode: 'edgeless' },

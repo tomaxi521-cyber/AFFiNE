@@ -515,6 +515,10 @@ export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSynce
     });
 
     this.contentEditable = 'false';
+    const boardGraph = this.store.workspace.doc.getMap('dikw:board-graph:v1');
+    const refreshChildPreview = () => this.requestUpdate();
+    boardGraph.observe(refreshChildPreview);
+    this.disposables.add(() => boardGraph.unobserve(refreshChildPreview));
 
     this.disposables.add(
       this.model.propsUpdated.subscribe(({ key }) => {
@@ -573,8 +577,10 @@ export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSynce
     // DIKW child spaces may show one additional nested canvas; generic references
     // retain the native cap. Hard cap and native cycle/permission handling remain.
     const relation = this.store.workspace.doc.getMap('dikw:board-graph:v1')
-      .get('board:' + this.model.props.pageId) as { version?: number; parentId?: string } | undefined;
-    const childSpace = this.linkedMode === 'edgeless' && relation?.version === 1 && relation.parentId === this.store.id;
+      .get('board:' + this.model.props.pageId) as { version?: number; docId?: string; parentId?: string; operationId?: string } | undefined;
+    const childSpace = this.linkedMode === 'edgeless' && relation?.version === 1 &&
+      relation.docId === this.model.props.pageId && typeof relation.operationId === 'string' &&
+      relation.operationId.length > 0 && relation.parentId === this.store.id;
     const isCardOnly = this.depth >= (childSpace ? 2 : 1);
 
     if (

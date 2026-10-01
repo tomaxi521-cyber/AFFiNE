@@ -199,11 +199,12 @@ const DetailPageImpl = memo(function DetailPageImpl() {
       const std = editorContainer.std;
       const disposable = new DisposableGroup();
       setPortalError(null);
-      disposable.add(bindChildPortalNavigation(editorContainer, {
+      const portalHost = editorContainer.origin;
+      if (portalHost) disposable.add(bindChildPortalNavigation(portalHost, {
         source: doc.id, root: workspace.rootYDoc,
         available: id => { const meta = workspace.docCollection.meta.getDocMeta(id); return !!meta && !meta.trash; },
         canRead: async id => await guard.can('Doc_Read', id) === true,
-        navigate: id => workbench.open({ pathname: '/' + id, search: '?mode=edgeless' }),
+        navigate: id => view.history.push({ pathname: '/' + id, search: '?mode=edgeless' }),
         onError: () => setPortalError('子白板暂时无法进入，请检查读取权限或稍后重试。'),
       }));
 
@@ -307,7 +308,7 @@ const DetailPageImpl = memo(function DetailPageImpl() {
         disposable.dispose();
       };
     },
-    [editor, workbench, peekView, isJournal, doc.id, workspace, guard]
+    [editor, workbench, peekView, isJournal, doc.id, workspace, guard, view]
   );
 
   const [hasScrollTop, setHasScrollTop] = useState(false);

@@ -103,8 +103,8 @@ function insertNotes(store: Store, operationId: string, lines: readonly string[]
   if (!note) {
     store.addBlock('affine:note', {
       id: noteId,
-      xywh: '[0,320,520,240]',
-      displayMode: NoteDisplayMode.DocAndEdgeless,
+      xywh: '[0,0,460,220]',
+      displayMode: NoteDisplayMode.EdgelessOnly,
     }, root.id);
   }
   lines.forEach((line, index) => {

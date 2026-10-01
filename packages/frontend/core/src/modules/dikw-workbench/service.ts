@@ -1,6 +1,7 @@
 import type { SurfaceBlockModel } from '@blocksuite/affine/blocks/surface';
 import type { GfxModel } from '@blocksuite/affine/std/gfx';
 import type { Store } from '@blocksuite/affine/store';
+import { NoteDisplayMode } from '@blocksuite/affine/model';
 import { LiveData, Service } from '@toeverything/infra';
 import { nanoid } from 'nanoid';
 import { applyUpdate } from 'yjs';
@@ -209,7 +210,14 @@ export class DikwWorkbenchService extends Service {
         await this.canCreate();
         await this.canEdit(parentId);
         try {
-          const created = this.docsService.createDoc({ id: docId, title, primaryMode: 'edgeless' });
+          const created = this.docsService.createDoc({ id: docId, title, primaryMode: 'edgeless',
+            docProps: { onStoreLoad: (store, { noteId }) => {
+              // New child initialization only: retain the native document note,
+              // but do not place its page-title card on an otherwise blank canvas.
+              const note = store.getBlock(noteId)?.model;
+              if (note) store.updateBlock(note, { displayMode: NoteDisplayMode.DocOnly });
+            } },
+          });
           if (created.id !== docId) throw new Error('创建中间件改变了子白板标识');
           await this.workspace.engine.doc.waitForDocLoaded(docId);
           await this.workspace.engine.doc.waitForUpdated(docId);
@@ -283,7 +291,7 @@ export function insertChildBoardPortal(store: Store, target: string): void {
   let right = -Infinity;
   let top = Infinity;
   for (const model of models) {
-    if (!('elementBound' in model)) continue;
+    if (!('elementBound' in model) || ('flavour' in model && model.flavour === 'affine:note' && 'props' in model && (model.props as { displayMode?: string }).displayMode === NoteDisplayMode.DocOnly)) continue;
     const gfx = model as GfxModel;
     for (const bound of [gfx.elementBound, gfx.externalBound]) {
       if (!bound) continue;
