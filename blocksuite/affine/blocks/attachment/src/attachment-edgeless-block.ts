@@ -12,6 +12,7 @@ import { GfxViewInteractionExtension } from '@blocksuite/std/gfx';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { AttachmentBlockComponent } from './attachment-block.js';
+import { isOfflineHtml } from './offline-html';
 
 export class AttachmentEdgelessBlockComponent extends toGfxBlockComponent(
   AttachmentBlockComponent
@@ -27,6 +28,18 @@ export class AttachmentEdgelessBlockComponent extends toGfxBlockComponent(
   }
 
   override renderGfxBlock() {
+    if (this.model.props.embed$.value && isOfflineHtml(this.model.props)) {
+      const bound = this.model.elementBound;
+      this.containerStyleMap = styleMap({
+        position: 'relative',
+        width: bound.w + 'px',
+        height: bound.h + 'px',
+        overflow: 'hidden',
+        transform: 'none',
+        margin: '0',
+      });
+      return this.renderPageContent();
+    }
     const { style$ } = this.model.props;
     const cardStyle = style$.value ?? AttachmentBlockStyles[1];
     const width = EMBED_CARD_WIDTH[cardStyle];

@@ -20,6 +20,11 @@ import { GfxControllerIdentifier } from '@blocksuite/std/gfx';
 import type { BlockModel } from '@blocksuite/store';
 
 import type { AttachmentBlockComponent } from './attachment-block';
+import {
+  isOfflineHtml,
+  OFFLINE_HTML_WIDTH,
+  OFFLINE_HTML_HEIGHT,
+} from './offline-html';
 
 export async function getAttachmentBlob(model: AttachmentBlockModel) {
   const { sourceId$, type$ } = model.props;
@@ -201,8 +206,16 @@ export async function addAttachments(
 
   const blocks = propsArray.map((props, index) => {
     const center = Vec.addScalar(xy, index * gap);
-    const xywh = Bound.fromCenter(center, width, height).serialize();
-    return { flavour, blockProps: { ...props, style, xywh } };
+    const embed = isOfflineHtml(props);
+    const xywh = Bound.fromCenter(
+      center,
+      embed ? OFFLINE_HTML_WIDTH : width,
+      embed ? OFFLINE_HTML_HEIGHT : height
+    ).serialize();
+    return {
+      flavour,
+      blockProps: { ...props, embed: embed || props.embed, style, xywh },
+    };
   });
 
   const blockIds = std.store.addBlocks(blocks, gfx.surface);

@@ -24,6 +24,11 @@ import { html } from 'lit';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { getAttachmentBlob } from './utils';
+import {
+  isOfflineHtml,
+  OFFLINE_HTML_WIDTH,
+  OFFLINE_HTML_HEIGHT,
+} from './offline-html';
 
 export type AttachmentEmbedConfig = {
   name: string;
@@ -157,6 +162,16 @@ export class AttachmentEmbedService extends Extension {
 }
 
 const embedConfig: AttachmentEmbedConfig[] = [
+  {
+    name: 'offline-html',
+    check: model => isOfflineHtml(model.props),
+    action: model => {
+      const bound = Bound.deserialize(model.props.xywh);
+      bound.w = OFFLINE_HTML_WIDTH;
+      bound.h = OFFLINE_HTML_HEIGHT;
+      model.store.updateBlock(model, { embed: true, xywh: bound.serialize() });
+    },
+  },
   {
     name: 'image',
     shouldBeConverted: true,

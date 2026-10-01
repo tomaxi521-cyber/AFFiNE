@@ -40,13 +40,20 @@ import { html, type TemplateResult } from 'lit';
 import { choose } from 'lit/directives/choose.js';
 import { type ClassInfo, classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
+import { keyed } from 'lit/directives/keyed.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { when } from 'lit/directives/when.js';
 import { filter } from 'rxjs/operators';
 
 import { AttachmentEmbedProvider } from './embed';
+import { isOfflineHtml } from './offline-html';
 import { styles } from './styles';
-import { downloadAttachmentBlob, getFileType, refreshData } from './utils';
+import {
+  downloadAttachmentBlob,
+  getFileType,
+  refreshData,
+  getAttachmentBlob,
+} from './utils';
 
 type AttachmentResolvedStateInfo = ResolvedStateInfo & {
   kind?: TemplateResult;
@@ -127,6 +134,14 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
   };
 
   open = () => {
+    // Never navigate executable attachment bytes into a host-origin blob tab.
+    if (
+      isOfflineHtml(this.model.props) ||
+      this.model.props.type === 'application/xhtml+xml'
+    ) {
+      this.download();
+      return;
+    }
     const blobUrl = this.blobUrl;
     if (!blobUrl) return;
     window.open(blobUrl, '_blank');
@@ -455,6 +470,25 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
     const { model, blobUrl } = this;
     if (!model.props.embed$.value || !blobUrl) return null;
 
+    if (isOfflineHtml(model.props)) {
+      return html`<div
+        class="affine-attachment-embed-container"
+        style="min-height:300px"
+      >
+        ${keyed(
+          model.props.sourceId$.value + ':' + this._refreshKey$.value,
+          html`<dikw-offline-html
+            .sourceId=${model.props.sourceId$.value ?? ''}
+            .name=${model.props.name$.value}
+            .size=${model.props.size$.value}
+            .canRun=${this.selected$.value && !this.store.readonly}
+            .readOnly=${this.store.readonly}
+            .loadBlob=${() => getAttachmentBlob(model)}
+            .download=${this.download}
+          ></dikw-offline-html>`
+        )}
+      </div>`;
+    }
     const { std, _maxFileSize } = this;
     const provider = std.get(AttachmentEmbedProvider);
 
