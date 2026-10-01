@@ -5,6 +5,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as viewportModule from '../../../../../framework/std/src/gfx/viewport.js';
 import * as viewportElementModule from '../../../../../framework/std/src/gfx/viewport-element.js';
 import * as canvasRendererModule from '../../../../blocks/surface/src/renderer/canvas-renderer.js';
+import { DomRenderer } from '../../../../blocks/surface/src/renderer/dom-renderer.js';
 import { FrameBlockComponent } from '../../../../blocks/frame/src/frame-block.js';
 import {
   paintPlaceholder,
@@ -72,6 +73,20 @@ afterEach(() => {
 });
 
 describe('edgeless canvas budget', () => {
+  test('DOM surface cancels total ancestor scale without changing element rotation or stacking', () => {
+    const element=document.createElement('div');
+    element.style.transform='rotate(25deg)';element.style.zIndex='7';
+    const render=(DomRenderer.prototype as unknown as {_render:()=>void})._render;
+    const state={viewport:{viewScale:1},_elementsMap:new Map([['shape',element]]),_renderIncremental:vi.fn()};
+    for(const scale of [.45,.81,.45*1.7,.81*1.7,.45*.3,1,0,NaN,Infinity]) {
+      state.viewport.viewScale=scale;render.call(state);
+      const expected=Number.isFinite(scale)&&scale>0?1/scale:1;
+      expect(Number(element.style.zoom||1)).toBeCloseTo(expected,5);
+      expect(element.style.transform).toBe('rotate(25deg)');
+      expect(element.style.zIndex).toBe('7');
+    }
+    expect(state._renderIncremental).toHaveBeenCalledTimes(9);
+  });
   test('requests canvas budget sync when zoom crosses an effective dpr bucket', () => {
     viewportRuntimeConfig.CANVAS_DPR_CAP_BY_ZOOM = [
       [0.5, 1],
