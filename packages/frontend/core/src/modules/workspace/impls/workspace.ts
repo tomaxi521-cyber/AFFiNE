@@ -16,6 +16,7 @@ import {
   MemoryBlobSource,
 } from '@blocksuite/affine/sync';
 import { Subject } from 'rxjs';
+import { assertBoardCanBeRemoved } from '../../dikw-workbench/board-protection';
 import type { Awareness } from 'y-protocols/awareness.js';
 import type { Doc as YDoc } from 'yjs';
 
@@ -167,6 +168,7 @@ export class WorkspaceImpl implements Workspace {
     const blockCollection = this._getDoc(docId);
     if (!blockCollection) return;
 
+    assertBoardCanBeRemoved(this.doc, docId, true);
     blockCollection.dispose();
     this.meta.removeDocMeta(docId);
     this.blockCollections.delete(docId);

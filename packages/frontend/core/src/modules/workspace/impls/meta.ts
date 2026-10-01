@@ -6,6 +6,7 @@ import {
 } from '@blocksuite/affine/store';
 import { Subject } from 'rxjs';
 import type * as Y from 'yjs';
+import { assertBoardCanBeRemoved } from '../../dikw-workbench/board-protection';
 
 type MetaState = {
   pages?: unknown[];
@@ -167,6 +168,7 @@ export class WorkspaceMetaImpl implements WorkspaceMeta {
   }
 
   removeDocMeta(id: string) {
+    assertBoardCanBeRemoved(this._doc, id, true);
     // you cannot delete a doc if there's no doc
     if (!this.docs) {
       return;
@@ -186,6 +188,7 @@ export class WorkspaceMetaImpl implements WorkspaceMeta {
   }
 
   setDocMeta(id: string, props: Partial<DocMeta>) {
+    if (props.trash === true) assertBoardCanBeRemoved(this._doc, id, false);
     this._assertValidDocTitle(props);
     const docs = (this.docs as DocMeta[]) ?? [];
     const index = docs.findIndex((doc: DocMeta) => id === doc.id);
