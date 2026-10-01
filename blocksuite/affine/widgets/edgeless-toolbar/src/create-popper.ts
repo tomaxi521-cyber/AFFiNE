@@ -1,4 +1,5 @@
 import { BlockSuiteError } from '@blocksuite/global/exceptions';
+import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 
 // more than 100% due to the shadow
 const leaveToPercent = `calc(100% + 10px)`;
@@ -53,7 +54,14 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
       'reference must be a shadow root'
     );
   }
-  reference.shadowRoot.append(clipWrapper);
+  const root = reference.getRootNode();
+  const toolbar = root instanceof ShadowRoot &&
+    root.host.matches('edgeless-toolbar-widget[data-dikw-board]')
+    ? root.host as HTMLElement
+    : null;
+  // DIKW tools live in a side panel. Their native option menus must not be
+  // clipped by that panel or positioned above a nonexistent bottom dock.
+  (toolbar?.shadowRoot ?? reference.shadowRoot).append(clipWrapper);
 
   // apply enter transition
   menu.style.transition = `all ${duration}ms ease`;
@@ -81,7 +89,43 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
     bottom: '0%',
     pointerEvents: 'auto',
   });
+  let stopPositioning: (() => void) | undefined;
+  let removed = false;
+  if (toolbar) {
+    Object.assign(clipWrapper.style, {
+      position: 'fixed',
+      height: 'auto',
+      width: `${Math.max(160, Math.min(680, toolbar.clientWidth - 104))}px`,
+      maxWidth: 'calc(100vw - 24px)',
+      bottom: 'auto',
+      overflow: 'visible',
+      zIndex: '4',
+    });
+    Object.assign(menu.style, {
+      position: 'relative',
+      marginLeft: '0',
+      maxWidth: '100%',
+      zIndex: 'auto',
+    });
+    const updatePosition = () => {
+      clipWrapper.style.width = `${Math.max(160, Math.min(680, toolbar.clientWidth - 104))}px`;
+      computePosition(reference, clipWrapper, {
+        placement: 'right-start',
+        strategy: 'fixed',
+        middleware: [offset(12), flip(), shift({ padding: 12 })],
+      }).then(({ x, y }) => {
+        if (removed) return;
+        Object.assign(clipWrapper.style, { left: `${x}px`, top: `${y}px` });
+      }).catch(console.error);
+    };
+    stopPositioning = autoUpdate(reference, clipWrapper, updatePosition);
+    for (const type of ['pointerdown', 'mousedown', 'dblclick', 'click', 'wheel']) {
+      clipWrapper.addEventListener(type, event => event.stopPropagation());
+    }
+  }
   const remove = () => {
+    removed = true;
+    stopPositioning?.();
     clipWrapper.remove();
     menu.remove();
     popMap.get(reference)?.delete(tagName);
@@ -91,6 +135,10 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
   const popper: MenuPopper<HTMLElementTagNameMap[T]> = {
     element: menu,
     dispose: () => {
+      if (toolbar) {
+        remove();
+        return;
+      }
       // apply leave transition
       animateLeave(menu);
       menu.addEventListener('transitionend', remove, { once: true });

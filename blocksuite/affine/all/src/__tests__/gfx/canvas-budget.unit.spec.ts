@@ -5,6 +5,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as viewportModule from '../../../../../framework/std/src/gfx/viewport.js';
 import * as viewportElementModule from '../../../../../framework/std/src/gfx/viewport-element.js';
 import * as canvasRendererModule from '../../../../blocks/surface/src/renderer/canvas-renderer.js';
+import { FrameBlockComponent } from '../../../../blocks/frame/src/frame-block.js';
 import {
   paintPlaceholder,
   syncCanvasSize,
@@ -379,6 +380,48 @@ describe('edgeless canvas budget', () => {
       transform: 'translate(-60px, -30px) scale(1)',
       width: 420,
     });
+  });
+
+  test('refreshes cached nested viewport measurements after ancestor CSS zoom', () => {
+    const viewport=new Viewport();
+    const shell=document.createElement('div');
+    let rect=createRect(600,300);
+    Object.defineProperty(shell,'offsetWidth',{get:()=>800});
+    shell.getBoundingClientRect=()=>rect;
+    viewport.setShellElement(shell);
+    expect(viewport.viewScale).toBe(.75);
+    rect=createRect(328,164);
+    expect(viewport.viewScale).toBe(.75);
+    viewport.onResize(true);
+    expect(viewport.viewScale).toBe(.41);
+    expect(viewport.width).toBe(328);
+    viewport.dispose();
+  });
+
+  test('nested frame layout uses the same scale as notes and canvas', () => {
+    for (const viewScale of [.41,.75,1,2]) {
+      const rect=FrameBlockComponent.prototype.getRenderingRect.call({
+        gfx:{viewport:{translateX:-80,translateY:-160,zoom:.8,viewScale}},
+        model:{xywh:'[160,260,300,400]',rotate:0},toZIndex:()=>1,
+      } as unknown as FrameBlockComponent);
+      expect(rect.x*viewScale).toBeCloseTo(48);
+      expect(rect.y*viewScale).toBeCloseTo(48);
+      expect(rect.w*viewScale).toBeCloseTo(240);
+      expect(rect.h*viewScale).toBeCloseTo(320);
+    }
+  });
+
+  test('nested canvas layer origins match HTML at every ancestor scale', () => {
+    for (const viewScale of [.41, .75, 1, 2]) for (const dpr of [1,2]) {
+      for (const [bx,by] of [[40,170],[100,200],[140,230],[-100,-200]]) {
+        const zoom=.8, px=160, py=260;
+        const layout=canvasRendererModule.getCanvasViewportLayout({bound:new Bound(bx,by,420,210),viewportBounds:new Bound(100,200,300,150),zoom,viewScale,dpr});
+        const matrix=new DOMMatrix(layout.transform);
+        const p=matrix.transformPoint({x:(px-bx)*zoom,y:(py-by)*zoom});
+        expect(p.x*viewScale).toBeCloseTo((px-100)*zoom);
+        expect(p.y*viewScale).toBeCloseTo((py-200)*zoom);
+      }
+    }
   });
 
   test('computes stacking canvas DOM attachment diffs when bypass toggles', () => {

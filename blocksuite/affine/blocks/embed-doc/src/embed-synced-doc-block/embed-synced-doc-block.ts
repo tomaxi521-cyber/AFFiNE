@@ -53,54 +53,45 @@ import { blockStyles } from './styles.js';
 export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSyncedDocModel> {
   static override styles = blockStyles;
 
-  // Caches total bounds, includes all blocks and elements.
-  private _cachedBounds: Bound | null = null;
-
   private _hasRenderedSyncedView = false;
   private _hasInitedFitEffect = false;
 
   private readonly _initEdgelessFitEffect = () => {
+    let frame = 0;
     const fitToContent = () => {
-      if (this.isPageMode) return;
-
-      const controller = this.syncedDocEditorHost?.std.getOptional(
-        GfxControllerIdentifier
-      );
+      frame = 0;
+      if (!this.isConnected || this.isPageMode) return;
+      const controller = this.syncedDocEditorHost?.std.getOptional(GfxControllerIdentifier);
       if (!controller) return;
-
       const viewport = controller.viewport;
-      if (!viewport) return;
-
-      if (!this._cachedBounds) {
-        this._cachedBounds = getCommonBound([
-          ...controller.layer.blocks.map(block =>
-            Bound.deserialize(block.xywh)
-          ),
-          ...controller.layer.canvasElements,
-        ]);
-      }
-
-      viewport.onResize();
-
-      const { centerX, centerY, zoom } = viewport.getFitToScreenData(
-        this._cachedBounds
-      );
-      viewport.setCenter(centerX, centerY);
-      viewport.setZoom(zoom);
+      // A parent canvas zoom is a CSS transform, not a layout resize. Refresh
+      // the screen rectangle before fitting; never write child model geometry.
+      viewport.onResize(true);
+      const bounds = getCommonBound([
+        ...controller.layer.blocks
+          .filter(block => !(block.flavour === 'affine:note' && block.props.displayMode === NoteDisplayMode.DocOnly))
+          .map(block => Bound.deserialize(block.xywh)),
+        ...controller.layer.canvasElements,
+      ]);
+      // Padding lives in the embed's local space so outer zoom does not shrink
+      // its useful preview area. Recompute bounds after content edits/reloads.
+      const padding = 24 * viewport.viewScale;
+      const { centerX, centerY, zoom } = viewport.getFitToScreenData(bounds, [0,0,0,0], viewport.ZOOM_MAX, padding);
+      viewport.setViewport(zoom, [centerX, centerY]);
     };
-
-    const observer = new ResizeObserver(fitToContent);
-    const block = this.embedBlock;
-
-    observer.observe(block);
-
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(fitToContent); };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(this.embedBlock);
+    const parent = this.std.getOptional(GfxControllerIdentifier);
+    const subscription = parent?.viewport.viewportUpdated.subscribe(schedule);
+    const child = this.syncedDoc?.spaceDoc;
+    child?.on('update', schedule);
     this._disposables.add(() => {
-      observer.disconnect();
+      observer.disconnect(); subscription?.unsubscribe();
+      child?.off('update', schedule);
+      if (frame) cancelAnimationFrame(frame);
     });
-
-    this.syncedDocEditorHost?.updateComplete
-      .then(() => fitToContent())
-      .catch(() => {});
+    this.syncedDocEditorHost?.updateComplete.then(schedule).catch(() => {});
   };
 
   private readonly _pageFilter: Query = {

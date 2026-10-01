@@ -230,8 +230,10 @@ export function getCanvasViewportLayout(params: {
   const { bound, viewportBounds, zoom, viewScale, dpr } = params;
   const width = bound.w * zoom;
   const height = bound.h * zoom;
-  const left = (bound.x - viewportBounds.x) * zoom;
-  const top = (bound.y - viewportBounds.y) * zoom;
+  // CSS translate precedes scale: compensate the ancestor scale for the
+  // layer origin too, just as GfxBlockComponent does for HTML notes.
+  const left = ((bound.x - viewportBounds.x) * zoom) / viewScale;
+  const top = ((bound.y - viewportBounds.y) * zoom) / viewScale;
 
   return {
     actualHeight: Math.max(0, Math.ceil(height * dpr)),

@@ -52,7 +52,7 @@ export class FrameBlockComponent extends GfxBlockComponent<FrameBlockModel> {
 
   override getRenderingRect() {
     const viewport = this.gfx.viewport;
-    const { translateX, translateY, zoom } = viewport;
+    const { translateX, translateY, zoom, viewScale } = viewport;
     const { xywh, rotate } = this.model;
     const bound = Bound.deserialize(xywh);
 
@@ -60,10 +60,12 @@ export class FrameBlockComponent extends GfxBlockComponent<FrameBlockModel> {
     const scaledY = bound.y * zoom + translateY;
 
     return {
-      x: scaledX,
-      y: scaledY,
-      w: bound.w * zoom,
-      h: bound.h * zoom,
+      // Frames avoid CSS scale for Safari, but still need the same ancestor
+      // scale compensation as other HTML and canvas elements in previews.
+      x: scaledX / viewScale,
+      y: scaledY / viewScale,
+      w: (bound.w * zoom) / viewScale,
+      h: (bound.h * zoom) / viewScale,
       rotate,
       zIndex: this.toZIndex(),
     };

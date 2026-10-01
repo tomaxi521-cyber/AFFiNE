@@ -47,6 +47,7 @@ import {
   DIKW_BOARD_GRAPH_MAP,
   isDikwBoard,
   renderDikwToolbar,
+  renderDikwToolOptions,
 } from './dikw-toolbar.js';
 import { dikwToolbarStyles } from './dikw-toolbar.styles.js';
 import {
@@ -241,11 +242,51 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
   @state()
   private accessor _dikwMoreOpen = false;
 
+  @state()
+  private accessor _dikwContextTool = '';
+
+  private readonly _showDikwOptions = (tool: string) => {
+    this._dikwMoreOpen = false;
+    this._dikwContextTool = ['shape', 'connector', 'affine:note'].includes(tool)
+      ? tool
+      : '';
+  };
+
+  private readonly _closeDikwPanels = (restoreFocus = false) => {
+    const trigger = this._dikwMoreOpen ? 'more' : this._dikwContextTool;
+    this.activePopper?.dispose();
+    this.activePopper = null;
+    this._dikwMoreOpen = false;
+    this._dikwContextTool = '';
+    if (restoreFocus && trigger) {
+      this.renderRoot.querySelector<HTMLButtonElement>(
+        `.dikw-tool[data-tool="${trigger}"]`
+      )?.focus();
+    }
+  };
+
+  private readonly _onDikwPanelKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.activePopper) {
+        this.activePopper.dispose();
+        this.activePopper = null;
+      } else {
+        this._closeDikwPanels(true);
+      }
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      // Native controls handle activation; never let Space pan the canvas.
+      event.stopPropagation();
+    }
+  };
+
   private readonly _toggleDikwMore = () => {
     if (this.store.readonly || this.hasAttribute('disabled')) return;
     this._moreQuickToolsMenu?.close();
     this.activePopper?.dispose();
     this.activePopper = null;
+    this._dikwContextTool = '';
     this._dikwMoreOpen = !this._dikwMoreOpen;
   };
 
@@ -362,13 +403,14 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       return [];
     }
     const quickTools = Array.from(
-      this.std.provider.getAll(QuickToolIdentifier).values()
+      this.std.provider.getAll(QuickToolIdentifier).entries()
     );
     const gfx = this.std.get(GfxControllerIdentifier);
     return quickTools
-      .map(tool =>
-        tool({ block, gfx, toolbarContainer: this.toolbarContainer })
-      )
+      .map(([id, tool]) => ({
+        id,
+        ...tool({ block, gfx, toolbarContainer: this.toolbarContainer }),
+      }))
       .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
       .filter(({ enable = true }) => enable);
   }
@@ -416,13 +458,14 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       return [];
     }
     const seniorTools = Array.from(
-      this.std.provider.getAll(SeniorToolIdentifier).values()
+      this.std.provider.getAll(SeniorToolIdentifier).entries()
     );
     const gfx = this.std.get(GfxControllerIdentifier);
     return seniorTools
-      .map(tool =>
-        tool({ block, gfx, toolbarContainer: this.toolbarContainer })
-      )
+      .map(([id, tool]) => ({
+        id,
+        ...tool({ block, gfx, toolbarContainer: this.toolbarContainer }),
+      }))
       .filter(({ enable = true }) => enable);
   }
 
@@ -529,6 +572,46 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     );
   }
 
+  private _renderDikwContent() {
+    const unavailable = this.store.readonly || this.hasAttribute('disabled');
+    return html`
+      ${renderDikwToolbar(this, this._dikwMoreOpen, this._toggleDikwMore, this._showDikwOptions)}
+      <section id="dikw-advanced-tools"
+        class="dikw-advanced-panel edgeless-toolbar-container"
+        data-open=${this._dikwMoreOpen && !unavailable}
+        aria-label="更多工具" aria-hidden=${!this._dikwMoreOpen || unavailable}
+        ?inert=${!this._dikwMoreOpen || unavailable}
+        data-app-theme=${this._appTheme$.value}
+        @keydown=${this._onDikwPanelKeyDown}
+        @keyup=${stopPropagation}
+        @pointerdown=${stopPropagation} @mousedown=${stopPropagation}
+        @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}
+      >
+        <div class="dikw-panel-heading"><span>更多工具</span>
+          <button type="button" aria-label="关闭更多工具" @click=${() => this._closeDikwPanels(true)}>×</button>
+        </div>
+        <div class="dikw-advanced-grid">
+          ${this.store.readonly ? nothing : this._quickTools
+            .filter(tool => tool.id !== 'default' && tool.id !== 'connector')
+            .map(tool => html`<div class="dikw-advanced-quick" data-advanced-tool=${tool.id}>${tool.content}</div>`)}
+          ${this.store.readonly ? nothing : this._seniorTools
+            .filter(tool => tool.id !== 'note' && tool.id !== 'shape')
+            .map(tool => html`<div class="dikw-advanced-senior" data-advanced-tool=${tool.id}>${tool.content}</div>`)}
+        </div>
+      </section>
+      ${this._dikwContextTool && !unavailable ? html`
+        <section class="dikw-context-panel" aria-label="当前工具选项"
+          @keydown=${this._onDikwPanelKeyDown} @keyup=${stopPropagation}
+          @pointerdown=${stopPropagation} @mousedown=${stopPropagation}
+          @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}>
+          <div class="dikw-panel-heading"><span>当前工具选项</span>
+            <button type="button" aria-label="关闭工具选项" @click=${() => this._closeDikwPanels(true)}>×</button>
+          </div>
+          ${renderDikwToolOptions(this, this._dikwContextTool)}
+        </section>` : nothing}
+    `;
+  }
+
   private _renderContent() {
     return html`
       <div class="quick-tools">
@@ -616,13 +699,26 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       // so a fullscreen chrome box never intercepts canvas gestures.
       if (this._isDikwBoard) this.style.pointerEvents = 'none';
       else this.style.removeProperty('pointer-events');
-      if (!this._isDikwBoard) this._dikwMoreOpen = false;
+      if (!this._isDikwBoard) this._closeDikwPanels();
     };
     updateBoardVariant();
     graph.observe(updateBoardVariant);
     this.disposables.add(() => graph.unobserve(updateBoardVariant));
     this.disposables.add(
-      this.gfx.tool.currentToolName$.subscribe(() => this.requestUpdate())
+      this.gfx.tool.currentToolName$.subscribe(tool => {
+        if (this._isDikwBoard && !this.store.readonly && !this.hasAttribute('disabled')) {
+          // Keyboard-selected basic tools get the same native options as rail clicks.
+          if (['shape', 'connector', 'affine:note'].includes(tool)) {
+            this.activePopper?.dispose();
+            this.activePopper = null;
+            this._showDikwOptions(tool);
+          } else {
+            this._dikwContextTool = '';
+          }
+          if (tool === 'frameNavigator') this._closeDikwPanels();
+        }
+        this.requestUpdate();
+      })
     );
     this._resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
@@ -645,9 +741,8 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
           Escape: () => {
             if (this.gfx.selection.editing) return;
             if (this.edgelessTool === 'frameNavigator') return;
-            if (this._isDikwBoard && this._dikwMoreOpen && !this.activePopper) {
-              this._dikwMoreOpen = false;
-              this._moreQuickToolsMenu?.close();
+            if (this._isDikwBoard && !this.activePopper) {
+              this._closeDikwPanels(true);
             }
             if (this.edgelessTool === 'default') {
               if (this.activePopper) {
@@ -665,6 +760,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
   }
 
   override disconnectedCallback() {
+    if (this._isDikwBoard) this._closeDikwPanels();
     super.disconnectedCallback();
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
@@ -675,6 +771,8 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     const { _disposables, block, gfx } = this;
     if (!block) return;
 
+    // Native draggable builders need the container after its first render.
+    if (this._isDikwBoard) this.requestUpdate();
     const slots = this.std.get(EdgelessLegacySlotIdentifier);
     const editPropsStore = this.std.get(EditPropsStore);
 
@@ -684,10 +782,8 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     _disposables.add(
       slots.readonlyUpdated.subscribe(() => {
         if (this._isDikwBoard && this.store.readonly) {
-          this._dikwMoreOpen = false;
+          this._closeDikwPanels();
           this._moreQuickToolsMenu?.close();
-          this.activePopper?.dispose();
-          this.activePopper = null;
         }
         this.requestUpdate();
       })
@@ -695,7 +791,10 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     _disposables.add(
       slots.toolbarLocked.subscribe(disabled => {
         this.toggleAttribute('disabled', disabled);
-        if (this._isDikwBoard) this.requestUpdate();
+        if (this._isDikwBoard) {
+          if (disabled) this._closeDikwPanels();
+          this.requestUpdate();
+        }
       })
     );
     // This state from `editPropsStore` is not reactive,
@@ -715,18 +814,13 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       return nothing;
     }
 
+    if (this._isDikwBoard && !this.isPresentMode) {
+      return this._renderDikwContent();
+    }
+
     return html`
-      ${this._isDikwBoard && !this.isPresentMode
-        ? renderDikwToolbar(this, this._dikwMoreOpen, this._toggleDikwMore)
-        : nothing}
       <div
         class="edgeless-toolbar-wrapper"
-        id=${this._isDikwBoard ? 'dikw-native-dock' : nothing}
-        ?hidden=${
-          this._isDikwBoard &&
-          !this.isPresentMode &&
-          (!this._dikwMoreOpen || this.store.readonly)
-        }
         data-app-theme=${this._appTheme$.value}
       >
         <div

@@ -569,7 +569,10 @@ export class Viewport {
     );
   }
 
-  onResize() {
+  onResize(refreshClientRect = false) {
+    if (refreshClientRect && this._shell) {
+      this._cachedBoundingClientRect = this._shell.getBoundingClientRect();
+    }
     if (!this._shell) return;
 
     if (!this._isResizing) {

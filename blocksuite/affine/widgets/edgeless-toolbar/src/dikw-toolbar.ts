@@ -1,4 +1,4 @@
-import { ShapeType } from '@blocksuite/affine-model';
+import { type ShapeName, ShapeType } from '@blocksuite/affine-model';
 import { EditPropsStore } from '@blocksuite/affine-shared/services';
 import { stopPropagation } from '@blocksuite/affine-shared/utils';
 import {
@@ -57,6 +57,43 @@ function toolOptions(host: EdgelessToolbarWidget, name: string) {
   }
 }
 
+/** Reuse the native option menus instead of offering a second creation dock. */
+export function renderDikwToolOptions(host: EdgelessToolbarWidget, tool: string) {
+  const setTool = (options: Record<string, unknown>) => {
+    if (host.store.readonly || host.hasAttribute('disabled')) return;
+    const controller = host.std.getOptional(ToolIdentifier(tool));
+    if (!controller) return;
+    host.gfx.tool.setTool(controller.constructor as ToolType, options);
+  };
+  switch (tool) {
+    case 'shape':
+      return html`<edgeless-shape-menu
+        .edgeless=${host.block}
+        .onChange=${(shapeName: ShapeName) => setTool({ shapeName })}
+      ></edgeless-shape-menu>`;
+    case 'connector':
+      return html`<edgeless-connector-menu
+        .edgeless=${host.block}
+        .onChange=${(props: Record<string, unknown>) => {
+          if (host.store.readonly || host.hasAttribute('disabled')) return;
+          const editProps = host.std.get(EditPropsStore);
+          editProps.recordLastProps('connector', props);
+          setTool({ mode: editProps.lastProps$.value.connector.mode });
+        }}
+      ></edgeless-connector-menu>`;
+    case 'affine:note':
+      return html`<edgeless-note-menu
+        .edgeless=${host.block}
+        .onChange=${(props: Record<string, unknown>) => {
+          const current = host.gfx.tool.currentToolOption$.value?.options;
+          setTool({ ...toolOptions(host, tool), ...current, ...props });
+        }}
+      ></edgeless-note-menu>`;
+    default:
+      return nothing;
+  }
+}
+
 function navigateToolbar(event: KeyboardEvent) {
   // Native buttons own Enter/Space. Do not let those keys pan the canvas.
   if (event.key === 'Enter' || event.key === ' ') {
@@ -80,11 +117,12 @@ function navigateToolbar(event: KeyboardEvent) {
   buttons[next]?.focus();
 }
 
-/** Plain buttons activate existing controllers; native dock/context stays intact. */
+/** Plain buttons activate existing controllers; options use the native menus. */
 export function renderDikwToolbar(
   host: EdgelessToolbarWidget,
   moreOpen: boolean,
-  toggleMore: () => void
+  toggleMore: () => void,
+  showOptions: (tool: string) => void
 ) {
   const locked = host.hasAttribute('disabled');
   const readonly = host.store.readonly;
@@ -119,6 +157,7 @@ export function renderDikwToolbar(
                   controller.constructor as ToolType,
                   toolOptions(host, tool.name)
                 );
+                showOptions(tool.name);
               }
             }}>
             <span aria-hidden="true">${tool.icon()}</span>
@@ -133,6 +172,7 @@ export function renderDikwToolbar(
         @click=${() => {
           if (host.store.readonly || host.hasAttribute('disabled')) return;
           closePopper();
+          showOptions('dikw:board-placement');
           host.dispatchEvent(new CustomEvent('dikw:board-tool', {
             bubbles: true, composed: true, detail: { action: 'open' },
           }));
@@ -142,7 +182,7 @@ export function renderDikwToolbar(
       </button>
       <button type="button" class="dikw-tool" data-tool="more" aria-label="更多工具"
         title="更多工具" aria-expanded=${moreOpen ? 'true' : 'false'}
-        aria-controls="dikw-native-dock" ?disabled=${locked || readonly}
+        aria-controls="dikw-advanced-tools" ?disabled=${locked || readonly}
         @click=${() => { closePopper(); toggleMore(); }}>
         <span aria-hidden="true">${MoreHorizontalIcon()}</span>
         <affine-tooltip tip-position="right">${moreOpen ? '收起更多工具' : '更多工具'}</affine-tooltip>
