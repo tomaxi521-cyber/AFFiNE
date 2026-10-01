@@ -15,6 +15,8 @@ import {
 } from './abuse';
 import { WorkspacesController } from './controller';
 import { WorkspaceEvents } from './event';
+import { MainBoardService } from './main-board';
+import { MainBoardController } from './main-board.controller';
 import { WorkspaceRealtimeModule } from './realtime.module';
 import {
   DocHistoryResolver,
@@ -41,7 +43,7 @@ import { WorkspaceStatsJob } from './stats.job';
     MailModule,
     WorkspaceRealtimeModule,
   ],
-  controllers: [WorkspacesController],
+  controllers: [WorkspacesController, MainBoardController],
   providers: [
     WorkspaceResolver,
     WorkspaceMemberResolver,
@@ -50,6 +52,7 @@ import { WorkspaceStatsJob } from './stats.job';
     DocHistoryResolver,
     WorkspaceBlobResolver,
     WorkspaceService,
+    MainBoardService,
     InviteAbuseDispositionService,
     InviteQuotaAssertService,
     WorkspaceEvents,

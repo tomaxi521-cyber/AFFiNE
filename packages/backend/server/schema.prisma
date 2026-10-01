@@ -209,10 +209,25 @@ model Workspace {
   docGrants                  DocGrant[]
   mcpCredentials             McpCredential[]
   artifacts                  WorkspaceArtifact[]
+  mainBoard                  WorkspaceMainBoard?
 
   @@index([lastCheckEmbeddings])
   @@index([createdAt])
   @@map("workspaces")
+}
+
+/// Immutable bootstrap identity and Yjs updates. Never replace on doc deletion.
+model WorkspaceMainBoard {
+  workspaceId   String   @id @map("workspace_id") @db.VarChar
+  docId         String   @map("doc_id") @db.VarChar
+  version       Int      @default(1)
+  rootUpdate    Bytes    @map("root_update") @db.ByteA
+  contentUpdate Bytes    @map("content_update") @db.ByteA
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("workspace_main_boards")
 }
 
 model Entitlement {
