@@ -152,13 +152,14 @@ function makeTransformer(deps: CopyBoardDependencies) {
   });
 }
 
-async function withDoc<T>(deps: CopyBoardDependencies, id: string, task: (store: Store) => Promise<T>): Promise<T> {
+async function withDoc<T>(deps: CopyBoardDependencies, id: string, task: (store: Store) => Promise<T>, emptyShell = false): Promise<T> {
   const opened = deps.docs.open(id);
   let releasePriority: (() => void) | undefined;
   try {
     releasePriority = opened.doc.addPriorityLoad(100);
     await opened.doc.waitForSyncReady();
-    await deps.workspace.engine.doc.waitForDocReady(id);
+    // A fresh skipInit shell has no update yet: ready would deadlock before import.
+    if (!emptyShell) await deps.workspace.engine.doc.waitForDocReady(id);
     return await task(opened.doc.blockSuiteDoc);
   } finally {
     releasePriority?.();
@@ -329,7 +330,7 @@ export async function copyBoardTree(
             await deps.workspace.engine.doc.waitForUpdated(node.docId);
             await deps.workspace.engine.doc.waitForUpdated(deps.workspace.id);
             assertCopySnapshotEqual(node.snapshot, exportExact(transformer, store));
-          });
+          }, true);
           journal.phases[index] = 'saved';
           await journalAccess(key, journal);
         }
