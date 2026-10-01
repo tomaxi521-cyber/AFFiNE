@@ -69,7 +69,9 @@ export const WorkbenchRoot = memo(() => {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          flex: 1,
+          flex: '1 1 0%',
+          width: 0,
+          overflow: 'hidden',
           minWidth: 0,
           minHeight: 0,
           height: '100%',

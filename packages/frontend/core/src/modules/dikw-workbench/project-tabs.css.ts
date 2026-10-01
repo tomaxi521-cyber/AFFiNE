@@ -1,6 +1,9 @@
 import { style } from '@vanilla-extract/css';
 
 export const container = style({
+  width: '100%',
+  maxWidth: '100%',
+  overflow: 'hidden',
   flexShrink: 0,
   minWidth: 0,
   background: 'var(--affine-background-secondary-color)',
@@ -12,6 +15,9 @@ export const strip = style({
   gap: 4,
   padding: '6px 12px 0',
   minHeight: 40,
+  minWidth: 0,
+  maxWidth: '100%',
+  boxSizing: 'border-box',
   overflowX: 'auto',
   scrollbarWidth: 'thin',
 });
