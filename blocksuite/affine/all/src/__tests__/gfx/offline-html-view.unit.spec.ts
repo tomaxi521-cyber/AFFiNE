@@ -103,6 +103,47 @@ describe('HTML execution lifecycle (DOM simulation, not CSP browser proof)', () 
       '5 MiB'
     );
   });
+  test('exit authenticates current frame and restores host focus', async () => {
+    const el = await mount();
+    el.loadBlob = async () => new Blob(['<input>']);
+    run(el);
+    await flush(el);
+    const frame = el.shadowRoot!.querySelector('iframe')!;
+    const data = { type: 'dikw:offline-html:exit', version: 1 };
+    window.dispatchEvent(new MessageEvent('message', { source: window, data }));
+    await flush(el);
+    expect(el.shadowRoot!.querySelector('.frame')!.hasAttribute('inert')).toBe(
+      false
+    );
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: frame.contentWindow,
+        data: { ...data, extra: true },
+      })
+    );
+    await flush(el);
+    expect(el.shadowRoot!.querySelector('.frame')!.hasAttribute('inert')).toBe(
+      false
+    );
+    window.dispatchEvent(
+      new MessageEvent('message', { source: frame.contentWindow, data })
+    );
+    await flush(el);
+    expect(el.shadowRoot!.querySelector('.frame')!.hasAttribute('inert')).toBe(
+      true
+    );
+    expect(document.activeElement).toBe(el);
+    run(el);
+    await flush(el);
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+    );
+    await flush(el);
+    expect(el.shadowRoot!.querySelector('iframe')).toBe(frame);
+    expect(el.shadowRoot!.querySelector('.frame')!.hasAttribute('inert')).toBe(
+      true
+    );
+  });
   test('exit retains iframe, reset and readonly revoke runtime', async () => {
     const el = await mount();
     el.loadBlob = async () => new Blob(['<button>Hi</button>']);

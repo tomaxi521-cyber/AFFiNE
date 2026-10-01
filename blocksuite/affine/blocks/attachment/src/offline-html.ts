@@ -14,6 +14,16 @@ const resources =
   "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 export const OFFLINE_HTML_PERMISSIONS =
   "camera 'none'; microphone 'none'; geolocation 'none'; clipboard-read 'none'; clipboard-write 'none'; payment 'none'; usb 'none'";
+export const OFFLINE_HTML_EXIT_TYPE = 'dikw:offline-html:exit';
+export function isOfflineHtmlExit(data: unknown): boolean {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    (data as { type?: unknown }).type === OFFLINE_HTML_EXIT_TYPE &&
+    (data as { version?: unknown }).version === 1 &&
+    Object.keys(data).length === 2
+  );
+}
 function escapeAttribute(value: string) {
   return value
     .replace(/&/g, '&amp;')
@@ -22,14 +32,18 @@ function escapeAttribute(value: string) {
     .replace(/>/g, '&gt;');
 }
 export function buildOfflineHtmlSrcdoc(source: string): string {
-  // CSP precedes ALL artifact bytes. No parsing or insertion into host DOM.
+  // Fixed exit-only code precedes artifact scripts; artifact bytes never enter trusted JS.
+  const exitScript =
+    '<script>addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();parent.postMessage({type:"dikw:offline-html:exit",version:1},"*")}},true)</script>';
+  const relay =
+    '<script>addEventListener("message",e=>{const f=document.querySelector("iframe"),d=e.data;if(e.source===f.contentWindow&&d&&d.type==="dikw:offline-html:exit"&&d.version===1&&Object.keys(d).length===2){parent.postMessage({type:"dikw:offline-html:exit",version:1},"*")}})</script>';
   const inner =
     '<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' +
     resources +
     "; frame-src 'none'\">" +
+    exitScript +
     source;
-  // The trusted wrapper policy blocks HTTP self-navigation by the inner frame.
-  // srcdoc inherits the wrapper CSP, including its resource permissions.
+  // Wrapper CSP still blocks child HTTP self-navigation. No data/Agent bridge.
   return (
     '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' +
     resources +
@@ -37,6 +51,8 @@ export function buildOfflineHtmlSrcdoc(source: string): string {
     escapeAttribute(OFFLINE_HTML_PERMISSIONS) +
     '" srcdoc="' +
     escapeAttribute(inner) +
-    '"></iframe></body></html>'
+    '"></iframe>' +
+    relay +
+    '</body></html>'
   );
 }

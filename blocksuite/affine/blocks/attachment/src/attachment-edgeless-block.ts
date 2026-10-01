@@ -74,6 +74,13 @@ export const AttachmentBlockInteraction = GfxViewInteractionExtension(
     resizeConstraint: {
       lockRatio: true,
     },
+    handleResize: ({ model }) => ({
+      beforeResize: ({ set }) => {
+        if (model.props.embed && isOfflineHtml(model.props)) {
+          set({ lockRatio: false, minWidth: 240, minHeight: 160 });
+        }
+      },
+    }),
     handleRotate: () => {
       return {
         beforeRotate: context => {

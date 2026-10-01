@@ -16,6 +16,7 @@ import {
 import { matchModels } from '@blocksuite/affine-shared/utils';
 import { BlockSuiteError, ErrorCode } from '@blocksuite/global/exceptions';
 import { BlockSelection } from '@blocksuite/std';
+import { GfxControllerIdentifier } from '@blocksuite/std/gfx';
 import { flip, offset, shift } from '@floating-ui/dom';
 import {
   computed,
@@ -68,16 +69,20 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
   readonly hasError$ = computed(() => this.status$.value === 'error');
   readonly isSuccess$ = computed(() => this.status$.value === 'success');
 
+  // Local interaction state, deliberately separate from surface editing.
+  // Native surface toolbars hide while editing=true, including the exit action.
+  readonly interactionActive$ = signal(false);
   readonly isDraggingOnHost$ = signal(false);
   readonly isResizing$ = signal(false);
-  // show overlay to prevent the iframe from capturing pointer events
-  // when the block is dragging, resizing, or not selected
+  // Selection alone must not hand pointer/keyboard control to the iframe.
   readonly showOverlay$ = computed(
     () =>
       this.isSuccess$.value &&
       (this.isDraggingOnHost$.value ||
         this.isResizing$.value ||
-        !this.selected$.value)
+        !this.interactionActive$.value ||
+        !this.selected$.value ||
+        this.readonly)
   );
 
   // since different providers have different border radius
@@ -145,6 +150,7 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
   };
 
   refreshData = async () => {
+    this.exitInteraction(false);
     try {
       const { url } = this.model.props;
       if (!url) {
@@ -310,7 +316,70 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
       : config.match(iframeUrl);
   };
 
-  private readonly _handleDoubleClick = () => {
+  enterInteraction = () => {
+    if (this.readonly || !this.isSuccess$.peek()) return;
+    if (this.inSurface) {
+      this.std.get(GfxControllerIdentifier).selection.set({
+        elements: [this.model.id],
+        editing: false,
+      });
+    } else {
+      this._selectBlock();
+    }
+    this.interactionActive$.value = true;
+  };
+
+  exitInteraction = (restoreFocus = true) => {
+    if (!this.interactionActive$.peek()) return;
+    this.interactionActive$.value = false;
+    // Only touch the host-owned iframe element, never its document or window.
+    // Changing interaction must not replace the iframe, its URL or runtime.
+    this._iframe?.blur();
+    if (restoreFocus && this.isConnected) {
+      this.host.focus({ preventScroll: true });
+    }
+  };
+
+  toggleInteraction = () => {
+    if (this.interactionActive$.peek()) this.exitInteraction();
+    else this.enterInteraction();
+  };
+
+  private readonly _isOwnToolbarEvent = (path: EventTarget[]) =>
+    path.includes(this.host) &&
+    path.some(
+      node => node instanceof HTMLElement && node.tagName === 'EDITOR-TOOLBAR'
+    );
+
+  private readonly _handleOutsidePointerDown = (event: PointerEvent) => {
+    if (!this.interactionActive$.peek()) return;
+    const path = event.composedPath();
+    if (path.includes(this) || this._isOwnToolbarEvent(path)) return;
+    // Let the clicked control receive focus; do not reselect this block.
+    this.exitInteraction(false);
+  };
+
+  private readonly _handleHostEscape = (event: KeyboardEvent) => {
+    if (
+      event.key !== 'Escape' ||
+      event.isComposing ||
+      !this.interactionActive$.peek() ||
+      !event.composedPath().includes(this.host)
+    )
+      return;
+    // Events inside an arbitrary cross-origin iframe never reach this listener.
+    // The host toolbar is the reliable exit path, not a promised global Esc.
+    event.preventDefault();
+    event.stopPropagation();
+    this.exitInteraction();
+  };
+
+  private readonly _handleDoubleClick = (event: MouseEvent) => {
+    if (this.isSuccess$.peek()) {
+      event.stopPropagation();
+      this.enterInteraction();
+      return;
+    }
     this.open();
   };
 
@@ -379,6 +448,9 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
         : TRUSTED_SANDBOX);
     const sourceHost = this._getSourceHost();
     return html`<iframe
+        data-dikw-online-iframe
+        ?inert=${this.showOverlay$.value}
+        tabindex=${this.showOverlay$.value ? '-1' : '0'}
         width=${width ?? DEFAULT_IFRAME_WIDTH}
         height=${height ?? DEFAULT_IFRAME_HEIGHT}
         ?allowfullscreen=${allowFullscreen}
@@ -392,11 +464,9 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
         scrolling=${ifDefined(scrolling)}
         style=${ifDefined(style)}
       ></iframe>
-      ${
-        sourceHost
-          ? html`<div class="affine-embed-iframe-source">${sourceHost}</div>`
-          : nothing
-      }`;
+      ${sourceHost
+        ? html`<div class="affine-embed-iframe-source">${sourceHost}</div>`
+        : nothing}`;
   };
 
   private readonly _isIframeUrlAllowed = (iframeUrl: string) => {
@@ -447,6 +517,26 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
 
     this.contentEditable = 'false';
 
+    this.disposables.addFromEvent(
+      this.ownerDocument,
+      'pointerdown',
+      this._handleOutsidePointerDown,
+      true
+    );
+    this.disposables.addFromEvent(
+      this.ownerDocument,
+      'keydown',
+      this._handleHostEscape,
+      true
+    );
+    this.disposables.add(
+      effect(() => {
+        if (!this.selected$.value || !this.isSuccess$.value || this.readonly) {
+          this.exitInteraction(false);
+        }
+      })
+    );
+
     // update the selected style when the block is in the note
     this.disposables.add(
       effect(() => {
@@ -494,6 +584,7 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
     this.handleEvent(
       'dragStart',
       () => {
+        this.exitInteraction(false);
         this.isDraggingOnHost$.value = true;
       },
       { global: true }
@@ -508,6 +599,7 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
   }
 
   override disconnectedCallback() {
+    this.exitInteraction(false);
     super.disconnectedCallback();
     this._linkInputAbortController?.abort();
     this._linkInputAbortController = null;
@@ -562,6 +654,9 @@ export class EmbedIframeBlockComponent extends CaptionedBlockComponent<EmbedIfra
   override accessor useZeroWidth = true;
 
   override accessor selectedStyle = SelectedStyle.Border;
+
+  @query('iframe[data-dikw-online-iframe]')
+  accessor _iframe: HTMLIFrameElement | null = null;
 
   @query('.affine-embed-iframe-block-container')
   accessor _blockContainer: HTMLElement | null = null;

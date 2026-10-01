@@ -27,13 +27,18 @@ export class EmbedEdgelessIframeBlockComponent extends toGfxBlockComponent(
   override connectedCallback() {
     super.connectedCallback();
 
-    this.edgelessSlots.elementResizeStart.subscribe(() => {
-      this.isResizing$.value = true;
-    });
+    this.disposables.add(
+      this.edgelessSlots.elementResizeStart.subscribe(() => {
+        this.exitInteraction(false);
+        this.isResizing$.value = true;
+      })
+    );
 
-    this.edgelessSlots.elementResizeEnd.subscribe(() => {
-      this.isResizing$.value = false;
-    });
+    this.disposables.add(
+      this.edgelessSlots.elementResizeEnd.subscribe(() => {
+        this.isResizing$.value = false;
+      })
+    );
   }
 
   override renderGfxBlock() {

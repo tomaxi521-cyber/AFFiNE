@@ -3,6 +3,7 @@ import { property, state } from 'lit/decorators.js';
 import { keyed } from 'lit/directives/keyed.js';
 import {
   buildOfflineHtmlSrcdoc,
+  isOfflineHtmlExit,
   OFFLINE_HTML_MAX_BYTES,
   OFFLINE_HTML_PERMISSIONS,
 } from './offline-html';
@@ -80,6 +81,25 @@ export class OfflineHtmlView extends LitElement {
   @state() private accessor error = '';
   @state() private accessor generation = 0;
   private ticket = 0;
+  private readonly onExitMessage = (event: MessageEvent) => {
+    const frame = this.shadowRoot?.querySelector('iframe');
+    if (
+      this.active &&
+      this.canRun &&
+      !this.readOnly &&
+      frame &&
+      event.source === frame.contentWindow &&
+      isOfflineHtmlExit(event.data)
+    )
+      this.exit();
+  };
+  private readonly onEscape = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && this.active) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      this.exit();
+    }
+  };
   private readonly outside = (event: Event) => {
     const path = event.composedPath();
     // The host toolbar is outside the block, not inside untrusted content.
@@ -94,6 +114,11 @@ export class OfflineHtmlView extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
     this.ownerDocument.addEventListener('pointerdown', this.outside, true);
+    this.ownerDocument.addEventListener('keydown', this.onEscape, true);
+    this.ownerDocument.defaultView?.addEventListener(
+      'message',
+      this.onExitMessage
+    );
   }
   override disconnectedCallback() {
     super.disconnectedCallback();
@@ -103,6 +128,11 @@ export class OfflineHtmlView extends LitElement {
     this.srcdoc = '';
     this.onState?.({ active: false, running: false, loading: false });
     this.ownerDocument.removeEventListener('pointerdown', this.outside, true);
+    this.ownerDocument.removeEventListener('keydown', this.onEscape, true);
+    this.ownerDocument.defaultView?.removeEventListener(
+      'message',
+      this.onExitMessage
+    );
   }
   protected override willUpdate(changes: PropertyValues) {
     if (changes.has('sourceId')) {
@@ -137,6 +167,10 @@ export class OfflineHtmlView extends LitElement {
   }
   exit = () => {
     this.active = false;
+    this.shadowRoot?.querySelector('iframe')?.blur();
+    // Return focus to an owned element under the editor, without changing selection.
+    this.tabIndex = -1;
+    this.focus({ preventScroll: true });
   };
   run = async () => {
     if (!this.canRun || this.readOnly || this.loading) return;
@@ -211,7 +245,8 @@ export class OfflineHtmlView extends LitElement {
               <h3>可交互的离线 HTML</h3>
               <p>
                 选中组件，在上方浮动工具栏点击「运行
-                HTML」。运行后可在内部点击、输入和滚动；从同一工具栏退出操作。
+                HTML」。运行后可在内部点击、输入和滚动；按 Esc
+                或从同一工具栏退出操作。
               </p>
               <p>
                 仅支持 5 MiB

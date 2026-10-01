@@ -3,11 +3,25 @@ import { describe, expect, test } from 'vitest';
 import {
   buildOfflineHtmlSrcdoc,
   isOfflineHtml,
+  isOfflineHtmlExit,
   offlineHtmlScale,
   OFFLINE_HTML_MAX_BYTES,
 } from '../../../../blocks/attachment/src/offline-html.js';
 
 describe('offline HTML attachment boundary', () => {
+  test('accepts only the exact exit-only protocol', () => {
+    expect(
+      isOfflineHtmlExit({ type: 'dikw:offline-html:exit', version: 1 })
+    ).toBe(true);
+    for (const data of [
+      null,
+      'exit',
+      {},
+      { type: 'dikw:offline-html:exit', version: 2 },
+      { type: 'dikw:offline-html:exit', version: 1, payload: 'write' },
+    ])
+      expect(isOfflineHtmlExit(data)).toBe(false);
+  });
   test('legacy and invalid presentation scales are safe while normal scales persist', () => {
     for (const value of [undefined, NaN, Infinity, -1, 0, 6])
       expect(offlineHtmlScale(value)).toBe(1);
@@ -42,7 +56,13 @@ describe('offline HTML attachment boundary', () => {
       'text/html'
     );
     expect(wrapper.querySelectorAll('iframe')).toHaveLength(1);
-    expect(wrapper.querySelectorAll('script')).toHaveLength(0);
+    expect(wrapper.querySelectorAll('script')).toHaveLength(1);
+    expect(wrapper.querySelector('script')!.textContent).toContain(
+      'e.source===f.contentWindow'
+    );
+    expect(wrapper.querySelector('script')!.textContent).not.toContain(
+      'window.escape'
+    );
     expect(wrapper.querySelector('iframe')?.getAttribute('sandbox')).toBe(
       'allow-scripts'
     );

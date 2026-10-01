@@ -23,7 +23,9 @@ import {
   CopyIcon,
   DeleteIcon,
   DuplicateIcon,
+  EdgelessIcon,
   LinkedPageIcon,
+  PlayIcon,
   OpenInNewIcon,
   ResetIcon,
 } from '@blocksuite/icons/lit';
@@ -76,6 +78,34 @@ const openLinkAction = (id: string): ToolbarAction => {
   };
 };
 
+const interactionAction = {
+  id: 'a.iframe-interaction',
+  when: showWhenUrlExists,
+  content(ctx) {
+    const block = ctx.getCurrentBlockByType(EmbedIframeBlockComponent);
+    if (!block) return null;
+    const active = block.interactionActive$.value;
+    const label = active ? '退出操作' : '进入操作';
+    const hint = active
+      ? '退出网页操作，返回白板；网页内部的 Esc 不一定能被白板接收'
+      : '进入网页操作；通过此工具栏退出，或点击网页外部';
+    return html`<editor-icon-button
+      data-testid="dikw-iframe-interaction"
+      aria-label=${label}
+      aria-pressed=${String(active)}
+      .tooltip=${hint}
+      ?active=${active}
+      ?disabled=${ctx.store.readonly || !block.isSuccess$.value}
+      @pointerdown=${(event: Event) => event.stopPropagation()}
+      @click=${(event: Event) => {
+        event.stopPropagation();
+        block.toggleInteraction();
+      }}
+      >${active ? EdgelessIcon() : PlayIcon()}</editor-icon-button
+    >`;
+  },
+} satisfies ToolbarAction;
+
 const captionAction = (id: string): ToolbarAction => {
   return {
     id,
@@ -96,6 +126,7 @@ const captionAction = (id: string): ToolbarAction => {
 
 export const builtinToolbarConfig = {
   actions: [
+    interactionAction,
     openLinkAction('a.open-link'),
     {
       id: 'c.conversions',
@@ -336,6 +367,7 @@ export const builtinToolbarConfig = {
 
 export const builtinSurfaceToolbarConfig = {
   actions: [
+    interactionAction,
     openLinkAction('a.open-link'),
     {
       id: 'c.conversions',
