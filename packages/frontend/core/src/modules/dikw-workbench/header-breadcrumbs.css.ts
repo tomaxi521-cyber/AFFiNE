@@ -1,0 +1,9 @@
+import {style} from '@vanilla-extract/css';
+import {cssVarV2} from '@toeverything/theme/v2';
+export const root=style({display:'flex',alignItems:'center',gap:4,flex:'1 1 0',minWidth:0,height:'100%'});
+export const back=style({flexShrink:0,width:30,height:30,border:0,borderRadius:6,background:'transparent',color:cssVarV2('text/secondary'),cursor:'pointer',fontSize:18,selectors:{'&:hover:not(:disabled)':{background:cssVarV2('button/secondary')},'&:disabled':{opacity:.35,cursor:'default'},'&:focus-visible':{outline:'2px solid '+cssVarV2('input/border/active')}}});
+export const ancestors=style({display:'flex',alignItems:'center',minWidth:0,flex:'0 1 auto',maxWidth:'55%',overflowX:'auto',scrollbarWidth:'none'});
+export const crumb=style({display:'flex',alignItems:'center',gap:4,flexShrink:0,color:cssVarV2('text/secondary'),fontSize:13});
+export const link=style({display:'block',maxWidth:130,padding:'6px 4px',borderRadius:4,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'inherit',textDecoration:'none',selectors:{'&:hover':{background:cssVarV2('button/secondary')},'&:focus-visible':{outline:'2px solid '+cssVarV2('input/border/active'),outlineOffset:-2}}});
+export const current=style({minWidth:0,flex:'1 1 80px',overflow:'hidden'});
+export const title=style({minWidth:0,maxWidth:'100%',width:'100%'});

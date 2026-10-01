@@ -15,6 +15,8 @@ import { BlocksuiteHeaderTitle } from '@affine/core/blocksuite/block-suite-heade
 import { EditorModeSwitch } from '@affine/core/blocksuite/block-suite-mode-switch';
 import { useRegisterCopyLinkCommands } from '@affine/core/components/hooks/affine/use-register-copy-link-commands';
 import { HeaderDivider } from '@affine/core/components/pure/header';
+import { HeaderBreadcrumbs } from '@affine/core/modules/dikw-workbench/header-breadcrumbs';
+import * as breadcrumbStyles from '@affine/core/modules/dikw-workbench/header-breadcrumbs.css';
 import { BoardViewSwitch } from '@affine/core/modules/dikw-workbench/board-view-switch';
 import { DikwWorkbenchService } from '@affine/core/modules/dikw-workbench/service';
 import { DocService } from '@affine/core/modules/doc';
@@ -160,7 +162,7 @@ export function NormalPageHeader({ page, workspace }: PageHeaderProps) {
       <ViewTitle title={title} />
       <ViewIcon icon={currentMode ?? 'page'} />
       {isBoard ? <BoardViewSwitch /> : <EditorModeSwitch />}
-      <BlocksuiteHeaderTitle inputHandleRef={titleInputHandleRef} />
+      {isBoard ? <HeaderBreadcrumbs docId={page.id}><BlocksuiteHeaderTitle className={breadcrumbStyles.title} inputHandleRef={titleInputHandleRef} /></HeaderBreadcrumbs> : <BlocksuiteHeaderTitle inputHandleRef={titleInputHandleRef} />}
       <TemplateMark />
       <div className={styles.iconButtonContainer}>
         {hideCollect ? null : (
@@ -176,7 +178,7 @@ export function NormalPageHeader({ page, workspace }: PageHeaderProps) {
         />
       </div>
 
-      <div className={styles.spacer} />
+      {!isBoard && <div className={styles.spacer} />}
 
       {!hidePresent ? <DetailPageHeaderPresentButton /> : null}
 
