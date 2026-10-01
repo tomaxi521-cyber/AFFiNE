@@ -221,7 +221,7 @@ export const useColumns = ({
                       key={feature}
                       className="inline-flex h-5 items-center rounded-md border border-border/60 bg-chip-white px-2 py-0.5 text-xxs font-medium"
                     >
-                      {feature}
+                      {feature === FeatureType.Admin ? '管理员' : feature}
                     </span>
                   ))
                 ) : (

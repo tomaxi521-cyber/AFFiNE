@@ -22,7 +22,7 @@ import { toDocSearchParams } from '@affine/core/modules/navigation/utils';
 import { GlobalSessionStateService } from '@affine/core/modules/storage';
 import { WorkbenchLink } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+import { useI18n, useTranslation } from '@affine/i18n';
 import track from '@affine/track';
 import type {
   ExtensionType,
@@ -408,6 +408,7 @@ export const LinkPreview = ({
 };
 
 export const BiDirectionalLinkPanel = () => {
+  const { t: translate } = useTranslation('translation');
   const { docLinksService, docService } = useServices({
     DocLinksService,
     DocService,
@@ -435,7 +436,11 @@ export const BiDirectionalLinkPanel = () => {
       {!show && <Divider size="thinner" />}
 
       <div className={styles.titleLine}>
-        <div className={styles.title}>Bi-Directional Links</div>
+        <div className={styles.title}>
+          {translate('com.affine.editor.bi-directional-link-panel.title', {
+            defaultValue: 'Bi-Directional Links',
+          })}
+        </div>
         <Button className={styles.showButton} onClick={handleClickShow}>
           {show
             ? t['com.affine.editor.bi-directional-link-panel.hide']()

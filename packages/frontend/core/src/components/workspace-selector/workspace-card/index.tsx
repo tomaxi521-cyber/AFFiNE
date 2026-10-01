@@ -52,10 +52,11 @@ const RemoteWorkspaceStatus = ({ selfHosted }: { selfHosted?: boolean }) => {
 };
 
 const SyncingWorkspaceStatus = ({ progress }: { progress?: number }) => {
+  const t = useI18n();
   return (
     <>
       <Loading progress={progress} speed={0} />
-      Syncing...
+      {t['com.affine.syncing']()}...
     </>
   );
 };
