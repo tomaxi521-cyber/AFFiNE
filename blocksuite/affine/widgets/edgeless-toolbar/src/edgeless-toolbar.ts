@@ -622,7 +622,10 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       if(!rail || !lastPointer || cancelled || !moved)return;
       const r=rail.getBoundingClientRect();
       const direction=lastPointer.clientX<r.left+36?-1:lastPointer.clientX>r.right-36?1:0;
-      if(overRail(lastPointer)&&direction)rail.scrollLeft+=direction*8;
+      if(overRail(lastPointer)&&direction){
+        rail.scrollLeft+=direction*8;
+        for (const el of this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')) el.toggleAttribute('data-insert-before',el.dataset.pinId===before(lastPointer));
+      }
       scrollFrame=requestAnimationFrame(scrollEdge);
     };
     const move = (e: PointerEvent) => {

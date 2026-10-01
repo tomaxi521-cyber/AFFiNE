@@ -111,6 +111,7 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
     // viewport coordinates unreliable here. Reuse native menus without a dock.
     Object.assign(menu.style, { transition: 'none', flex: '0 0 100%', minWidth: '0', boxSizing: 'border-box' });
     clipWrapper.style.overflowX = 'auto';
+    clipWrapper.style.alignItems = 'start';
     const updatePosition = () => {
       if (removed) return;
       const hostRect = toolbar.getBoundingClientRect();
