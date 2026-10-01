@@ -20,12 +20,7 @@ import {
   useLiveData,
   useService,
 } from '@toeverything/infra';
-import {
-  FolderIcon,
-  EdgelessIcon,
-  PageIcon,
-  PlusIcon,
-} from '@blocksuite/icons/rc';
+import { SidebarIcon } from './sidebar-icon';
 import { createPortal } from 'react-dom';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -116,7 +111,7 @@ export function ProjectWorkspaces() {
               });
             }}
           >
-            <PlusIcon width={16} height={16} aria-hidden="true" />
+            <SidebarIcon name="plus" size={18} />
           </button>
         </div>
         {items.map(meta => (
@@ -160,19 +155,13 @@ function WorkspaceFolder({
           aria-expanded={expanded}
           onClick={toggle}
         >
-          {expanded ? '▾' : '▸'}
+          <SidebarIcon name={expanded ? 'folder-open' : 'folder'} />
         </button>
         <button
           className={styles.button + ' ' + styles.label}
           onClick={toggle}
           title={name}
         >
-          <FolderIcon
-            className={styles.icon}
-            width={16}
-            height={16}
-            aria-hidden="true"
-          />
           <span className={styles.title}>{name}</span>
         </button>
         <span className={styles.actions}>
@@ -183,7 +172,7 @@ function WorkspaceFolder({
             disabled={ambiguous}
             onClick={() => navigate.jumpToPage(meta.id, 'all')}
           >
-            <PageIcon width={16} height={16} aria-hidden="true" />
+            <SidebarIcon name="documents" size={18} />
           </button>
           <span className={styles.actionSlot} ref={setActionsHost} />
         </span>
@@ -375,7 +364,7 @@ function ProjectTree({ meta, actionsHost }: WorkspaceContentsProps) {
             disabled={canCreate !== true || workspace.openOptions.isSharedMode}
             onClick={() => setCreating(true)}
           >
-            <PlusIcon width={16} height={16} aria-hidden="true" />
+            <SidebarIcon name="plus" size={18} />
           </button>,
           actionsHost
         )}
@@ -398,7 +387,15 @@ function ProjectTree({ meta, actionsHost }: WorkspaceContentsProps) {
                   aria-expanded={expanded.has(row.id)}
                   onClick={() => toggle(row.id)}
                 >
-                  {expanded.has(row.id) ? '▾' : '▸'}
+                  <SidebarIcon
+                    name="chevron"
+                    size={14}
+                    style={{
+                      transform: expanded.has(row.id)
+                        ? 'rotate(90deg)'
+                        : undefined,
+                    }}
+                  />
                 </button>
               ) : (
                 <span className={styles.indent} aria-hidden="true" />
@@ -409,12 +406,7 @@ function ProjectTree({ meta, actionsHost }: WorkspaceContentsProps) {
                 title={name}
                 onClick={() => open(row.id)}
               >
-                <EdgelessIcon
-                  className={styles.icon}
-                  width={16}
-                  height={16}
-                  aria-hidden="true"
-                />
+                <SidebarIcon name="board" size={18} className={styles.icon} />
                 <span className={styles.title}>{name}</span>
               </button>
               <button
@@ -432,7 +424,7 @@ function ProjectTree({ meta, actionsHost }: WorkspaceContentsProps) {
                   setRenameTitle(name);
                 }}
               >
-                ⋯
+                <SidebarIcon name="more" size={18} />
               </button>
             </div>
             {rename === row.id && (

@@ -1,9 +1,8 @@
 import { IconButton } from '@affine/component';
 import { NotificationCountService } from '@affine/core/modules/notification';
 import { track } from '@affine/track';
-import { SidebarIcon } from '@blocksuite/icons/rc';
+import { SidebarIcon } from '@affine/core/components/root-app-sidebar/sidebar-icon';
 import { useLiveData, useService } from '@toeverything/infra';
-import clsx from 'clsx';
 import { useCallback, useRef } from 'react';
 
 import { AppSidebarService } from '../../services/app-sidebar';
@@ -69,11 +68,9 @@ export const SidebarSwitch = ({
           zIndex: 1,
         }}
         onClick={handleClickSwitch}
+        aria-label={open ? '收起侧栏' : '展开侧栏'}
       >
-        <SidebarIcon
-          className={clsx(styles.switchIcon)}
-          data-notification={showNotificationDot}
-        />
+        <SidebarIcon name="sidebar" />
       </IconButton>
     </div>
   );

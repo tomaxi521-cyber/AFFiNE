@@ -16,6 +16,7 @@ import { useLiveData, useService } from '@toeverything/infra';
 
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { iconButton } from './footer-tools.css';
+import { SidebarIcon } from './sidebar-icon';
 
 export const TrashButton = ({ iconOnly = false }: { iconOnly?: boolean }) => {
   const workbench = useService(WorkbenchService).workbench;
@@ -78,15 +79,23 @@ export const TrashButton = ({ iconOnly = false }: { iconOnly?: boolean }) => {
     [docsService.list, guardService, openConfirmModal, t]
   );
 
-  if (iconOnly) return <div ref={dropTargetRef}>
-    <Tooltip content={t['com.affine.workspaceSubPath.trash']()}>
-      <button type="button" className={iconButton} aria-label={t['com.affine.workspaceSubPath.trash']()}
-        data-testid="trash-page" data-active={trashActive || draggedOver}
-        onClick={() => workbench.open('/trash')}>
-        <AnimatedDeleteIcon closed={draggedOver} width={22} height={22} />
-      </button>
-    </Tooltip>
-  </div>;
+  if (iconOnly)
+    return (
+      <div ref={dropTargetRef}>
+        <Tooltip content={t['com.affine.workspaceSubPath.trash']()}>
+          <button
+            type="button"
+            className={iconButton}
+            aria-label={t['com.affine.workspaceSubPath.trash']()}
+            data-testid="trash-page"
+            data-active={trashActive || draggedOver}
+            onClick={() => workbench.open('/trash')}
+          >
+            <SidebarIcon name="trash" />
+          </button>
+        </Tooltip>
+      </div>
+    );
 
   return (
     <MenuLinkItem

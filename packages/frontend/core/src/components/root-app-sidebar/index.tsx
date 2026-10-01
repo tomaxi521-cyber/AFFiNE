@@ -13,7 +13,7 @@ import type { Workspace } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
 import { track } from '@affine/track';
 import type { Store } from '@blocksuite/affine/store';
-import { ImportIcon, SettingsIcon } from '@blocksuite/icons/rc';
+import { SidebarIcon } from './sidebar-icon';
 import { useLiveData, useService, useServices } from '@toeverything/infra';
 import type { ReactElement } from 'react';
 import { memo, useCallback } from 'react';
@@ -158,6 +158,7 @@ export const RootAppSidebar = memo((): ReactElement => {
         <div className={quickSearchRow}>
           <QuickSearchInput
             className={quickSearch}
+            icon={<SidebarIcon name="search" size={18} />}
             data-testid="slider-bar-quick-search-button"
             data-event-props="$.navigationPanel.$.quickSearch"
             onClick={onOpenQuickSearchModal}
@@ -184,7 +185,7 @@ export const RootAppSidebar = memo((): ReactElement => {
               data-testid="slider-bar-workspace-setting-button"
               onClick={onOpenSettingModal}
             >
-              <SettingsIcon width={22} height={22} />
+              <SidebarIcon name="settings" />
             </button>
           </Tooltip>
           <Tooltip content={t['Import']()}>
@@ -195,7 +196,7 @@ export const RootAppSidebar = memo((): ReactElement => {
               data-testid="slider-bar-import-button"
               onClick={onOpenImportModal}
             >
-              <ImportIcon width={22} height={22} />
+              <SidebarIcon name="import" />
             </button>
           </Tooltip>
           <TemplateDocEntrance iconOnly />

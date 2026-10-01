@@ -62,13 +62,13 @@ export const iconButton = style({
 export const label = style({
   display: 'flex',
   alignItems: 'center',
-  gap: 6,
+  gap: 8,
   flex: 1,
   minWidth: 0,
   textAlign: 'left',
   paddingInline: 2,
 });
-export const icon = style({ flexShrink: 0 });
+export const icon = style({ flexShrink: 0, color: cssVarV2('text/secondary') });
 export const title = style({
   minWidth: 0,
   overflow: 'hidden',
@@ -100,7 +100,7 @@ export const indent = style({
   flexShrink: 0,
   '@media': { [coarsePointer]: { width: 44 } },
 });
-export const tree = style({ minWidth: 0, paddingLeft: 10 });
+export const tree = style({ minWidth: 0, paddingLeft: 0 });
 export const small = style({
   fontSize: 12,
   color: cssVarV2('text/secondary'),
