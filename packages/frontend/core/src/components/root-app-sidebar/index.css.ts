@@ -10,7 +10,7 @@ export const workspaceAndUserWrapper = style({
   paddingRight: 6,
   alignSelf: 'center',
 });
-export const quickSearchAndNewPage = style({
+export const quickSearchRow = style({
   display: 'flex',
   alignItems: 'center',
   gap: 8,

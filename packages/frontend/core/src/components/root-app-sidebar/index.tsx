@@ -3,7 +3,6 @@ import * as footerStyles from './footer-tools.css';
 import { BoardTree } from './board-tree';
 import { LibraryTree } from './library-tree';
 import {
-  AddPageButton,
   AppDownloadButton,
   AppSidebar,
   QuickSearchInput,
@@ -29,7 +28,7 @@ import { WorkspaceNavigator } from '../workspace-selector';
 import {
   bottomContainer,
   quickSearch,
-  quickSearchAndNewPage,
+  quickSearchRow,
   workspaceAndUserWrapper,
   workspaceWrapper,
 } from './index.css';
@@ -145,14 +144,13 @@ export const RootAppSidebar = memo((): ReactElement => {
           </div>
           <UserInfo />
         </div>
-        <div className={quickSearchAndNewPage}>
+        <div className={quickSearchRow}>
           <QuickSearchInput
             className={quickSearch}
             data-testid="slider-bar-quick-search-button"
             data-event-props="$.navigationPanel.$.quickSearch"
             onClick={onOpenQuickSearchModal}
           />
-          <AddPageButton />
         </div>
       </SidebarContainer>
       <SidebarScrollableContainer><BoardLibraryEntries /></SidebarScrollableContainer>
