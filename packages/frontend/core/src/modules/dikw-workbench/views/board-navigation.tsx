@@ -142,12 +142,12 @@ const BoardNavigationContent = ({
           <button
             type="button"
             className={styles.textButton}
-            aria-label="返回主白板"
-            title="返回主白板"
+            aria-label="返回主工作台"
+            title="返回主工作台"
             disabled={navigationDisabled || !root || path.length < 2}
             onClick={() => root && onNavigate(root.id)}
           >
-            主白板
+            主工作台
           </button>
         </div>
         <nav className={styles.path} aria-label="白板层级路径">

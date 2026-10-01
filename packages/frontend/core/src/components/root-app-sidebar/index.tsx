@@ -1,5 +1,6 @@
 import { Tooltip } from '@affine/component';
 import * as footerStyles from './footer-tools.css';
+import { BoardTree } from './board-tree';
 import {
   AddPageButton,
   AppDownloadButton,
@@ -10,7 +11,6 @@ import {
   SidebarScrollableContainer,
 } from '@affine/core/modules/app-sidebar/views';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { DikwWorkbenchService } from '@affine/core/modules/dikw-workbench';
 import { CMDKQuickSearchService } from '@affine/core/modules/quicksearch/services/cmdk';
 import type { Workspace } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
@@ -18,7 +18,6 @@ import { track } from '@affine/track';
 import type { Store } from '@blocksuite/affine/store';
 import {
   AllDocsIcon,
-  EdgelessIcon,
   PageIcon,
   ImportIcon,
   SettingsIcon,
@@ -59,10 +58,8 @@ export type RootAppSidebarProps = {
 const BoardLibraryEntries = () => {
   const workbench = useService(WorkbenchService).workbench;
   const pathname = useLiveData(workbench.location$).pathname;
-  const relations = useLiveData(useService(DikwWorkbenchService).relations$);
-  const boardActive = pathname === '/board' || relations.has(pathname.slice(1));
   return <>
-    <MenuLinkItem icon={<EdgelessIcon />} active={boardActive} to="/board"><span data-testid="dikw-main-board">白板</span></MenuLinkItem>
+    <BoardTree />
     <MenuLinkItem icon={<AllDocsIcon />} active={pathname === '/knowledge'} to="/knowledge">知识库</MenuLinkItem>
     <MenuLinkItem icon={<PageIcon />} active={pathname === '/artifacts'} to="/artifacts">产物库</MenuLinkItem>
   </>;
@@ -161,9 +158,8 @@ export const RootAppSidebar = memo((): ReactElement => {
           />
           <AddPageButton />
         </div>
-        <BoardLibraryEntries />
       </SidebarContainer>
-      <SidebarScrollableContainer />
+      <SidebarScrollableContainer><BoardLibraryEntries /></SidebarScrollableContainer>
       <SidebarContainer className={bottomContainer}>
         <SidebarAudioPlayer />
         {BUILD_CONFIG.isElectron ? <UpdaterButton /> : <AppDownloadButton />}
