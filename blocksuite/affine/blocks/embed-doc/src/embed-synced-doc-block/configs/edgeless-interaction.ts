@@ -31,7 +31,9 @@ export const EmbedSyncedDocInteraction =
       handleResize: ({ view, model }) => {
         const initialScale = model.props.scale ?? 1;
         const initHeight = model.elementBound.h;
-        const maxHeight = calcSyncedDocFullHeight(view);
+        // A canvas has no document-flow height. The page preview measurement
+        // falls back to 200px for canvases and wrongly clamps corner resizing.
+        const maxHeight = view.isPageMode ? calcSyncedDocFullHeight(view) : Infinity;
 
         return {
           beforeResize: context => {

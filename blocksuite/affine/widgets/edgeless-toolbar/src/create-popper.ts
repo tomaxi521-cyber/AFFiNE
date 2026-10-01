@@ -1,5 +1,5 @@
 import { BlockSuiteError } from '@blocksuite/global/exceptions';
-import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
+import { autoUpdate } from '@floating-ui/dom';
 
 // more than 100% due to the shadow
 const leaveToPercent = `calc(100% + 10px)`;
@@ -107,19 +107,31 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
       maxWidth: '100%',
       zIndex: 'auto',
     });
+    // Position in local chrome coordinates: editor containment makes fixed
+    // viewport coordinates unreliable here. Reuse native menus without a dock.
+    Object.assign(menu.style, { transition: 'none', flex: '0 0 100%', minWidth: '0', boxSizing: 'border-box' });
+    clipWrapper.style.overflowX = 'auto';
     const updatePosition = () => {
-      clipWrapper.style.width = `${Math.max(160, Math.min(680, toolbar.clientWidth - 104))}px`;
-      computePosition(reference, clipWrapper, {
-        placement: 'right-start',
-        strategy: 'absolute',
-        middleware: [offset(12), flip(), shift({ padding: 12 })],
-      }).then(({ x, y }) => {
-        if (removed) return;
-        Object.assign(clipWrapper.style, { left: `${x}px`, top: `${y}px` });
-      }).catch(console.error);
+      if (removed) return;
+      const hostRect = toolbar.getBoundingClientRect();
+      const anchor = (reference.closest('.dikw-advanced-panel') ?? reference).getBoundingClientRect();
+      const right = Math.min(window.innerWidth, hostRect.right);
+      const bottom = Math.min(window.innerHeight, hostRect.bottom);
+      const width = Math.max(160, Math.min(680, right - hostRect.left - 24));
+      clipWrapper.style.width = width + 'px';
+      const height = Math.max(80, clipWrapper.offsetHeight);
+      let x = anchor.right + 12;
+      let y = anchor.top;
+      if (x + width > right - 12) {
+        x = Math.max(hostRect.left + 12, Math.min(anchor.left, right - width - 12));
+        y = anchor.bottom + 12;
+        if (y + height > bottom - 12) y = anchor.top - height - 12;
+      }
+      y = Math.max(hostRect.top + 12, Math.min(y, bottom - height - 12));
+      Object.assign(clipWrapper.style, { left: (x-hostRect.left)+'px', top: (y-hostRect.top)+'px' });
     };
     stopPositioning = autoUpdate(reference, clipWrapper, updatePosition);
-    for (const type of ['pointerdown', 'mousedown', 'dblclick', 'click', 'wheel']) {
+    for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'dblclick', 'click', 'wheel']) {
       clipWrapper.addEventListener(type, event => event.stopPropagation());
     }
   }

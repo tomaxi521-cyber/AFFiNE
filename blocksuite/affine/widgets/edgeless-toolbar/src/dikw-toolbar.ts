@@ -136,7 +136,7 @@ export function renderDikwToolbar(
       @keyup=${(event: KeyboardEvent) => {
         if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
       }}
-      @pointerdown=${stopPropagation} @mousedown=${stopPropagation}
+      @pointerdown=${stopPropagation} @pointerup=${stopPropagation} @mousedown=${stopPropagation} @mouseup=${stopPropagation}
       @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}>
       ${tools.map(tool => {
         const controller = host.std.getOptional(ToolIdentifier(tool.name));
