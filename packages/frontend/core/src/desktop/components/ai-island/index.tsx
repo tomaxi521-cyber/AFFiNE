@@ -58,8 +58,6 @@ export const AIIsland = () => {
         <button
           className={aiIslandBtn}
           data-testid="ai-island"
-          data-view-id={activeView.id}
-          data-toolbar-ai={String(toolbarOwnsAI)}
           onClick={onOpenChat}
         >
           <AIIcon />

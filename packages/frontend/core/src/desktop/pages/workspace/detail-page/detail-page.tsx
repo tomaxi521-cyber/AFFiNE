@@ -122,13 +122,18 @@ const DetailPageImpl = memo(function DetailPageImpl() {
   useEffect(() => {
     const host=editorContainer?.host;
     if(!host || mode!=='edgeless')return;
-    host.toggleAttribute('data-dikw-ai-enabled',enableAI);
-    const open=()=>{if(enableAI && isActiveView) AIAppEvents.requestOpenWithChat.next({host});};
+    // Match AIIsland: open the current chat tab when available, otherwise the
+    // existing /chat page (which owns onboarding/capability checks). Never send.
+    host.setAttribute('data-dikw-ai-enabled','');
+    const open=()=>{
+      if(!isActiveView)return;
+      if(view.sidebarTabs$.value.some(tab=>tab.id==='chat')) {workbench.openSidebar();view.activeSidebarTab('chat');}
+      else {workbench.open('/chat');workbench.closeSidebar();}
+    };
     const sync=()=>{
       const rootId=host.store.root?.id;
       const toolbar=rootId?host.std.view.getWidget('edgeless-toolbar-widget',rootId):null;
-      const available=enableAI && !!toolbar?.hasAttribute('data-dikw-ai-entry');
-      host.dataset.dikwAiBridge=JSON.stringify({view:view.id,available,rootId,found:!!toolbar});
+      const available=!!toolbar?.hasAttribute('data-dikw-ai-entry');
       view.dikwAIEntry$.next(available);
     };
     host.addEventListener('dikw:ai-open',open);
@@ -136,7 +141,7 @@ const DetailPageImpl = memo(function DetailPageImpl() {
     const views=host.std.view.viewUpdated.subscribe(()=>queueMicrotask(sync));
     host.dispatchEvent(new Event('dikw:ai-availability'));sync();
     return ()=>{views.unsubscribe();host.removeEventListener('dikw:ai-open',open);host.removeEventListener('dikw:toolbar-state',sync);host.removeAttribute('data-dikw-ai-enabled');view.dikwAIEntry$.next(false);};
-  },[editorContainer,enableAI,isActiveView,mode,view]);
+  },[editorContainer,enableAI,isActiveView,mode,view,workbench]);
 
   const featureFlagService = useService(FeatureFlagService);
   const enableAdapterPanel = useLiveData(
