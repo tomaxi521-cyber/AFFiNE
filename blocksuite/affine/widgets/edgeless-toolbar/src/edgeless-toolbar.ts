@@ -613,9 +613,18 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     const start = {x: event.clientX, y: event.clientY};
     let moved = false;
     let cancelled = false;
+    let scrollFrame = 0;
+    let lastPointer: PointerEvent | null = null;
     const rail = this.renderRoot.querySelector<HTMLElement>('.dikw-toolbar');
     const overRail = (e: PointerEvent) => { const r=rail?.getBoundingClientRect(); return !!r && e.clientX>=r.left-8 && e.clientX<=r.right+8 && e.clientY>=r.top-8 && e.clientY<=r.bottom+8; };
     const before = (e: PointerEvent) => Array.from(this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')).find(el => e.clientX < el.getBoundingClientRect().left + el.offsetWidth/2)?.dataset.pinId;
+    const scrollEdge = () => {
+      if(!rail || !lastPointer || cancelled || !moved)return;
+      const r=rail.getBoundingClientRect();
+      const direction=lastPointer.clientX<r.left+36?-1:lastPointer.clientX>r.right-36?1:0;
+      if(overRail(lastPointer)&&direction)rail.scrollLeft+=direction*8;
+      scrollFrame=requestAnimationFrame(scrollEdge);
+    };
     const move = (e: PointerEvent) => {
       if (e.pointerId !== event.pointerId) return;
       e.preventDefault();e.stopImmediatePropagation();
@@ -623,6 +632,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       if (Math.hypot(e.clientX-start.x,e.clientY-start.y) > 5) moved = true;
       if (!moved) return;
       e.preventDefault(); this._dikwDragging = id;
+      lastPointer=e;if(!scrollFrame)scrollFrame=requestAnimationFrame(scrollEdge);
       rail?.toggleAttribute('data-pin-drop', overRail(e));
       for (const el of this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')) el.toggleAttribute('data-insert-before',overRail(e) && el.dataset.pinId===before(e));
     };
@@ -640,6 +650,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     window.addEventListener('keydown',key,true);
     window.addEventListener('blur',cancel);
     this._dikwPinCleanup = () => {
+      cancelAnimationFrame(scrollFrame);
       window.removeEventListener('pointermove',move,true);window.removeEventListener('pointerup',finish,true);
       window.removeEventListener('pointercancel',cancel,true);window.removeEventListener('keydown',key,true);window.removeEventListener('blur',cancel);
       rail?.removeAttribute('data-pin-drop');

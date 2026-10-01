@@ -101,6 +101,7 @@ function navigateToolbar(event: KeyboardEvent) {
   const toolbar = event.currentTarget as HTMLElement;
   const buttons: HTMLButtonElement[] = [];
   const collect=(root: Element | ShadowRoot)=>{for(const child of root.children){
+    if(child.hasAttribute('inert') || child.hasAttribute('hidden'))continue;
     if(child instanceof HTMLButtonElement && !child.disabled)buttons.push(child);
     if(child.shadowRoot)collect(child.shadowRoot);
     collect(child);

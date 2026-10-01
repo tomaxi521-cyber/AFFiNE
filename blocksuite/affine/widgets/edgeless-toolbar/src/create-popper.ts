@@ -119,6 +119,8 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
       const bottom = Math.min(window.innerHeight, hostRect.bottom);
       const width = Math.max(160, Math.min(680, right - hostRect.left - 24));
       clipWrapper.style.width = width + 'px';
+      clipWrapper.style.maxHeight = Math.max(44,bottom-hostRect.top-24)+'px';
+      clipWrapper.style.overflowY = 'auto';
       const height = Math.max(80, clipWrapper.offsetHeight);
       const x = Math.max(hostRect.left + 12, Math.min(anchor.left + anchor.width/2 - width/2, right - width - 12));
       let y = anchor.top - height - 12;
