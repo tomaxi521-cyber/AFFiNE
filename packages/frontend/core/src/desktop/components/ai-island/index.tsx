@@ -18,6 +18,7 @@ export const AIIsland = () => {
 
   const workbench = useService(WorkbenchService).workbench;
   const activeView = useLiveData(workbench.activeView$);
+  const toolbarOwnsAI = useLiveData(activeView.dikwAIEntry$);
   const haveChatTab = useLiveData(
     activeView.sidebarTabs$.map(tabs => tabs.some(t => t.id === 'chat'))
   );
@@ -48,6 +49,8 @@ export const AIIsland = () => {
       workbench.closeSidebar();
     }
   }, [activeView, haveChatTab, hide, workbench]);
+
+  if (toolbarOwnsAI) return null;
 
   return (
     <IslandContainer className={clsx(toolStyle, { hide })}>

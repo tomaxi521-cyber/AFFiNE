@@ -30,6 +30,9 @@ export class View extends Entity<{
 
   sidebarTabs$ = new LiveData<SidebarTab[]>([]);
 
+  /** Active editor chrome owns an accessible AI entry; never persisted. */
+  dikwAIEntry$ = new LiveData(false);
+
   scrollPositions = new WeakMap<
     Location,
     | number

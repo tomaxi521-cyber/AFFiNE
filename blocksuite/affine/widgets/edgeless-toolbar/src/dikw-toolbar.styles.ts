@@ -36,7 +36,7 @@ export const dikwToolbarStyles = css`
     overscroll-behavior: contain;
   }
   .dikw-advanced-panel.edgeless-toolbar-container {
-    width: 236px;
+    width: 276px;
     max-width: calc(100% - 96px);
   }
   /* Retain native controllers and keyboard bindings while the panel is closed. */
@@ -44,23 +44,23 @@ export const dikwToolbarStyles = css`
     visibility: hidden;
     pointer-events: none;
   }
-  .dikw-advanced-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-    gap: 8px;
-    align-items: center;
-  }
-  .dikw-advanced-quick,
-  .dikw-advanced-senior {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    height: 64px;
-    border-radius: 8px;
-    background: var(--affine-hover-color);
-  }
-  .dikw-advanced-senior > * { width: 96px; height: 64px; }
+  .dikw-advanced-grid { display: flex; flex-direction: column; gap: 4px; }
+  .dikw-compact-row { display: flex; align-items: center; gap: 4px; min-height: 44px; border-radius: 8px; }
+  .dikw-tool-label { flex: 1; font-size: 13px; }
+  .dikw-pin-grip, .dikw-pin-toggle { border: 0; background: transparent; color: var(--affine-text-secondary-color); border-radius: 5px; padding: 0; cursor: pointer; }
+  .dikw-pin-grip { width: 20px; height: 40px; cursor: grab; touch-action: none; }
+  .dikw-pin-toggle { width: 28px; height: 32px; font-size: 17px; }
+  .dikw-pin-grip:hover, .dikw-pin-toggle:hover { background: var(--affine-hover-color); }
+  .dikw-pin-grip:focus-visible, .dikw-pin-toggle:focus-visible { outline: 2px solid var(--affine-primary-color); }
+  .dikw-pin-help, .dikw-pin-notice { font-size: 11px; line-height: 1.5; color: var(--affine-text-secondary-color); margin: 4px 0 8px; }
+  .dikw-pin-notice:empty { display: none; }
+  .dikw-pinned { display: flex; flex-direction: column; gap: 4px; }
+  .dikw-pinned-item { position: relative; width: 44px; height: 44px; flex-shrink: 0; }
+  .dikw-pinned-item .dikw-pin-grip { position: absolute; left: -6px; top: 0; width: 10px; height: 44px; z-index: 2; opacity: .5; }
+  .dikw-pinned-item .dikw-pin-toggle { position: absolute; right: -6px; top: -3px; width: 16px; height: 16px; z-index: 2; opacity: 0; background: var(--affine-background-overlay-panel-color); }
+  .dikw-pinned-item:hover .dikw-pin-toggle, .dikw-pinned-item:focus-within .dikw-pin-toggle { opacity: 1; }
+  .dikw-toolbar[data-pin-drop] { outline: 2px solid var(--affine-primary-color); }
+  .dikw-pinned-item[data-insert-before]::before { content: ''; position: absolute; left: 0; right: 0; top: -3px; height: 2px; background: var(--affine-primary-color); }
   .dikw-context-panel { width: min(680px, calc(100% - 96px)); }
   .dikw-context-panel > edgeless-shape-menu,
   .dikw-context-panel > edgeless-connector-menu,
@@ -166,6 +166,9 @@ export const dikwToolbarStyles = css`
     font-size: 10px;
     line-height: 20px;
     color: var(--affine-text-secondary-color);
+  }
+  @media (max-height: 500px) {
+    .dikw-toolbar { top: 12px; bottom: 76px; transform: none; max-height: none; }
   }
   @media (max-width: 600px) {
     .dikw-toolbar { left: 8px; }

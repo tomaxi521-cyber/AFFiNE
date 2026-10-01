@@ -2,17 +2,16 @@ import { type ShapeName, ShapeType } from '@blocksuite/affine-model';
 import { EditPropsStore } from '@blocksuite/affine-shared/services';
 import { stopPropagation } from '@blocksuite/affine-shared/utils';
 import {
+  AiIcon,
   ConnectorLIcon,
   EdgelessIcon,
-  HandIcon,
   MoreHorizontalIcon,
   PageIcon,
-  SelectIcon,
   ShapeIcon,
   TextIcon,
 } from '@blocksuite/icons/lit';
 import { ToolIdentifier, type ToolType } from '@blocksuite/std/gfx';
-import { html, nothing } from 'lit';
+import { html, nothing, type TemplateResult } from 'lit';
 
 import type { EdgelessToolbarWidget } from './edgeless-toolbar.js';
 
@@ -34,8 +33,6 @@ export function isDikwBoard(value: unknown, docId: string): boolean {
 }
 
 const tools = [
-  { name: 'default', label: '选择', shortcut: 'V', icon: SelectIcon },
-  { name: 'pan', label: '抓手', shortcut: 'H', icon: HandIcon },
   { name: 'affine:note', label: '笔记', shortcut: 'N', icon: PageIcon },
   { name: 'text', label: '文字', shortcut: 'T', icon: TextIcon },
   { name: 'shape', label: '形状', shortcut: 'S', icon: ShapeIcon },
@@ -122,7 +119,8 @@ export function renderDikwToolbar(
   host: EdgelessToolbarWidget,
   moreOpen: boolean,
   toggleMore: () => void,
-  showOptions: (tool: string) => void
+  showOptions: (tool: string) => void,
+  pinnedContent?: TemplateResult
 ) {
   const locked = host.hasAttribute('disabled');
   const readonly = host.store.readonly;
@@ -138,9 +136,15 @@ export function renderDikwToolbar(
       }}
       @pointerdown=${stopPropagation} @pointerup=${stopPropagation} @mousedown=${stopPropagation} @mouseup=${stopPropagation}
       @dblclick=${stopPropagation} @click=${stopPropagation} @wheel=${stopPropagation}>
+      <button type="button" class="dikw-tool" data-tool="ai" aria-label="AI 助手" title="AI 助手"
+        ?disabled=${locked || !host.host.hasAttribute('data-dikw-ai-enabled')}
+        @click=${()=>host.dispatchEvent(new CustomEvent('dikw:ai-open',{bubbles:true,composed:true}))}>
+        <span aria-hidden="true">${AiIcon()}</span>
+      </button>
+      <span class="dikw-toolbar-divider" role="separator"></span>
       ${tools.map(tool => {
         const controller = host.std.getOptional(ToolIdentifier(tool.name));
-        const requiresEdit = tool.name !== 'default' && tool.name !== 'pan';
+        const requiresEdit = true;
         const disabled = locked || !controller || (readonly && requiresEdit);
         return html`
           <button type="button" class="dikw-tool" data-tool=${tool.name}
@@ -178,8 +182,9 @@ export function renderDikwToolbar(
           }));
         }}>
         <span aria-hidden="true">${EdgelessIcon()}</span>
-        <affine-tooltip tip-position="right">白板 · 新建或从已有白板复制</affine-tooltip>
+        <affine-tooltip tip-position="right">白板 · 点击画布创建子白板</affine-tooltip>
       </button>
+      ${pinnedContent}
       <button type="button" class="dikw-tool" data-tool="more" aria-label="更多工具"
         title="更多工具" aria-expanded=${moreOpen ? 'true' : 'false'}
         aria-controls="dikw-advanced-tools" ?disabled=${locked || readonly}

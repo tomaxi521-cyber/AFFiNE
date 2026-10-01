@@ -25,6 +25,8 @@ export class AffineEdgelessZoomToolbarWidget extends WidgetComponent<RootBlockMo
       user-select: none;
     }
 
+    :host([data-dikw-board]) { left: auto; right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); pointer-events: auto; }
+    :host([data-dikw-board]) edgeless-zoom-toolbar { display: block; }
     mobile-zoom-ruler {
       pointer-events: auto;
     }
@@ -52,6 +54,9 @@ export class AffineEdgelessZoomToolbarWidget extends WidgetComponent<RootBlockMo
 
   override connectedCallback() {
     super.connectedCallback();
+    const graph=this.store.workspace.doc.getMap('dikw:board-graph:v1');
+    const refresh=()=>this.requestUpdate();graph.observe(refresh);
+    this.disposables.add(()=>graph.unobserve(refresh));
 
     this.disposables.add(
       effect(() => {
@@ -83,6 +88,11 @@ export class AffineEdgelessZoomToolbarWidget extends WidgetComponent<RootBlockMo
       return nothing;
     }
 
+    // The DIKW relation is the board boundary; plain edgeless docs retain native chrome.
+    const relation = this.store.workspace.doc.getMap('dikw:board-graph:v1').get('board:'+this.store.id) as {version?: number; docId?: string} | undefined;
+    const dikw = relation?.version === 1 && relation.docId === this.store.id;
+    this.toggleAttribute('data-dikw-board', dikw);
+    if (dikw) return html`<edgeless-zoom-toolbar .std=${this.std} .dikw=${true}></edgeless-zoom-toolbar>`;
     if (IS_MOBILE) {
       return html`<mobile-zoom-ruler .std=${this.std}></mobile-zoom-ruler>`;
     }

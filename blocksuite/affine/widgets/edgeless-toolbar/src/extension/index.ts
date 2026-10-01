@@ -5,7 +5,15 @@ import type { GfxController } from '@blocksuite/std/gfx';
 import type { ExtensionType } from '@blocksuite/store';
 import { type TemplateResult } from 'lit';
 
+/** Feature-owned compact launchers: the toolbar owns placement, not actions. */
+export interface CompactTool {
+  id: string;
+  label: string;
+  content: TemplateResult;
+}
+
 export interface QuickTool {
+  compact?: CompactTool[];
   type?: string;
   enable?: boolean;
   content: TemplateResult;
@@ -17,6 +25,7 @@ export interface QuickTool {
 }
 
 export interface SeniorTool {
+  compact?: CompactTool[];
   /**
    * Used to show in nav-button's tooltip
    */

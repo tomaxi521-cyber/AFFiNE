@@ -3,10 +3,14 @@ import {
   EditPropsStore,
   ThemeProvider,
 } from '@blocksuite/affine-shared/services';
-import { EdgelessToolbarToolMixin } from '@blocksuite/affine-widget-edgeless-toolbar';
+import {
+  EdgelessToolbarToolMixin,
+  dikwCompactToolStyles,
+} from '@blocksuite/affine-widget-edgeless-toolbar';
 import { SignalWatcher } from '@blocksuite/global/lit';
 import { computed, signal } from '@preact/signals-core';
 import { css, html, LitElement, nothing } from 'lit';
+import { property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { when } from 'lit/directives/when.js';
 
@@ -18,33 +22,39 @@ import type { Pen } from './types';
 export class EdgelessPenToolButton extends EdgelessToolbarToolMixin(
   SignalWatcher(LitElement)
 ) {
-  static override styles = css`
-    :host {
-      display: flex;
-      height: 100%;
-      overflow-y: hidden;
-    }
-    .edgeless-pen-button {
-      height: 100%;
-    }
-    .pen-wrapper {
-      width: 35px;
-      height: 64px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-    }
-    .pen-wrapper svg {
-      transition-property: color, transform;
-      transition-duration: 300ms;
-      transition-timing-function: ease-in-out;
-      transform: translateY(8px);
-    }
-    .edgeless-pen-button:hover .pen-wrapper svg,
-    .pen-wrapper.active svg {
-      transform: translateY(0);
-    }
-  `;
+  static override styles = [
+    css`
+      :host {
+        display: flex;
+        height: 100%;
+        overflow-y: hidden;
+      }
+      .edgeless-pen-button {
+        height: 100%;
+      }
+      .pen-wrapper {
+        width: 35px;
+        height: 64px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .pen-wrapper svg {
+        transition-property: color, transform;
+        transition-duration: 300ms;
+        transition-timing-function: ease-in-out;
+        transform: translateY(8px);
+      }
+      .edgeless-pen-button:hover .pen-wrapper svg,
+      .pen-wrapper.active svg {
+        transform: translateY(0);
+      }
+    `,
+    dikwCompactToolStyles,
+  ];
+
+  @property({ type: Boolean, reflect: true })
+  accessor compact = false;
 
   get themeProvider() {
     return this.edgeless.std.get(ThemeProvider);
@@ -116,8 +126,8 @@ export class EdgelessPenToolButton extends EdgelessToolbarToolMixin(
 
   override firstUpdated() {
     this.disposables.add(
-      this.gfx.tool.currentToolName$.subscribe(name => {
-        const tool = this.type.find(t => t.toolName === name);
+      this.gfx.tool.currentToolName$.subscribe((name) => {
+        const tool = this.type.find((t) => t.toolName === name);
         if (!tool) {
           this.tryDisposePopper();
           return;
@@ -163,6 +173,32 @@ export class EdgelessPenToolButton extends EdgelessToolbarToolMixin(
   }
 
   override render() {
+    if (this.compact) {
+      return html`<button
+        type="button"
+        class="dikw-compact-button"
+        title="画笔（P）"
+        aria-label="画笔"
+        aria-pressed=${this.active}
+        ?disabled=${this.edgeless.store.readonly}
+        @click=${() => {
+          if (this.edgeless.store.readonly) return;
+          this._togglePenMenu();
+        }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-4-4L5 15l-1 5Z" />
+        </svg>
+      </button>`;
+    }
     const {
       active,
       penInfo$: {

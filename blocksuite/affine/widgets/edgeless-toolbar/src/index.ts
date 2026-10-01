@@ -1,4 +1,5 @@
 export * from './config';
+export * from './dikw-compact.styles';
 export * from './context';
 export * from './create-popper';
 export * from './draggable';

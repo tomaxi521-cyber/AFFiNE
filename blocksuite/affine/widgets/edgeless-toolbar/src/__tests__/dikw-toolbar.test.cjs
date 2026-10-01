@@ -36,7 +36,7 @@ function fixture() {
     recordLastProps(type, changes) { calls.push(['props', type, changes]); Object.assign(this.lastProps$.value[type], changes); } };
   class Controller {}
   const host = {
-    store: { readonly: false }, block: {}, edgelessTool: 'default', locked: false,
+    host: {hasAttribute:()=>true}, store: { readonly: false }, block: {}, edgelessTool: 'default', locked: false,
     hasAttribute() { return this.locked; },
     std: { get: () => props, getOptional: () => ({ constructor: Controller }) },
     gfx: { tool: { currentToolOption$: { value: { options: { childType: 'h1' } } },
@@ -95,9 +95,9 @@ test('DIKW render structurally excludes duplicate dock, keeps native advanced co
   const widget = fs.readFileSync(path.join(sourceDir, 'edgeless-toolbar.ts'), 'utf8');
   const branch = widget.slice(widget.indexOf('private _renderDikwContent()'), widget.indexOf('private _renderContent()'));
   assert.doesNotMatch(branch, /_renderContent()|presentation-toolbar|quick-tool-more/);
-  assert.match(branch, /tool.id !== 'default' && tool.id !== 'connector'/);
-  assert.match(branch, /tool.id !== 'note' && tool.id !== 'shape'/);
-  assert.match(branch, /tool.content/);
+  assert.match(branch, /t.compact/);
+  assert.match(branch, /_renderDikwCompact/);
+  assert.match(widget, /tool.content/);
   assert.ok(branch.includes('?inert='));
   assert.match(widget, /return this._renderDikwContent()/);
 });

@@ -6,6 +6,16 @@ export const templateSeniorTool = SeniorToolExtension(
   ({ block }) => {
     return {
       name: 'Template',
+      compact: [
+        {
+          id: 'template',
+          label: '模板',
+          content: html`<edgeless-template-button
+            .edgeless=${block}
+            .compact=${true}
+          ></edgeless-template-button>`,
+        },
+      ],
       content: html`<edgeless-template-button .edgeless=${block}>
       </edgeless-template-button>`,
     };

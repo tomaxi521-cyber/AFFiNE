@@ -8,6 +8,16 @@ export const linkQuickTool = QuickToolExtension('link', ({ block, gfx }) => {
     content: html`<edgeless-link-tool-button
       .edgeless=${block}
     ></edgeless-link-tool-button>`,
+    compact: [
+      {
+        id: 'link',
+        label: '链接',
+        content: html`<edgeless-link-tool-button
+          .edgeless=${block}
+          .compact=${true}
+        ></edgeless-link-tool-button>`,
+      },
+    ],
     menu: buildLinkDenseMenu(block, gfx),
   };
 });

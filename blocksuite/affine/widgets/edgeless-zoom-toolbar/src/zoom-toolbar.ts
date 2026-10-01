@@ -1,10 +1,12 @@
 import { EdgelessLegacySlotIdentifier } from '@blocksuite/affine-block-surface';
 import { stopPropagation } from '@blocksuite/affine-shared/utils';
 import { WithDisposable } from '@blocksuite/global/lit';
-import { MinusIcon, PlusIcon, ViewBarIcon } from '@blocksuite/icons/lit';
+import { HandIcon, SelectIcon, MinusIcon, PlusIcon, ViewBarIcon } from '@blocksuite/icons/lit';
 import type { BlockStdScope } from '@blocksuite/std';
 import {
   GfxControllerIdentifier,
+  ToolIdentifier,
+  type ToolType,
   ZOOM_MAX,
   ZOOM_MIN,
   ZOOM_STEP,
@@ -12,7 +14,7 @@ import {
 import { effect } from '@preact/signals-core';
 import { baseTheme } from '@toeverything/theme';
 import { css, html, LitElement, nothing, unsafeCSS } from 'lit';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import clamp from 'lodash-es/clamp';
 
 export class EdgelessZoomToolbar extends WithDisposable(LitElement) {
@@ -73,6 +75,16 @@ export class EdgelessZoomToolbar extends WithDisposable(LitElement) {
       font-family: ${unsafeCSS(baseTheme.fontSansFamily)};
     }
 
+    .dikw-view { display:flex; position:relative; gap:2px; padding:5px; border:1px solid var(--affine-border-color); border-radius:10px; background:var(--affine-background-overlay-panel-color); box-shadow:0 3px 14px rgb(0 0 0 / 8%); color:var(--affine-text-primary-color); }
+    .dikw-view button { width:44px; height:44px; padding:0; border:0; border-radius:7px; color:inherit; background:transparent; cursor:pointer; }
+    .dikw-view button svg { width:22px; height:22px; vertical-align:middle; }
+    .dikw-view button:hover, .dikw-view button[aria-pressed='true'], .dikw-view button[aria-expanded='true'] { background:var(--affine-hover-color); }
+    .dikw-view button:focus-visible { outline:2px solid var(--affine-primary-color); outline-offset:-2px; }
+    .dikw-view button:disabled { opacity:.35; cursor:not-allowed; }
+    .dikw-view .pct { width:76px; font-size:13px; font-variant-numeric:tabular-nums; }
+    .dikw-view .separator { width:1px; background:var(--affine-border-color); margin:8px 3px; }
+    .dikw-view-menu { position:absolute; bottom:calc(100% + 8px); right:0; width:220px; max-height:calc(100vh - 130px); overflow:auto; padding:8px; background:var(--affine-background-overlay-panel-color); border:1px solid var(--affine-border-color); border-radius:10px; box-shadow:var(--affine-shadow-2); }
+    .dikw-view-menu button { display:block; width:100%; padding:0 12px; text-align:left; }
     .zoom-percent:hover {
       color: var(--affine-primary-color);
       background-color: var(--affine-hover-color);
@@ -134,6 +146,9 @@ export class EdgelessZoomToolbar extends WithDisposable(LitElement) {
 
   override firstUpdated() {
     const { disposables } = this;
+    const away=(e:PointerEvent)=>{if(!e.composedPath().includes(this))this._dikwMenu=false;};
+    window.addEventListener('pointerdown',away,true);
+    disposables.add(()=>window.removeEventListener('pointerdown',away,true));
     disposables.add(
       this.viewport.viewportUpdated.subscribe(() => this.requestUpdate())
     );
@@ -144,7 +159,36 @@ export class EdgelessZoomToolbar extends WithDisposable(LitElement) {
     );
   }
 
+  @property({attribute:false}) accessor dikw = false;
+  @state() private accessor _dikwMenu = false;
+
+  private _renderDikw() {
+    const tool=this.gfx.tool.currentToolName$.value;
+    const pointer = tool === 'pan' ? 'pan' : 'default';
+    const switchPointer = () => {
+      if(this.locked)return;
+      const target=tool==='default'?'pan':'default';
+      const controller=this.std.getOptional(ToolIdentifier(target));
+      if(controller)this.gfx.tool.setTool(controller.constructor as ToolType,target==='pan'?{panning:false}:{});
+    };
+    const close = () => {this._dikwMenu=false; void this.updateComplete.then(()=>this.renderRoot.querySelector<HTMLButtonElement>('.pct')?.focus());};
+    return html`<div class="dikw-view" role="toolbar" aria-label="白板视图控制"
+      @pointerdown=${stopPropagation} @pointerup=${stopPropagation} @mousedown=${stopPropagation} @mouseup=${stopPropagation} @click=${stopPropagation} @dblclick=${stopPropagation} @wheel=${stopPropagation}
+      @keydown=${(e:KeyboardEvent)=>{if(e.key==='Escape'){close();e.preventDefault();} e.stopPropagation();}} @keyup=${stopPropagation}>
+      <button aria-label=${pointer==='pan'?'抓手，点击切换到选择':'选择，点击切换到抓手'} title="选择 V / 抓手 H" data-tool="pointer" aria-pressed=${tool==='pan'||tool==='default'} ?disabled=${this.locked} @click=${switchPointer}>${pointer==='pan'?HandIcon():SelectIcon()}</button>
+      <span class="separator"></span>
+      <button aria-label="缩小" title="缩小" ?disabled=${this.locked || this.zoom<=ZOOM_MIN} @click=${()=>this.setZoomByStep(-ZOOM_STEP)}>${MinusIcon()}</button>
+      <button class="pct" aria-label="视图设置" title="缩放与视图设置" aria-expanded=${this._dikwMenu} ?disabled=${this.locked} @click=${()=>this._dikwMenu=!this._dikwMenu}>${Math.round(this.zoom*100)}% ⌄</button>
+      <button aria-label="放大" title="放大" ?disabled=${this.locked || this.zoom>=ZOOM_MAX} @click=${()=>this.setZoomByStep(ZOOM_STEP)}>${PlusIcon()}</button>
+      ${this._dikwMenu?html`<div class="dikw-view-menu" role="group" aria-label="缩放与视图设置">
+        <button @click=${()=>{this.gfx.fitToScreen();close();}}>适应全部内容</button>
+        ${[.5,1,1.5,2].map(zoom=>html`<button @click=${()=>{this.viewport.smoothZoom(zoom);close();}}>${zoom*100}%${zoom===1?' · 实际大小':''}</button>`)}
+      </div>`:nothing}
+    </div>`;
+  }
+
   override render() {
+    if(this.dikw) return this._renderDikw();
     if (this.std.store.readonly) {
       return nothing;
     }

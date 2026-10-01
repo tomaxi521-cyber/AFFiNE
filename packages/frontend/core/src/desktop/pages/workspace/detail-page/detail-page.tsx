@@ -118,6 +118,19 @@ const DetailPageImpl = memo(function DetailPageImpl() {
 
   const enableAI = useEnableAI();
 
+  // Toolbar chrome opens the existing app chat; it never submits a prompt.
+  useEffect(() => {
+    const host=editorContainer?.host;
+    if(!host || mode!=='edgeless')return;
+    host.toggleAttribute('data-dikw-ai-enabled',enableAI);
+    const open=()=>{if(enableAI && isActiveView) AIAppEvents.requestOpenWithChat.next({host});};
+    const sync=()=>view.dikwAIEntry$.next(enableAI && !!host.querySelector('edgeless-toolbar-widget[data-dikw-board]'));
+    host.addEventListener('dikw:ai-open',open);
+    host.addEventListener('dikw:toolbar-state',sync);
+    host.dispatchEvent(new Event('dikw:ai-availability'));sync();
+    return ()=>{host.removeEventListener('dikw:ai-open',open);host.removeEventListener('dikw:toolbar-state',sync);host.removeAttribute('data-dikw-ai-enabled');view.dikwAIEntry$.next(false);};
+  },[editorContainer,enableAI,isActiveView,mode,view]);
+
   const featureFlagService = useService(FeatureFlagService);
   const enableAdapterPanel = useLiveData(
     featureFlagService.flags.enable_adapter_panel.$

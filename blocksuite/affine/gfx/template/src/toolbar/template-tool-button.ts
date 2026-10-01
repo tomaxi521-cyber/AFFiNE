@@ -1,7 +1,10 @@
 import { DefaultTool } from '@blocksuite/affine-block-surface';
 import { ArrowDownSmallIcon } from '@blocksuite/affine-components/icons';
 import { once } from '@blocksuite/affine-shared/utils';
-import { EdgelessToolbarToolMixin } from '@blocksuite/affine-widget-edgeless-toolbar';
+import {
+  EdgelessToolbarToolMixin,
+  dikwCompactToolStyles,
+} from '@blocksuite/affine-widget-edgeless-toolbar';
 import type { ToolOptionWithType } from '@blocksuite/std/gfx';
 import {
   arrow,
@@ -11,7 +14,7 @@ import {
   shift,
 } from '@floating-ui/dom';
 import { css, html, LitElement } from 'lit';
-import { state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { repeat } from 'lit/directives/repeat.js';
 
@@ -22,98 +25,105 @@ import type { EdgelessTemplatePanel } from './template-panel.js';
 export class EdgelessTemplateButton extends EdgelessToolbarToolMixin(
   LitElement
 ) {
-  static override styles = css`
-    :host {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
+  static override styles = [
+    css`
+      :host {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
 
-    edgeless-template-button {
-      cursor: pointer;
-    }
+      edgeless-template-button {
+        cursor: pointer;
+      }
 
-    .template-cards {
-      width: 100%;
-      height: 64px;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-    .template-card,
-    .arrow-icon {
-      --x: 0;
-      --y: 0;
-      --r: 0;
-      --s: 1;
-      position: absolute;
-      transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(var(--s));
-      transition: all 0.3s ease;
-    }
+      .template-cards {
+        width: 100%;
+        height: 64px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+      .template-card,
+      .arrow-icon {
+        --x: 0;
+        --y: 0;
+        --r: 0;
+        --s: 1;
+        position: absolute;
+        transform: translate(var(--x), var(--y)) rotate(var(--r))
+          scale(var(--s));
+        transition: all 0.3s ease;
+      }
 
-    .arrow-icon {
-      --y: 17px;
-      background: var(--affine-black-10);
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .arrow-icon > svg {
-      color: var(--affine-icon-color);
-      fill: currentColor;
-      width: 20px;
-      height: 20px;
-    }
+      .arrow-icon {
+        --y: 17px;
+        background: var(--affine-black-10);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .arrow-icon > svg {
+        color: var(--affine-icon-color);
+        fill: currentColor;
+        width: 20px;
+        height: 20px;
+      }
 
-    .template-card.card1 {
-      transform-origin: 100% 50%;
-      --x: 15px;
-      --y: 8px;
-    }
-    .template-card.card2 {
-      transform-origin: 0% 50%;
-      --x: -17px;
-    }
-    .template-card.card3 {
-      --y: 27px;
-    }
+      .template-card.card1 {
+        transform-origin: 100% 50%;
+        --x: 15px;
+        --y: 8px;
+      }
+      .template-card.card2 {
+        transform-origin: 0% 50%;
+        --x: -17px;
+      }
+      .template-card.card3 {
+        --y: 27px;
+      }
 
-    /* hover */
-    .template-cards:not(.expanded):hover .card1 {
-      --r: 8.69deg;
-    }
-    .template-cards:not(.expanded):hover .card2 {
-      --r: -10.93deg;
-    }
-    .template-cards:not(.expanded):hover .card3 {
-      --y: 22px;
-      --r: 5.19deg;
-    }
+      /* hover */
+      .template-cards:not(.expanded):hover .card1 {
+        --r: 8.69deg;
+      }
+      .template-cards:not(.expanded):hover .card2 {
+        --r: -10.93deg;
+      }
+      .template-cards:not(.expanded):hover .card3 {
+        --y: 22px;
+        --r: 5.19deg;
+      }
 
-    /* expanded */
-    .template-cards.expanded .card1 {
-      --x: 17px;
-      --y: -5px;
-      --r: 8.69deg;
-      --s: 0.64;
-    }
-    .template-cards.expanded .card2 {
-      --x: -19px;
-      --y: -6px;
-      --r: -10.93deg;
-      --s: 0.64;
-    }
-    .template-cards.expanded .card3 {
-      --y: -10px;
-      --s: 0.599;
-      --r: 5.19deg;
-    }
-  `;
+      /* expanded */
+      .template-cards.expanded .card1 {
+        --x: 17px;
+        --y: -5px;
+        --r: 8.69deg;
+        --s: 0.64;
+      }
+      .template-cards.expanded .card2 {
+        --x: -19px;
+        --y: -6px;
+        --r: -10.93deg;
+        --s: 0.64;
+      }
+      .template-cards.expanded .card3 {
+        --y: -10px;
+        --s: 0.599;
+        --r: 5.19deg;
+      }
+    `,
+    dikwCompactToolStyles,
+  ];
+
+  @property({ type: Boolean, reflect: true })
+  accessor compact = false;
 
   private _cleanup: (() => void) | null = null;
   private _autoUpdateCleanup: (() => void) | null = null;
@@ -132,9 +142,26 @@ export class EdgelessTemplateButton extends EdgelessToolbarToolMixin(
   override connectedCallback() {
     super.connectedCallback();
     this.disposables.add(() => this._autoUpdateCleanup?.());
+    this.disposables.addFromEvent(this, 'dikw-compact-dismiss', () => {
+      if (this.compact) this._closePanel();
+    });
+  }
+
+  override disconnectedCallback() {
+    // Remove the native panel and observers without changing the tool on teardown.
+    this._autoUpdateCleanup?.();
+    this._autoUpdateCleanup = null;
+    this._cleanup?.();
+    this._cleanup = null;
+    this._openedPanel?.remove();
+    this._openedPanel = null;
+    this._prevTool = null;
+    super.disconnectedCallback();
   }
 
   private _closePanel() {
+    this._autoUpdateCleanup?.();
+    this._autoUpdateCleanup = null;
     if (this._openedPanel) {
       this._openedPanel.remove();
       this._openedPanel = null;
@@ -180,6 +207,7 @@ export class EdgelessTemplateButton extends EdgelessToolbarToolMixin(
     this.renderRoot.append(panel);
 
     requestAnimationFrame(() => {
+      if (!this.isConnected || this._openedPanel !== panel) return;
       const arrowEl = panel.renderRoot.querySelector('.arrow') as HTMLElement;
       this._autoUpdateCleanup?.();
       this._autoUpdateCleanup = autoUpdate(this, panel, () => {
@@ -195,7 +223,7 @@ export class EdgelessTemplateButton extends EdgelessToolbarToolMixin(
               (middlewareData.arrow?.x ?? 0) - (middlewareData.shift?.x ?? 0)
             }px`;
           })
-          .catch(e => {
+          .catch((e) => {
             console.warn("Can't compute position", e);
           });
       });
@@ -203,6 +231,33 @@ export class EdgelessTemplateButton extends EdgelessToolbarToolMixin(
   }
 
   override render() {
+    if (this.compact) {
+      return html`<button
+        type="button"
+        class="dikw-compact-button"
+        title="模板"
+        aria-label="模板"
+        aria-pressed=${this._openedPanel !== null}
+        ?disabled=${this.edgeless.store.readonly}
+        @click=${() => {
+          if (this.edgeless.store.readonly) return;
+          this._togglePanel();
+        }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M4 10h16M10 10v10" />
+        </svg>
+      </button>`;
+    }
     const { cards, _openedPanel } = this;
     const expanded = _openedPanel !== null;
 
