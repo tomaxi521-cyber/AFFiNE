@@ -400,18 +400,6 @@ const builtinSurfaceToolbarConfig = {
     attachmentViewDropdownMenu,
     htmlScaleAction,
     {
-      id: 'b.html-refresh',
-      placement: ActionPlacement.More,
-      label: 'Reload',
-      icon: ResetIcon(),
-      when: isHtmlEmbed,
-      run(ctx) {
-        ctx
-          .getCurrentBlockByType(AttachmentBlockComponent)
-          ?.offlineHtmlView?.reset();
-      },
-    },
-    {
       ...replaceAction,
       id: 'd.html-replace',
       placement: ActionPlacement.More,

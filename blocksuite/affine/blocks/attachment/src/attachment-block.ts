@@ -179,6 +179,11 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
 
   // Refreshes data.
   refreshData = () => {
+    // Native surface More > Reload calls this hook; reset HTML consent locally.
+    if (isOfflineHtml(this.model.props) && this.model.props.embed) {
+      this.offlineHtmlView?.reset();
+      return;
+    }
     refreshData(this).catch(console.error);
   };
 
