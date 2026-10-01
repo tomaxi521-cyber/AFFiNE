@@ -615,7 +615,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
     let cancelled = false;
     const rail = this.renderRoot.querySelector<HTMLElement>('.dikw-toolbar');
     const overRail = (e: PointerEvent) => { const r=rail?.getBoundingClientRect(); return !!r && e.clientX>=r.left-8 && e.clientX<=r.right+8 && e.clientY>=r.top-8 && e.clientY<=r.bottom+8; };
-    const before = (e: PointerEvent) => Array.from(this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')).find(el => e.clientY < el.getBoundingClientRect().top + el.offsetHeight/2)?.dataset.pinId;
+    const before = (e: PointerEvent) => Array.from(this.renderRoot.querySelectorAll<HTMLElement>('.dikw-pinned-item')).find(el => e.clientX < el.getBoundingClientRect().left + el.offsetWidth/2)?.dataset.pinId;
     const move = (e: PointerEvent) => {
       if (e.pointerId !== event.pointerId) return;
       e.preventDefault();e.stopImmediatePropagation();
@@ -650,10 +650,10 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
 
   private _renderDikwCompact(tool: CompactTool, pinned: boolean) {
     return html`<div class=${pinned ? 'dikw-pinned-item' : 'dikw-compact-row'} data-pin-id=${tool.id}>
-      <button class="dikw-pin-grip" aria-label=${'拖动'+tool.label+(pinned?'排序':'到工具栏')} title="拖动到左侧工具栏固定或排序" @pointerdown=${(e:PointerEvent)=>this._dragDikwPin(e,tool.id)}>⠿</button>
+      <button class="dikw-pin-grip" aria-label=${'拖动'+tool.label+(pinned?'排序':'到工具栏')} title="拖动到底部工具栏固定或排序" @pointerdown=${(e:PointerEvent)=>this._dragDikwPin(e,tool.id)}>⠿</button>
       ${tool.content}
       ${pinned ? nothing : html`<span class="dikw-tool-label">${tool.label}</span>`}
-      <button class="dikw-pin-toggle" aria-label=${(pinned?'取消固定':'固定')+tool.label} title=${pinned?'移回更多工具':'固定到左侧工具栏'} @click=${()=>this._saveDikwPins(pinned?this._dikwPins.filter(id=>id!==tool.id):movePin(this._dikwPins,tool.id))}>${pinned?'×':'＋'}</button>
+      <button class="dikw-pin-toggle" aria-label=${(pinned?'取消固定':'固定')+tool.label} title=${pinned?'移回更多工具':'固定到底部工具栏'} @click=${()=>this._saveDikwPins(pinned?this._dikwPins.filter(id=>id!==tool.id):movePin(this._dikwPins,tool.id))}>${pinned?'×':'＋'}</button>
     </div>`;
   }
 
@@ -678,9 +678,9 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
         <div class="dikw-panel-heading"><span>更多工具</span>
           <button type="button" aria-label="关闭更多工具" @click=${() => this._closeDikwPanels(true)}>×</button>
         </div>
-        <p class="dikw-pin-help">拖动 ⋮⋮ 到左栏常驻，也可点 ＋ 固定。</p>
+        <p class="dikw-pin-help">拖动 ⋮⋮ 到底栏常驻，也可点 ＋ 固定。</p>
         <div class="dikw-advanced-grid">${repeat(compact.filter(t=>!this._dikwPins.includes(t.id)),t=>t.id,t=>this._renderDikwCompact(t,false))}</div>
-        <p class="dikw-pin-notice" role="status">${this._dikwDragging ? '拖到左栏松开固定；Esc 取消' : this._dikwPinNotice}</p>
+        <p class="dikw-pin-notice" role="status">${this._dikwDragging ? '拖到底栏松开固定；Esc 取消' : this._dikwPinNotice}</p>
       </section>
       ${this._dikwContextTool && !unavailable ? html`
         <section class="dikw-context-panel" aria-label="当前工具选项"
@@ -812,6 +812,7 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       for (const entry of entries) {
         const { width } = entry.contentRect;
         this._onContainerResize({ w: width });
+        this._layoutDikwDock();
       }
     });
     this._resizeObserver.observe(this);
@@ -902,6 +903,18 @@ export class EdgelessToolbarWidget extends WidgetComponent<RootBlockModel> {
       })
     );
   }
+
+  private _layoutDikwDock() {
+    if(!this._isDikwBoard || this.isPresentMode)return;
+    const rail=this.renderRoot.querySelector<HTMLElement>('.dikw-toolbar');
+    if(!rail)return;
+    // A centered dock needs a full view-control width on both sides. Stack the
+    // creative dock one row above navigation when there is insufficient room.
+    const fits=this.clientWidth >= rail.scrollWidth + 520;
+    this.style.setProperty('--dikw-dock-bottom',fits?'14px':'80px');
+  }
+
+  override updated() { this._layoutDikwDock(); }
 
   override render() {
     const type = this.edgelessTool;

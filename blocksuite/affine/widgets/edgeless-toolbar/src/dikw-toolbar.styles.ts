@@ -18,9 +18,9 @@ export const dikwToolbarStyles = css`
   .dikw-advanced-panel.edgeless-toolbar-container,
   .dikw-context-panel {
     position: absolute;
-    left: 84px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 50%;
+    bottom: calc(var(--dikw-dock-bottom, 14px) + 72px);
+    transform: translateX(-50%);
     display: block;
     box-sizing: border-box;
     height: auto;
@@ -31,13 +31,13 @@ export const dikwToolbarStyles = css`
     color: var(--affine-text-primary-color);
     box-shadow: 0 3px 14px rgb(0 0 0 / 8%);
     pointer-events: auto;
-    max-height: calc(100% - 120px);
+    max-height: calc(100% - var(--dikw-dock-bottom, 14px) - 96px);
     overflow: auto;
     overscroll-behavior: contain;
   }
   .dikw-advanced-panel.edgeless-toolbar-container {
     width: 276px;
-    max-width: calc(100% - 96px);
+    max-width: calc(100% - 24px);
   }
   /* Retain native controllers and keyboard bindings while the panel is closed. */
   .dikw-advanced-panel[data-open='false'] {
@@ -54,14 +54,14 @@ export const dikwToolbarStyles = css`
   .dikw-pin-grip:focus-visible, .dikw-pin-toggle:focus-visible { outline: 2px solid var(--affine-primary-color); }
   .dikw-pin-help, .dikw-pin-notice { font-size: 11px; line-height: 1.5; color: var(--affine-text-secondary-color); margin: 4px 0 8px; }
   .dikw-pin-notice:empty { display: none; }
-  .dikw-pinned { display: flex; flex-direction: column; gap: 4px; }
+  .dikw-pinned { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; }
   .dikw-pinned-item { position: relative; width: 44px; height: 44px; flex-shrink: 0; }
-  .dikw-pinned-item .dikw-pin-grip { position: absolute; left: -6px; top: 0; width: 10px; height: 44px; z-index: 2; opacity: .5; }
+  .dikw-pinned-item .dikw-pin-grip { position: absolute; left: 0; top: -6px; width: 44px; height: 10px; z-index: 2; opacity: .5; }
   .dikw-pinned-item .dikw-pin-toggle { position: absolute; right: -6px; top: -3px; width: 16px; height: 16px; z-index: 2; opacity: 0; background: var(--affine-background-overlay-panel-color); }
   .dikw-pinned-item:hover .dikw-pin-toggle, .dikw-pinned-item:focus-within .dikw-pin-toggle { opacity: 1; }
   .dikw-toolbar[data-pin-drop] { outline: 2px solid var(--affine-primary-color); }
-  .dikw-pinned-item[data-insert-before]::before { content: ''; position: absolute; left: 0; right: 0; top: -3px; height: 2px; background: var(--affine-primary-color); }
-  .dikw-context-panel { width: min(680px, calc(100% - 96px)); }
+  .dikw-pinned-item[data-insert-before]::before { content: ''; position: absolute; left: -3px; top: 0; bottom: 0; width: 2px; background: var(--affine-primary-color); }
+  .dikw-context-panel { width: min(680px, calc(100% - 24px)); }
   .dikw-context-panel > edgeless-shape-menu,
   .dikw-context-panel > edgeless-connector-menu,
   .dikw-context-panel > edgeless-note-menu {
@@ -96,17 +96,19 @@ export const dikwToolbarStyles = css`
   }
   .dikw-toolbar {
     position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 50%;
+    bottom: var(--dikw-dock-bottom, 14px);
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     gap: 4px;
     box-sizing: border-box;
-    width: 60px;
-    max-height: calc(100% - 120px);
-    overflow-y: auto;
+    width: max-content;
+    max-width: calc(100% - 24px);
+    height: 60px;
+    overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior: contain;
     /* Keep the 44px hit area intact even with a classic scrollbar. */
     scrollbar-width: none;
@@ -158,19 +160,14 @@ export const dikwToolbarStyles = css`
   }
   .dikw-toolbar-divider {
     flex: 0 0 1px;
-    width: 28px;
+    height: 28px;
     background: var(--affine-border-color);
-    margin: 3px 0;
+    margin: 0 3px;
   }
   .dikw-readonly {
     font-size: 10px;
     line-height: 20px;
     color: var(--affine-text-secondary-color);
   }
-  @media (max-height: 500px) {
-    .dikw-toolbar { top: 12px; bottom: 76px; transform: none; max-height: none; }
-  }
-  @media (max-width: 600px) {
-    .dikw-toolbar { left: 8px; }
-  }
+
 `;

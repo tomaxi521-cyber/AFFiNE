@@ -97,12 +97,16 @@ function navigateToolbar(event: KeyboardEvent) {
     event.stopPropagation();
     return;
   }
-  if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
   const toolbar = event.currentTarget as HTMLElement;
-  const buttons = Array.from(
-    toolbar.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')
-  );
-  const index = buttons.indexOf(event.target as HTMLButtonElement);
+  const buttons: HTMLButtonElement[] = [];
+  const collect=(root: Element | ShadowRoot)=>{for(const child of root.children){
+    if(child instanceof HTMLButtonElement && !child.disabled)buttons.push(child);
+    if(child.shadowRoot)collect(child.shadowRoot);
+    collect(child);
+  }};
+  collect(toolbar);
+  const index = buttons.indexOf(event.composedPath()[0] as HTMLButtonElement);
   if (index < 0 || !buttons.length) return;
   event.preventDefault();
   event.stopPropagation();
@@ -110,7 +114,7 @@ function navigateToolbar(event: KeyboardEvent) {
     ? 0
     : event.key === 'End'
       ? buttons.length - 1
-      : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+      : (index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
   buttons[next]?.focus();
 }
 
@@ -129,7 +133,7 @@ export function renderDikwToolbar(
     host.activePopper = null;
   };
   return html`
-    <div class="dikw-toolbar" role="toolbar" aria-label="白板工具" aria-orientation="vertical"
+    <div class="dikw-toolbar" role="toolbar" aria-label="白板工具" aria-orientation="horizontal"
       @keydown=${navigateToolbar}
       @keyup=${(event: KeyboardEvent) => {
         if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
@@ -165,7 +169,7 @@ export function renderDikwToolbar(
               }
             }}>
             <span aria-hidden="true">${tool.icon()}</span>
-            <affine-tooltip tip-position="right">${tool.label} (${tool.shortcut})</affine-tooltip>
+            <affine-tooltip tip-position="top">${tool.label} (${tool.shortcut})</affine-tooltip>
           </button>
         `;
       })}
@@ -182,7 +186,7 @@ export function renderDikwToolbar(
           }));
         }}>
         <span aria-hidden="true">${EdgelessIcon()}</span>
-        <affine-tooltip tip-position="right">白板 · 点击画布创建子白板</affine-tooltip>
+        <affine-tooltip tip-position="top">白板 · 点击画布创建子白板</affine-tooltip>
       </button>
       ${pinnedContent}
       <button type="button" class="dikw-tool" data-tool="more" aria-label="更多工具"
@@ -190,7 +194,7 @@ export function renderDikwToolbar(
         aria-controls="dikw-advanced-tools" ?disabled=${locked || readonly}
         @click=${() => { closePopper(); toggleMore(); }}>
         <span aria-hidden="true">${MoreHorizontalIcon()}</span>
-        <affine-tooltip tip-position="right">${moreOpen ? '收起更多工具' : '更多工具'}</affine-tooltip>
+        <affine-tooltip tip-position="top">${moreOpen ? '收起更多工具' : '更多工具'}</affine-tooltip>
       </button>
       ${readonly ? html`<span class="dikw-readonly">只读</span>` : nothing}
     </div>

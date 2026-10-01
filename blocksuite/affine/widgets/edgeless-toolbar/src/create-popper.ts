@@ -114,19 +114,14 @@ export function createPopper<T extends keyof HTMLElementTagNameMap>(
     const updatePosition = () => {
       if (removed) return;
       const hostRect = toolbar.getBoundingClientRect();
-      const anchor = (reference.closest('.dikw-advanced-panel') ?? reference).getBoundingClientRect();
+      const anchor = reference.getBoundingClientRect();
       const right = Math.min(window.innerWidth, hostRect.right);
       const bottom = Math.min(window.innerHeight, hostRect.bottom);
       const width = Math.max(160, Math.min(680, right - hostRect.left - 24));
       clipWrapper.style.width = width + 'px';
       const height = Math.max(80, clipWrapper.offsetHeight);
-      let x = anchor.right + 12;
-      let y = anchor.top;
-      if (x + width > right - 12) {
-        x = Math.max(hostRect.left + 12, Math.min(anchor.left, right - width - 12));
-        y = anchor.bottom + 12;
-        if (y + height > bottom - 12) y = anchor.top - height - 12;
-      }
+      const x = Math.max(hostRect.left + 12, Math.min(anchor.left + anchor.width/2 - width/2, right - width - 12));
+      let y = anchor.top - height - 12;
       y = Math.max(hostRect.top + 12, Math.min(y, bottom - height - 12));
       Object.assign(clipWrapper.style, { left: (x-hostRect.left)+'px', top: (y-hostRect.top)+'px' });
     };
