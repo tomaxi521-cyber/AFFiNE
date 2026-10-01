@@ -127,7 +127,9 @@ const DetailPageImpl = memo(function DetailPageImpl() {
     const sync=()=>{
       const rootId=host.store.root?.id;
       const toolbar=rootId?host.std.view.getWidget('edgeless-toolbar-widget',rootId):null;
-      view.dikwAIEntry$.next(enableAI && !!toolbar?.hasAttribute('data-dikw-ai-entry'));
+      const available=enableAI && !!toolbar?.hasAttribute('data-dikw-ai-entry');
+      host.dataset.dikwAiBridge=JSON.stringify({view:view.id,available,rootId,found:!!toolbar});
+      view.dikwAIEntry$.next(available);
     };
     host.addEventListener('dikw:ai-open',open);
     host.addEventListener('dikw:toolbar-state',sync);
