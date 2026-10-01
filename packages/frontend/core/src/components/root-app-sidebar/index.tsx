@@ -34,10 +34,8 @@ import { memo, useCallback } from 'react';
 
 import {
   CollapsibleSection,
-  NavigationPanelCollections,
   NavigationPanelFavorites,
   NavigationPanelMigrationFavorites,
-  NavigationPanelOrganize,
   NavigationPanelTags,
 } from '../../desktop/components/navigation-panel';
 import { WorkbenchService } from '../../modules/workbench';
@@ -50,7 +48,6 @@ import {
   workspaceWrapper,
 } from './index.css';
 import { InviteMembersButton } from './invite-members-button';
-import { AppSidebarJournalButton } from './journal-button';
 import { NotificationButton } from './notification-button';
 import { SidebarAudioPlayer } from './sidebar-audio-player';
 import { TemplateDocEntrance } from './template-doc-entrance';
@@ -82,25 +79,6 @@ const BoardLibraryEntries = () => {
     <MenuLinkItem icon={<AllDocsIcon />} active={pathname === '/knowledge'} to="/knowledge">知识库</MenuLinkItem>
     <MenuLinkItem icon={<PageIcon />} active={pathname === '/artifacts'} to="/artifacts">产物库</MenuLinkItem>
   </>;
-};
-
-const AllDocsButton = () => {
-  const t = useI18n();
-  const { workbenchService } = useServices({
-    WorkbenchService,
-  });
-  const workbench = workbenchService.workbench;
-  const allPageActive = useLiveData(
-    workbench.location$.selector(location => location.pathname === '/all')
-  );
-
-  return (
-    <MenuLinkItem icon={<AllDocsIcon />} active={allPageActive} to={'/all'}>
-      <span data-testid="all-pages">
-        {t['com.affine.workspaceSubPath.all']()}
-      </span>
-    </MenuLinkItem>
-  );
 };
 
 const AIChatButton = () => {
@@ -237,10 +215,7 @@ export const RootAppSidebar = memo((): ReactElement => {
           title={t['com.affine.rootAppSidebar.others']()}
           contentStyle={{ padding: '6px 8px 0 8px' }}
         >
-          <AllDocsButton />
-          <AppSidebarJournalButton />
-          <NavigationPanelOrganize />
-          <NavigationPanelCollections />
+          <MenuLinkItem icon={<EdgelessIcon />} to="/space-demo" data-testid="dikw-space-demo">空间体验样板</MenuLinkItem>
           <TrashButton />
           {sessionStatus === 'authenticated' && <NotificationButton />}
           <AIChatButton />

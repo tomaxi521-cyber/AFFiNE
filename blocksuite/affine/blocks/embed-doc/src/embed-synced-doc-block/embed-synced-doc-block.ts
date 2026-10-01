@@ -570,7 +570,12 @@ export class EmbedSyncedDocBlockComponent extends EmbedBlockComponent<EmbedSynce
 
     const syncedDoc = this.syncedDoc;
     const { isLoading, isError, isDeleted, isCycle } = this.blockState;
-    const isCardOnly = this.depth >= 1;
+    // DIKW child spaces may show one additional nested canvas; generic references
+    // retain the native cap. Hard cap and native cycle/permission handling remain.
+    const relation = this.store.workspace.doc.getMap('dikw:board-graph:v1')
+      .get('board:' + this.model.props.pageId) as { version?: number; parentId?: string } | undefined;
+    const childSpace = this.linkedMode === 'edgeless' && relation?.version === 1 && relation.parentId === this.store.id;
+    const isCardOnly = this.depth >= (childSpace ? 2 : 1);
 
     if (
       isLoading ||

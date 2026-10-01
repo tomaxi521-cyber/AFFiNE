@@ -2,6 +2,10 @@ import type { RouteObject } from 'react-router-dom';
 
 export const workbenchRoutes = [
   {
+    path: '/space-demo',
+    lazy: () => import('../modules/dikw-workbench/space-demo-page'),
+  },
+  {
     path: '/board',
     lazy: () => import('../modules/dikw-workbench/entry-page'),
   },

@@ -19,6 +19,8 @@ import { TopTip } from '@affine/core/components/top-tip';
 import { ServerService } from '@affine/core/modules/cloud';
 import { DocService } from '@affine/core/modules/doc';
 import { ConnectedBoardNavigation } from '@affine/core/modules/dikw-workbench/connected-navigation';
+import { bindChildPortalNavigation } from '@affine/core/modules/dikw-workbench/portal-interaction';
+import { GuardService } from '@affine/core/modules/permissions';
 import { EditorService } from '@affine/core/modules/editor';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { GlobalContextService } from '@affine/core/modules/global-context';
@@ -90,6 +92,8 @@ const DetailPageImpl = memo(function DetailPageImpl() {
     WorkspaceService,
     GlobalContextService,
   });
+  const guard = useService(GuardService);
+  const [portalError, setPortalError] = useState<string | null>(null);
   const workbench = workbenchService.workbench;
   const editor = editorService.editor;
   const view = viewService.view;
@@ -194,6 +198,14 @@ const DetailPageImpl = memo(function DetailPageImpl() {
     (editorContainer: AffineEditorContainer) => {
       const std = editorContainer.std;
       const disposable = new DisposableGroup();
+      setPortalError(null);
+      disposable.add(bindChildPortalNavigation(editorContainer, {
+        source: doc.id, root: workspace.rootYDoc,
+        available: id => { const meta = workspace.docCollection.meta.getDocMeta(id); return !!meta && !meta.trash; },
+        canRead: async id => await guard.can('Doc_Read', id) === true,
+        navigate: id => workbench.open({ pathname: '/' + id, search: '?mode=edgeless' }),
+        onError: () => setPortalError('子白板暂时无法进入，请检查读取权限或稍后重试。'),
+      }));
 
       // Check if journal and handle accordingly to set focus on input block.
       if (isJournal) {
@@ -295,7 +307,7 @@ const DetailPageImpl = memo(function DetailPageImpl() {
         disposable.dispose();
       };
     },
-    [editor, workbench, peekView, isJournal]
+    [editor, workbench, peekView, isJournal, doc.id, workspace, guard]
   );
 
   const [hasScrollTop, setHasScrollTop] = useState(false);
@@ -338,7 +350,8 @@ const DetailPageImpl = memo(function DetailPageImpl() {
           {/* Add a key to force rerender when page changed, to avoid error boundary persisting. */}
           <AffineErrorBoundary key={doc.id}>
             <TopTip pageId={doc.id} workspace={workspace} />
-            <div style={{ maxHeight: 180, overflow: 'auto', flexShrink: 0 }}>
+            <div style={{ flexShrink: 0, position: 'relative', zIndex: 2 }}>
+              {portalError && <p role="alert" style={{ margin: '4px 12px' }}>{portalError}</p>}
               <ConnectedBoardNavigation key={doc.id} docId={doc.id} readonly={readonly} />
             </div>
             <Scrollable.Root>

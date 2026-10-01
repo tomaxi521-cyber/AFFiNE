@@ -16,7 +16,13 @@ import { BoardNavigation, type BoardNavigationProps } from './board-navigation';
 // These tests exercise props and DOM semantics, not theme rendering or services.
 vi.mock('./board-navigation.css', () => ({
   container: '',
+  toolbar: '',
+  path: '',
   breadcrumbs: '',
+  breadcrumbButton: '',
+  recovery: '',
+  summary: '',
+  recoveryPanel: '',
   crumb: '',
   current: '',
   actions: '',
@@ -26,7 +32,6 @@ vi.mock('./board-navigation.css', () => ({
   input: '',
   error: '',
   status: '',
-  heading: '',
   children: '',
   childButton: '',
   hint: '',
@@ -54,6 +59,9 @@ const setup = (overrides: Partial<BoardNavigationProps> = {}) => {
 const button = (name: string) =>
   screen.getByRole('button', { name }) as HTMLButtonElement;
 const openForm = () => fireEvent.click(button('新建子白板'));
+const childSummary = () => screen.getByText(/^子白板（\d+）$/);
+const childDetails = () => childSummary().closest('details')!;
+const openChildren = () => fireEvent.click(childSummary());
 const input = () =>
   screen.getByRole('textbox', { name: '子白板名称' }) as HTMLInputElement;
 const submit = () =>
@@ -72,14 +80,54 @@ describe('BoardNavigation', () => {
     expect(props.onNavigate).toHaveBeenLastCalledWith('root');
     fireEvent.click(within(nav).getByRole('button', { name: '项目' }));
     expect(props.onNavigate).toHaveBeenLastCalledWith('parent');
+    openChildren();
     fireEvent.click(button('下一步'));
     expect(props.onNavigate).toHaveBeenLastCalledWith('child');
+  });
+
+  test('keeps child recovery collapsed by default and resets it across boards', () => {
+    const { props, rerender } = setup();
+    expect(childDetails().open).toBe(false);
+    expect(childSummary().textContent).toBe('子白板（1）');
+    expect(screen.queryByRole('heading', { name: '子白板' })).toBeNull();
+    openChildren();
+    expect(childDetails().open).toBe(true);
+    expect(screen.getByRole('region', { name: '子白板列表' })).toBeTruthy();
+    expect(button('下一步')).toBeTruthy();
+    fireEvent.click(childSummary());
+    expect(childDetails().open).toBe(false);
+    openChildren();
+    rerender(<BoardNavigation {...props} path={[root, child]} />);
+    expect(childDetails().open).toBe(false);
+  });
+
+  test('Escape closes child recovery and returns focus without editor shortcuts', () => {
+    const onKeyDown = vi.fn();
+    render(
+      <div onKeyDown={onKeyDown}>
+        <BoardNavigation
+          path={[root]}
+          childrenList={[child]}
+          onNavigate={vi.fn()}
+          onCreateChild={vi.fn(async () => undefined)}
+        />
+      </div>
+    );
+    openChildren();
+    button('下一步').focus();
+    fireEvent.keyDown(button('下一步'), { key: 'Escape' });
+    expect(childDetails().open).toBe(false);
+    expect(document.activeElement).toBe(childSummary());
+    expect(onKeyDown).not.toHaveBeenCalled();
   });
 
   test('root and empty paths never invent a parent or main destination', () => {
     const { props, rerender } = setup({ path: [root], childrenList: [] });
     expect(button('返回父白板').disabled).toBe(true);
     expect(button('返回主白板').disabled).toBe(true);
+    expect(childDetails().open).toBe(false);
+    expect(childSummary().textContent).toBe('子白板（0）');
+    openChildren();
     expect(screen.getByText('暂无子白板。')).toBeTruthy();
     rerender(<BoardNavigation {...props} path={[]} />);
     expect(button('新建子白板').disabled).toBe(true);
@@ -103,12 +151,15 @@ describe('BoardNavigation', () => {
     });
     expect(button('新建子白板').disabled).toBe(true);
     expect(button('引用已有白板').disabled).toBe(true);
+    openChildren();
     expect(button('下一步').disabled).toBe(true);
     rerender(
       <BoardNavigation {...props} canCreate canNavigate canReference busy />
     );
-    for (const control of screen.getAllByRole('button')) {
-      expect((control as HTMLButtonElement).disabled).toBe(true);
+    // The disclosure stays available for inspection; destination/mutation
+    // buttons are disabled while the host is busy.
+    for (const control of document.querySelectorAll('button')) {
+      expect(control.disabled).toBe(true);
     }
     expect(screen.getByRole('status').textContent).toBe('正在加载白板…');
   });
@@ -196,8 +247,29 @@ describe('BoardNavigation', () => {
   test('shows host errors and retry without a misleading empty state', () => {
     const onRetry = vi.fn();
     setup({ error: '无法读取子白板。', onRetry, childrenList: [] });
+    expect(childDetails().open).toBe(false);
     expect(screen.getByRole('alert').textContent).toContain('无法读取子白板。');
     expect(screen.queryByText('暂无子白板。')).toBeNull();
+    fireEvent.click(button('重试'));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  test('keeps damaged path feedback and safe destinations outside child recovery', () => {
+    const onRetry = vi.fn();
+    const { props } = setup({
+      path: [parent, current],
+      error: '父白板路径不完整。',
+      canCreate: false,
+      canReference: false,
+      onReference: vi.fn(),
+      onRetry,
+    });
+    expect(childDetails().open).toBe(false);
+    expect(screen.getByRole('alert').textContent).toContain('父白板路径不完整。');
+    expect(button('新建子白板').disabled).toBe(true);
+    expect(button('引用已有白板').disabled).toBe(true);
+    fireEvent.click(button('返回父白板'));
+    expect(props.onNavigate).toHaveBeenCalledExactlyOnceWith('parent');
     fireEvent.click(button('重试'));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });

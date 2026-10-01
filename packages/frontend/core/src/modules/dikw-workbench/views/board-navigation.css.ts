@@ -2,38 +2,55 @@ import { cssVarV2 } from '@toeverything/theme/v2';
 import { style } from '@vanilla-extract/css';
 
 export const container = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 12,
+  position: 'relative',
+  flexShrink: 0,
   minWidth: 0,
-  padding: '12px 16px',
+  padding: '4px 12px',
   color: cssVarV2('text/primary'),
   background: cssVarV2('layer/background/primary'),
-  fontSize: 14,
+  fontSize: 13,
   lineHeight: 1.5,
+});
+
+export const toolbar = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '4px 8px',
+  minWidth: 0,
+});
+
+export const path = style({
+  flex: '1 1 160px',
+  minWidth: 0,
+  overflowX: 'auto',
+  scrollbarWidth: 'thin',
 });
 
 export const breadcrumbs = style({
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: 4,
+  alignItems: 'center',
+  gap: 2,
   listStyle: 'none',
   margin: 0,
-  padding: 0,
+  padding: 2,
 });
 
 export const crumb = style({
   display: 'flex',
+  flexShrink: 0,
   alignItems: 'center',
-  gap: 4,
+  gap: 2,
   minWidth: 0,
-  maxWidth: '100%',
   color: cssVarV2('text/secondary'),
 });
 
 export const current = style({
-  padding: '4px 8px',
-  overflowWrap: 'anywhere',
+  maxWidth: 240,
+  padding: '4px 6px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
   color: cssVarV2('text/primary'),
 });
 
@@ -41,12 +58,13 @@ export const actions = style({
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
-  gap: 8,
+  gap: 4,
+  color: cssVarV2('text/secondary'),
 });
 
 export const textButton = style({
   minHeight: 32,
-  minWidth: 0,
+  minWidth: 32,
   padding: '4px 8px',
   border: '1px solid transparent',
   borderRadius: 6,
@@ -54,7 +72,6 @@ export const textButton = style({
   color: 'inherit',
   font: 'inherit',
   textAlign: 'start',
-  overflowWrap: 'anywhere',
   cursor: 'pointer',
   selectors: {
     '&:hover:not(:disabled)': {
@@ -68,16 +85,58 @@ export const textButton = style({
   },
 });
 
+export const breadcrumbButton = style([
+  textButton,
+  {
+    maxWidth: 200,
+    padding: '4px 6px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+]);
+
 export const button = style([
   textButton,
   { borderColor: cssVarV2('layer/insideBorder/border') },
 ]);
+
+export const recovery = style({
+  position: 'relative',
+});
+
+export const summary = style([
+  textButton,
+  { boxSizing: 'border-box', whiteSpace: 'nowrap' },
+]);
+
+export const recoveryPanel = style({
+  position: 'absolute',
+  top: 'calc(100% + 4px)',
+  right: 0,
+  zIndex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  width: 280,
+  maxWidth: 'calc(100vw - 32px)',
+  maxHeight: 'min(320px, 50vh)',
+  overflowY: 'auto',
+  overscrollBehavior: 'contain',
+  padding: 12,
+  boxSizing: 'border-box',
+  border: '1px solid ' + cssVarV2('layer/insideBorder/border'),
+  borderRadius: 8,
+  background: cssVarV2('layer/background/primary'),
+  color: cssVarV2('text/primary'),
+});
 
 export const form = style({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
   gap: 8,
+  marginTop: 8,
   padding: 12,
   border: '1px solid ' + cssVarV2('layer/insideBorder/border'),
   borderRadius: 6,
@@ -111,7 +170,7 @@ export const error = style({
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: 8,
-  margin: 0,
+  margin: '4px 0',
   color: cssVarV2('status/error'),
   overflowWrap: 'anywhere',
 });
@@ -127,12 +186,6 @@ export const status = style([
   { selectors: { '&:empty': { margin: 0, height: 0 } } },
 ]);
 
-export const heading = style({
-  margin: '0 0 4px',
-  fontSize: 14,
-  fontWeight: 600,
-});
-
 export const children = style({
   display: 'flex',
   flexDirection: 'column',
@@ -142,4 +195,7 @@ export const children = style({
   gap: 4,
 });
 
-export const childButton = style([textButton, { width: '100%' }]);
+export const childButton = style([
+  textButton,
+  { width: '100%', overflowWrap: 'anywhere' },
+]);

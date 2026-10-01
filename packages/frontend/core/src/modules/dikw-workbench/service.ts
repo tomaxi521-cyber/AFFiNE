@@ -1,3 +1,5 @@
+import type { SurfaceBlockModel } from '@blocksuite/affine/blocks/surface';
+import type { GfxModel } from '@blocksuite/affine/std/gfx';
 import type { Store } from '@blocksuite/affine/store';
 import { LiveData, Service } from '@toeverything/infra';
 import { nanoid } from 'nanoid';
@@ -225,7 +227,7 @@ export class DikwWorkbenchService extends Service {
         saveOperation('created');
         this.repository.registerChild(docId, parentId, operationId);
         await this.workspace.engine.doc.waitForUpdated(this.workspace.id);
-        await this.addReference(parentId, docId);
+        await this.insertReference(parentId, docId, insertChildBoardPortal);
         return docId;
       } catch (cause) {
         throw new DikwChildCreationError(docId, operationId, cause);
@@ -234,6 +236,14 @@ export class DikwWorkbenchService extends Service {
   }
 
   async addReference(source: string, target: string): Promise<void> {
+    await this.insertReference(source, target, insertLinkedCard);
+  }
+
+  private async insertReference(
+    source: string,
+    target: string,
+    insert: (store: Store, target: string) => void
+  ): Promise<void> {
     await this.rootReady();
     await this.canEdit(source);
     if (await this.guardService.can('Doc_Read', target) !== true) throw new Error('没有读取目标文档权限');
@@ -248,13 +258,51 @@ export class DikwWorkbenchService extends Service {
       this.assertWritable();
       if (this.docsService.list.doc$(source).value?.trash$.value !== false ||
           this.docsService.list.doc$(target).value?.trash$.value !== false) throw new Error('文档不可用');
-      insertLinkedCard(opened.doc.blockSuiteDoc, target);
+      insert(opened.doc.blockSuiteDoc, target);
       await this.workspace.engine.doc.waitForUpdated(source);
     } finally {
       releasePriority();
       opened.release();
     }
   }
+}
+
+/** Child creation only: a native, live edgeless preview, not a moved/copied doc.
+ * Old linked cards and existing portals are reused verbatim on retry. */
+export function insertChildBoardPortal(store: Store, target: string): void {
+  if (store.readonly) throw new Error('白板为只读');
+  const surface = store.getBlocksByFlavour('affine:surface')[0]?.model as SurfaceBlockModel | undefined;
+  if (!surface) throw new Error('源白板画布尚未就绪');
+  const entries = store.getBlocksByFlavour(['affine:embed-linked-doc', 'affine:embed-synced-doc']);
+  if (entries.some(({ model }) => (model.props as { pageId?: unknown }).pageId === target && surface.children.some(c => c.id === model.id))) return;
+
+  // Native elementBound accounts for rotation, note bounds and connector labels;
+  // externalBound also reserves native group/frame titles when available.
+  // Notes live under the root, not under the surface: enumerate ALL block models.
+  const models = [...store.getAllModels(), ...surface.elementModels];
+  let right = -Infinity;
+  let top = Infinity;
+  for (const model of models) {
+    if (!('elementBound' in model)) continue;
+    const gfx = model as GfxModel;
+    for (const bound of [gfx.elementBound, gfx.externalBound]) {
+      if (!bound) continue;
+      if (![bound.x, bound.y, bound.w, bound.h, bound.x + bound.w].every(Number.isFinite) || bound.w < 0 || bound.h < 0) {
+        throw new Error('白板内容坐标无效，无法安全放置子白板入口');
+      }
+      right = Math.max(right, bound.x + bound.w);
+      top = Math.min(top, bound.y);
+    }
+  }
+  const x = right === -Infinity ? 0 : right + 64;
+  const y = top === Infinity ? 0 : top;
+  // Native EMBED_CARD_WIDTH/HEIGHT.syncedDoc (800 × 455), not linked-card size.
+  store.addBlock('affine:embed-synced-doc', {
+    pageId: target,
+    params: { mode: 'edgeless' },
+    style: 'syncedDoc',
+    xywh: JSON.stringify([x, y, 800, 455]),
+  }, surface.id);
 }
 
 /** Inserts a native surface child; never use the move-to-linked-doc command.

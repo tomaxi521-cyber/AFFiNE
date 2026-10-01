@@ -125,72 +125,126 @@ const BoardNavigationContent = ({
 
   return (
     <section className={styles.container} aria-label="白板导航">
-      <nav aria-label="白板层级路径">
-        <ol className={styles.breadcrumbs}>
-          {path.map((board, index) => (
-            <li className={styles.crumb} key={board.id}>
-              {index > 0 ? <span aria-hidden="true">/</span> : null}
-              {index === path.length - 1 ? (
-                <span className={styles.current} aria-current="page">
-                  {displayTitle(board)}
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.textButton}
-                  disabled={navigationDisabled}
-                  onClick={() => onNavigate(board.id)}
-                >
-                  {displayTitle(board)}
-                </button>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={styles.button}
-          disabled={navigationDisabled || !parent}
-          onClick={() => parent && onNavigate(parent.id)}
-        >
-          返回父白板
-        </button>
-        <button
-          type="button"
-          className={styles.button}
-          disabled={navigationDisabled || !root || path.length < 2}
-          onClick={() => root && onNavigate(root.id)}
-        >
-          返回主白板
-        </button>
-        <button
-          ref={createButtonRef}
-          type="button"
-          className={styles.button}
-          disabled={creationDisabled}
-          aria-expanded={formOpen}
-          aria-controls={formOpen ? id + '-form' : undefined}
-          title={!canCreate ? '当前无新建子白板权限' : undefined}
-          onClick={() => {
-            setNotice('');
-            setFormOpen(true);
-          }}
-        >
-          新建子白板
-        </button>
-        {onReference ? (
+      <div className={styles.toolbar}>
+        <div className={styles.actions}>
           <button
             type="button"
-            className={styles.button}
-            disabled={pending || !canReference || !current}
-            title="引用不会改变白板的父子关系"
-            onClick={onReference}
+            className={styles.textButton}
+            aria-label="返回父白板"
+            title="返回父白板"
+            disabled={navigationDisabled || !parent}
+            onClick={() => parent && onNavigate(parent.id)}
           >
-            引用已有白板
+            <span aria-hidden="true">←</span>
           </button>
-        ) : null}
+          <button
+            type="button"
+            className={styles.textButton}
+            aria-label="返回主白板"
+            title="返回主白板"
+            disabled={navigationDisabled || !root || path.length < 2}
+            onClick={() => root && onNavigate(root.id)}
+          >
+            主白板
+          </button>
+        </div>
+        <nav className={styles.path} aria-label="白板层级路径">
+          <ol className={styles.breadcrumbs}>
+            {path.map((board, index) => (
+              <li className={styles.crumb} key={board.id}>
+                {index > 0 ? <span aria-hidden="true">/</span> : null}
+                {index === path.length - 1 ? (
+                  <span
+                    className={styles.current}
+                    aria-current="page"
+                    title={displayTitle(board)}
+                  >
+                    {displayTitle(board)}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.breadcrumbButton}
+                    title={displayTitle(board)}
+                    disabled={navigationDisabled}
+                    onClick={() => onNavigate(board.id)}
+                  >
+                    {displayTitle(board)}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+          {!current ? <span className={styles.hint}>尚未选择白板。</span> : null}
+        </nav>
+        <div className={styles.actions}>
+          <button
+            ref={createButtonRef}
+            type="button"
+            className={styles.textButton}
+            disabled={creationDisabled}
+            aria-expanded={formOpen}
+            aria-controls={formOpen ? id + '-form' : undefined}
+            title={!canCreate ? '当前无新建子白板权限' : undefined}
+            onClick={() => {
+              setNotice('');
+              setFormOpen(true);
+            }}
+          >
+            新建子白板
+          </button>
+          {onReference ? (
+            <button
+              type="button"
+              className={styles.textButton}
+              disabled={pending || !canReference || !current}
+              title="引用不会改变白板的父子关系"
+              onClick={onReference}
+            >
+              引用已有白板
+            </button>
+          ) : null}
+          <details
+            className={styles.recovery}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                event.currentTarget.open = false;
+                event.currentTarget.querySelector('summary')?.focus();
+              }
+            }}
+          >
+            <summary className={styles.summary}>
+              子白板（{childrenList.length}）
+            </summary>
+            <section
+              className={styles.recoveryPanel}
+              aria-label="子白板列表"
+              aria-busy={pending}
+            >
+              <p className={styles.hint}>找不到画布中的子白板？从这里进入。</p>
+              {childrenList.length ? (
+                <ul className={styles.children}>
+                  {childrenList.map((board) => (
+                    <li key={board.id}>
+                      <button
+                        type="button"
+                        className={styles.childButton}
+                        disabled={navigationDisabled}
+                        onClick={() => onNavigate(board.id)}
+                      >
+                        {displayTitle(board)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : !pending && !error && current ? (
+                <p className={styles.hint}>暂无子白板。</p>
+              ) : null}
+            </section>
+          </details>
+        </div>
       </div>
       {error ? (
         <div role="alert" className={styles.error}>
@@ -272,31 +326,6 @@ const BoardNavigationContent = ({
       <p role="status" className={styles.status}>
         {creating ? '正在创建子白板…' : busy ? '正在加载白板…' : notice}
       </p>
-      <section aria-labelledby={id + '-children'} aria-busy={pending}>
-        <h2 id={id + '-children'} className={styles.heading}>
-          子白板
-        </h2>
-        {childrenList.length ? (
-          <ul className={styles.children}>
-            {childrenList.map((board) => (
-              <li key={board.id}>
-                <button
-                  type="button"
-                  className={styles.childButton}
-                  disabled={navigationDisabled}
-                  onClick={() => onNavigate(board.id)}
-                >
-                  {displayTitle(board)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : !pending && !error ? (
-          <p className={styles.hint}>
-            {current ? '暂无子白板。' : '尚未选择白板。'}
-          </p>
-        ) : null}
-      </section>
     </section>
   );
 };
