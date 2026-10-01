@@ -76,7 +76,7 @@ describe('BoardNavigation', () => {
     );
     fireEvent.click(button('返回父白板'));
     expect(props.onNavigate).toHaveBeenLastCalledWith('parent');
-    fireEvent.click(button('返回主白板'));
+    fireEvent.click(button('返回主工作台'));
     expect(props.onNavigate).toHaveBeenLastCalledWith('root');
     fireEvent.click(within(nav).getByRole('button', { name: '项目' }));
     expect(props.onNavigate).toHaveBeenLastCalledWith('parent');
@@ -124,7 +124,7 @@ describe('BoardNavigation', () => {
   test('root and empty paths never invent a parent or main destination', () => {
     const { props, rerender } = setup({ path: [root], childrenList: [] });
     expect(button('返回父白板').disabled).toBe(true);
-    expect(button('返回主白板').disabled).toBe(true);
+    expect(button('返回主工作台').disabled).toBe(true);
     expect(childDetails().open).toBe(false);
     expect(childSummary().textContent).toBe('子白板（0）');
     openChildren();
