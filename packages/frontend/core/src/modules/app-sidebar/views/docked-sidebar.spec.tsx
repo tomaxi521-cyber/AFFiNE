@@ -110,6 +110,16 @@ vi.mock('./index.css', () => ({
   resizeHandleShortcutStyle: 'resize-shortcut',
 }));
 vi.mock('./fallback.css', () => ({}));
+// The views barrel also exports unrelated features; do not initialize their
+// service graphs while exercising the real sidebar/header/switch composition.
+vi.mock('./add-page-button', () => ({}));
+vi.mock('./app-download-button', () => ({}));
+vi.mock('./app-updater-button', () => ({}));
+vi.mock('./category-divider', () => ({}));
+vi.mock('./menu-item', () => ({}));
+vi.mock('./open-in-app-card', () => ({}));
+vi.mock('./quick-search-input', () => ({}));
+vi.mock('./sidebar-containers', () => ({}));
 vi.mock('./sidebar-header/sidebar-switch.css', () => ({
   sidebarSwitchClip: 'sidebar-switch-clip',
 }));
