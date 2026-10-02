@@ -3,6 +3,7 @@ import { style } from '@vanilla-extract/css';
 
 export const sidebarSwitchClip = style({
   position: 'relative',
+  '@media': { '(any-pointer: coarse)': { minWidth: 44, minHeight: 44 } },
   flexShrink: 0,
   overflow: 'hidden',
   transition:
@@ -15,6 +16,9 @@ export const sidebarSwitchClip = style({
     '&[data-show=false]': {
       opacity: 0,
       maxWidth: 0,
+      minWidth: 0,
+      minHeight: 0,
+      pointerEvents: 'none',
     },
     '&[data-notification=true]:after': {
       transform: 'scale(1)',

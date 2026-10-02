@@ -10,9 +10,8 @@ import {
   useService,
   useServiceOptional,
 } from '@toeverything/infra';
-import clsx from 'clsx';
 import type { PropsWithChildren, ReactElement } from 'react';
-import { useCallback, useContext, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { WorkbenchService } from '../../workbench';
 import { allowedSplitViewEntityTypes } from '../../workbench/view/split-view/types';
@@ -20,13 +19,11 @@ import { WorkspaceService } from '../../workspace';
 import { AppSidebarService } from '../services/app-sidebar';
 import * as styles from './fallback.css';
 import {
-  hoverNavWrapperStyle,
   navBodyStyle,
   navHeaderStyle,
   navStyle,
   navWrapperStyle,
   resizeHandleShortcutStyle,
-  sidebarFloatMaskStyle,
 } from './index.css';
 import { SidebarHeader } from './sidebar-header';
 
@@ -52,19 +49,18 @@ export function AppSidebar({
 
   const open = useLiveData(appSidebarService.open$);
   const width = useLiveData(appSidebarService.width$);
-  const smallScreenMode = useLiveData(appSidebarService.smallScreenMode$);
-  const hovering = useLiveData(appSidebarService.hovering$) && open !== true;
   const resizing = useLiveData(appSidebarService.resizing$);
 
-  const sidebarState = smallScreenMode
-    ? open
-      ? 'floating-with-mask'
-      : 'close'
-    : open
-      ? 'open'
-      : hovering
-        ? 'floating'
-        : 'close';
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  // Clamp presentation only: do not overwrite the user's stored desktop width.
+  const maxWidth = Math.max(200, Math.min(MAX_WIDTH, viewportWidth - 96));
+  const minWidth = Math.min(MIN_WIDTH, maxWidth);
+  const displayWidth = Math.min(maxWidth, Math.max(minWidth, width));
 
   const hasRightBorder = !BUILD_CONFIG.isElectron && !clientBorder;
 
@@ -88,33 +84,6 @@ export function AppSidebar({
     },
     [appSidebarService]
   );
-
-  const handleClose = useCallback(() => {
-    appSidebarService.setOpen(false);
-  }, [appSidebarService]);
-
-  useEffect(() => {
-    if (sidebarState !== 'floating' || resizing) {
-      return;
-    }
-    const onMouseMove = (e: MouseEvent) => {
-      const menuElement = document.querySelector(
-        'body > [data-radix-popper-content-wrapper] > [data-radix-menu-content]'
-      );
-
-      if (menuElement) {
-        return;
-      }
-
-      if (e.clientX > width + 20) {
-        appSidebarService.setHovering(false);
-      }
-    };
-    document.addEventListener('mousemove', onMouseMove);
-    return () => {
-      document.removeEventListener('mousemove', onMouseMove);
-    };
-  }, [appSidebarService, resizing, sidebarState, width]);
 
   const resizeHandleDropTargetOptions = useMemo(() => {
     return () => ({
@@ -145,22 +114,18 @@ export function AppSidebar({
     <>
       <ResizePanel
         resizeHandleDropTargetOptions={resizeHandleDropTargetOptions}
-        floating={
-          sidebarState === 'floating' || sidebarState === 'floating-with-mask'
-        }
-        open={sidebarState !== 'close'}
+        floating={false}
+        open={open}
         resizing={resizing}
-        maxWidth={MAX_WIDTH}
-        minWidth={MIN_WIDTH}
-        width={width}
+        maxWidth={maxWidth}
+        minWidth={minWidth}
+        width={displayWidth}
         resizeHandlePos="right"
         onOpen={handleOpenChange}
         onResizing={handleResizing}
         onWidthChange={handleWidthChange}
         unmountOnExit={false}
-        className={clsx(navWrapperStyle, {
-          [hoverNavWrapperStyle]: sidebarState === 'floating',
-        })}
+        className={navWrapperStyle}
         resizeHandleOffset={0}
         resizeHandleVerticalPadding={clientBorder ? 16 : 0}
         resizeHandleTooltip={<ResizeHandleTooltipContent />}
@@ -171,7 +136,7 @@ export function AppSidebar({
         resizeHandleTooltipShortcut={['$mod', '/']}
         resizeHandleTooltipShortcutClassName={resizeHandleShortcutStyle}
         data-transparent
-        data-open={sidebarState !== 'close'}
+        data-open={open}
         data-has-border={hasRightBorder}
         data-testid="app-sidebar-wrapper"
         data-is-macos-electron={isMacosDesktop}
@@ -179,23 +144,12 @@ export function AppSidebar({
         data-is-electron={BUILD_CONFIG.isElectron}
       >
         <nav className={navStyle} data-testid="app-sidebar">
-          {!BUILD_CONFIG.isElectron && sidebarState !== 'floating' && (
-            <SidebarHeader>{headerContent}</SidebarHeader>
-          )}
+          <SidebarHeader>{headerContent}</SidebarHeader>
           <div className={navBodyStyle} data-testid="sliderBar-inner">
-            {(BUILD_CONFIG.isElectron || sidebarState === 'floating') &&
-              headerContent}
             {children}
           </div>
         </nav>
       </ResizePanel>
-      <div
-        data-testid="app-sidebar-float-mask"
-        data-open={open}
-        data-is-floating={sidebarState === 'floating-with-mask'}
-        className={sidebarFloatMaskStyle}
-        onClick={handleClose}
-      />
     </>
   );
 }

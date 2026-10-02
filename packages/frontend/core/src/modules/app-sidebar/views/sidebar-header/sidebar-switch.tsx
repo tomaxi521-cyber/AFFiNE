@@ -3,7 +3,7 @@ import { NotificationCountService } from '@affine/core/modules/notification';
 import { track } from '@affine/track';
 import { SidebarIcon } from '@affine/core/components/root-app-sidebar/sidebar-icon';
 import { useLiveData, useService } from '@toeverything/infra';
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 
 import { AppSidebarService } from '../../services/app-sidebar';
 import * as styles from './sidebar-switch.css';
@@ -22,31 +22,11 @@ export const SidebarSwitch = ({
 
   const appSidebarService = useService(AppSidebarService).sidebar;
   const open = useLiveData(appSidebarService.open$);
-  const preventHovering = useLiveData(appSidebarService.preventHovering$);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const switchRef = useRef<HTMLDivElement>(null);
-  const handleMouseEnter = useCallback(() => {
-    if (preventHovering || open) {
-      return;
-    }
-    appSidebarService.setHovering(true);
-  }, [appSidebarService, open, preventHovering]);
-
   const handleClickSwitch = useCallback(() => {
     track.$.navigationPanel.$.toggle({
       type: open ? 'collapse' : 'expand',
     });
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    if (open) {
-      appSidebarService.setHovering(false);
-      timeoutRef.current = setTimeout(() => {
-        appSidebarService.setPreventHovering(false);
-      }, 500);
-    }
-
-    appSidebarService.setPreventHovering(true);
+    appSidebarService.setHovering(false);
     appSidebarService.toggleSidebar();
   }, [appSidebarService, open]);
 
@@ -54,11 +34,9 @@ export const SidebarSwitch = ({
 
   return (
     <div
-      ref={switchRef}
       data-show={show}
       className={styles.sidebarSwitchClip}
       data-testid={`app-sidebar-arrow-button-${open ? 'collapse' : 'expand'}`}
-      onMouseEnter={handleMouseEnter}
       data-notification={showNotificationDot}
     >
       <IconButton
@@ -66,6 +44,8 @@ export const SidebarSwitch = ({
         size="24"
         style={{
           zIndex: 1,
+          width: '100%',
+          minHeight: 'inherit',
         }}
         onClick={handleClickSwitch}
         aria-label={open ? '收起侧栏' : '展开侧栏'}
